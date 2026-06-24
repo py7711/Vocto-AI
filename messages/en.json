@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "title": "Free Online Speech to Text Converter",
+    "description": "Vocto turns audio, video, and YouTube links into editable transcripts, summaries, mind maps, Q&A, translations, and subtitle exports."
+  },
+  "app": {
+    "brand": "Vocto",
+    "tagline": "Audio and video into useful language, fast.",
+    "upload": "Upload",
+    "youtube": "YouTube",
+    "drop": "Drop audio or video here",
+    "choose": "Choose file",
+    "youtubePlaceholder": "Paste a YouTube URL",
+    "language": "Language",
+    "auto": "Auto detect",
+    "speakerLabels": "Speaker labels",
+    "start": "Start",
+    "status": "Status",
+    "transcript": "Transcript",
+    "summary": "Summary",
+    "mindMap": "Mind map",
+    "qa": "Q&A",
+    "translation": "Translation",
+    "exports": "Exports",
+    "generateInsights": "Generate insights",
+    "empty": "Start with a file or link. Your transcript and AI workspace will appear here.",
+    "processing": "Processing",
+    "completed": "Completed",
+    "failed": "Failed"
+  }
+}

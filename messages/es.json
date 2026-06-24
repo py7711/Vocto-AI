@@ -1,0 +1,4 @@
+{
+  "meta": {"title": "Convertidor gratuito de voz a texto en línea", "description": "Vocto convierte audio, video y enlaces de YouTube en transcripciones e ideas de IA."},
+  "app": {"brand": "Vocto", "tagline": "Audio y video convertidos en lenguaje útil.", "upload": "Subir", "youtube": "YouTube", "drop": "Suelta audio o video aquí", "choose": "Elegir archivo", "youtubePlaceholder": "Pega una URL de YouTube", "language": "Idioma", "auto": "Detectar", "speakerLabels": "Hablantes", "start": "Empezar", "status": "Estado", "transcript": "Transcripción", "summary": "Resumen", "mindMap": "Mapa mental", "qa": "Preguntas", "translation": "Traducción", "exports": "Exportar", "generateInsights": "Generar ideas", "empty": "Empieza con un archivo o enlace.", "processing": "Procesando", "completed": "Completado", "failed": "Error"}
+}

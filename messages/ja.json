@@ -1,0 +1,4 @@
+{
+  "meta": {"title": "無料オンライン音声テキスト変換", "description": "Vocto は音声、動画、YouTube リンクを文字起こしと AI インサイトに変換します。"},
+  "app": {"brand": "Vocto", "tagline": "音声と動画を使える言葉へ。", "upload": "アップロード", "youtube": "YouTube", "drop": "音声または動画をドロップ", "choose": "ファイル選択", "youtubePlaceholder": "YouTube URL を貼り付け", "language": "言語", "auto": "自動検出", "speakerLabels": "話者ラベル", "start": "開始", "status": "状態", "transcript": "文字起こし", "summary": "要約", "mindMap": "マインドマップ", "qa": "Q&A", "translation": "翻訳", "exports": "書き出し", "generateInsights": "AI 分析", "empty": "ファイルまたはリンクから始めます。", "processing": "処理中", "completed": "完了", "failed": "失敗"}
+}

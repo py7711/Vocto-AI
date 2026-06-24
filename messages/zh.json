@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "title": "免费在线语音转文本转换器",
+    "description": "Vocto 将音频、视频和 YouTube 链接转换成可编辑转写、总结、思维导图、问答、翻译和字幕导出。"
+  },
+  "app": {
+    "brand": "Vocto",
+    "tagline": "把音视频变成可继续工作的文字。",
+    "upload": "上传",
+    "youtube": "YouTube",
+    "drop": "拖入音频或视频",
+    "choose": "选择文件",
+    "youtubePlaceholder": "粘贴 YouTube 链接",
+    "language": "语言",
+    "auto": "自动识别",
+    "speakerLabels": "发言人标签",
+    "start": "开始处理",
+    "status": "状态",
+    "transcript": "转写",
+    "summary": "总结",
+    "mindMap": "思维导图",
+    "qa": "问答",
+    "translation": "翻译",
+    "exports": "导出",
+    "generateInsights": "生成 AI 洞察",
+    "empty": "从文件或链接开始。转写和 AI 工作区会显示在这里。",
+    "processing": "处理中",
+    "completed": "已完成",
+    "failed": "失败"
+  }
+}
