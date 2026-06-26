@@ -9,8 +9,11 @@ datasource db {
 
 enum SubscriptionPlan {
   FREE
+  BASIC
+  STANDARD
   PRO
   TEAM
+  ENTERPRISE
 }
 
 enum SubscriptionStatus {
@@ -52,17 +55,66 @@ enum ExportFormat {
   PDF
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TeamMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum TeamMemberStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum WebhookStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum UsageLedgerType {
+  RESERVE
+  SETTLE
+  RELEASE
+  ADJUST
+}
+
 model User {
   /// 用户唯一 ID
-  id             String         @id @default(cuid())
+  id             String         @id @default(cuid()) @db.VarChar(32)
   /// 用户邮箱
-  email          String         @unique
+  email          String         @unique @db.VarChar(320)
+  /// 登录密码哈希，OAuth 用户可为空
+  passwordHash   String?        @map("password_hash") @db.VarChar(255)
   /// 用户显示名称
-  name           String?
+  name           String?        @db.VarChar(120)
   /// 用户头像 URL
-  image          String?
+  image          String?        @db.VarChar(2048)
+  /// 用户角色：普通用户或管理员
+  role           UserRole       @default(USER)
   /// 用户首选界面语言
-  locale         String         @default("en")
+  locale         String         @default("en") @db.VarChar(16)
+  /// 邮箱验证时间，为空表示未验证
+  emailVerifiedAt DateTime?     @map("email_verified_at")
+  /// 用户最后登录时间
+  lastLoginAt    DateTime?      @map("last_login_at")
   /// 免费用户当日已使用次数
   dailyFreeCount Int            @default(0)
   /// 免费次数下次重置时间
@@ -73,25 +125,267 @@ model User {
   updatedAt      DateTime       @updatedAt
   subscriptions  Subscription[]
   mediaTasks     MediaTask[]
+  oauthAccounts  OAuthAccount[]
+  emailVerificationTokens EmailVerificationToken[]
+  usageLedgers    UsageLedger[]
+  ownedTeams      Team[]         @relation("TeamOwner")
+  teamMemberships TeamMember[]
+  createdApiKeys  ApiKey[]       @relation("ApiKeyCreator")
+  auditLogs       AuditLog[]
+  shareLinks      ShareLink[]     @relation("ShareLinkCreator")
+  createdWebhookEndpoints WebhookEndpoint[] @relation("WebhookEndpointCreator")
+}
+
+model Team {
+  /// 团队空间 ID
+  id            String       @id @default(cuid()) @db.VarChar(32)
+  /// 团队名称
+  name          String       @db.VarChar(160)
+  /// 团队短标识，可用于后续公开链接或企业域名
+  slug          String?      @unique @db.VarChar(80)
+  /// 团队所有者用户 ID
+  ownerId       String       @db.VarChar(32)
+  /// 团队默认界面语言
+  defaultLocale String       @default("zh") @db.VarChar(16)
+  /// 企业数据保留天数，空值表示跟随系统默认策略
+  retentionDays Int?         @default(180)
+  /// 团队创建时间
+  createdAt     DateTime     @default(now())
+  /// 团队更新时间
+  updatedAt     DateTime     @updatedAt
+  owner         User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members       TeamMember[]
+  mediaTasks    MediaTask[]
+  apiKeys       ApiKey[]
+  auditLogs     AuditLog[]
+  shareLinks    ShareLink[]
+  webhookEndpoints WebhookEndpoint[]
+  webhookDeliveries WebhookDelivery[]
+
+  @@index([ownerId, createdAt])
+}
+
+model WebhookEndpoint {
+  /// Webhook Endpoint ID
+  id            String        @id @default(cuid()) @db.VarChar(32)
+  /// 关联团队 ID
+  teamId        String        @db.VarChar(32)
+  /// Webhook 名称
+  name          String        @db.VarChar(120)
+  /// 回调目标 URL
+  url           String        @db.VarChar(2048)
+  /// Webhook 签名密钥哈希，数据库不保存明文密钥
+  secretHash    String        @map("secret_hash") @db.VarChar(128)
+  /// Webhook 签名密钥前缀，只用于界面展示
+  secretPrefix  String        @map("secret_prefix") @db.VarChar(24)
+  /// 订阅事件列表 JSON，例如 task.completed、task.failed
+  events        Json
+  /// Webhook 状态
+  status        WebhookStatus @default(ACTIVE)
+  /// 连续失败次数
+  failureCount  Int           @default(0) @map("failure_count")
+  /// 最后投递时间
+  lastDeliveryAt DateTime?    @map("last_delivery_at")
+  /// 创建人用户 ID
+  createdById   String?       @map("created_by_id") @db.VarChar(32)
+  /// Webhook 创建时间
+  createdAt     DateTime      @default(now())
+  /// Webhook 更新时间
+  updatedAt     DateTime      @updatedAt
+  team          Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy     User?         @relation("WebhookEndpointCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  deliveries    WebhookDelivery[]
+
+  @@index([teamId, status])
+  @@index([createdById])
+}
+
+model WebhookDelivery {
+  /// Webhook 投递记录 ID
+  id          String                @id @default(cuid()) @db.VarChar(32)
+  /// 关联 Webhook Endpoint ID
+  endpointId  String                @db.VarChar(32)
+  /// 关联团队 ID
+  teamId      String                @db.VarChar(32)
+  /// 事件类型
+  event       String                @db.VarChar(80)
+  /// 业务对象类型
+  targetType  String                @map("target_type") @db.VarChar(80)
+  /// 业务对象 ID
+  targetId    String?               @map("target_id") @db.VarChar(80)
+  /// 投递状态
+  status      WebhookDeliveryStatus @default(PENDING)
+  /// HTTP 响应状态码
+  responseStatus Int?               @map("response_status")
+  /// 响应或错误摘要
+  responseBody String?              @map("response_body") @db.VarChar(1024)
+  /// 投递耗时毫秒
+  durationMs  Int?                  @map("duration_ms")
+  /// 事件载荷 JSON
+  payload     Json
+  /// 投递创建时间
+  createdAt   DateTime              @default(now())
+  /// 投递更新时间
+  updatedAt   DateTime              @updatedAt
+  endpoint    WebhookEndpoint       @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  team        Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId, createdAt])
+  @@index([teamId, createdAt])
+  @@index([event, createdAt])
+}
+
+model TeamMember {
+  /// 团队成员记录 ID
+  id           String           @id @default(cuid()) @db.VarChar(32)
+  /// 关联团队 ID
+  teamId       String           @db.VarChar(32)
+  /// 关联用户 ID，邀请未注册邮箱时为空
+  userId       String?          @db.VarChar(32)
+  /// 被邀请邮箱，便于未注册用户后续认领
+  invitedEmail String?          @db.VarChar(320)
+  /// 团队角色：所有者、管理员、成员或只读成员
+  role         TeamMemberRole   @default(MEMBER)
+  /// 成员状态：已加入、已邀请或已停用
+  status       TeamMemberStatus @default(ACTIVE)
+  /// 团队内职务或备注
+  title        String?          @db.VarChar(120)
+  /// 邀请发起人用户 ID
+  invitedById  String?          @db.VarChar(32)
+  /// 成员加入时间
+  joinedAt     DateTime?
+  /// 成员记录创建时间
+  createdAt    DateTime         @default(now())
+  /// 成员记录更新时间
+  updatedAt    DateTime         @updatedAt
+  team         Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([teamId, userId])
+  @@unique([teamId, invitedEmail])
+  @@index([userId])
+  @@index([teamId, role])
+}
+
+model ApiKey {
+  /// API Key 记录 ID
+  id          String       @id @default(cuid()) @db.VarChar(32)
+  /// 关联团队 ID
+  teamId      String       @db.VarChar(32)
+  /// API Key 名称
+  name        String       @db.VarChar(120)
+  /// 明文 Key 前缀，只用于界面展示和排查
+  keyPrefix   String       @unique @map("key_prefix") @db.VarChar(24)
+  /// API Key 哈希值，数据库不保存明文 Key
+  keyHash     String       @unique @map("key_hash") @db.VarChar(128)
+  /// API Key 状态
+  status      ApiKeyStatus @default(ACTIVE)
+  /// 创建人用户 ID
+  createdById String?      @map("created_by_id") @db.VarChar(32)
+  /// 最后使用时间
+  lastUsedAt  DateTime?    @map("last_used_at")
+  /// 过期时间，为空表示长期有效
+  expiresAt   DateTime?    @map("expires_at")
+  /// 吊销时间
+  revokedAt   DateTime?    @map("revoked_at")
+  /// API Key 创建时间
+  createdAt   DateTime     @default(now())
+  /// API Key 更新时间
+  updatedAt   DateTime     @updatedAt
+  team        Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy   User?        @relation("ApiKeyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([teamId, status])
+  @@index([createdById])
+}
+
+model AuditLog {
+  /// 审计日志 ID
+  id         String   @id @default(cuid()) @db.VarChar(32)
+  /// 关联团队 ID
+  teamId     String?  @db.VarChar(32)
+  /// 操作用户 ID，系统或 API Key 自动操作时可为空
+  userId     String?  @db.VarChar(32)
+  /// 审计动作，例如 task.create、api_key.revoke
+  action     String   @db.VarChar(80)
+  /// 操作对象类型
+  targetType String   @map("target_type") @db.VarChar(80)
+  /// 操作对象 ID
+  targetId   String?  @map("target_id") @db.VarChar(80)
+  /// 请求 IP 地址
+  ipAddress  String?  @map("ip_address") @db.VarChar(64)
+  /// 请求 User-Agent
+  userAgent  String?  @map("user_agent") @db.VarChar(512)
+  /// 结构化审计元数据
+  metadata   Json?
+  /// 审计日志创建时间
+  createdAt  DateTime @default(now())
+  team       Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([teamId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
+
+model OAuthAccount {
+  /// OAuth 账号绑定 ID
+  id                String   @id @default(cuid()) @db.VarChar(32)
+  /// 关联用户 ID
+  userId            String   @db.VarChar(32)
+  /// OAuth 服务商，例如 google
+  provider          String   @db.VarChar(32)
+  /// 服务商返回的用户唯一 ID
+  providerAccountId String   @map("provider_account_id") @db.VarChar(191)
+  /// 服务商返回的邮箱
+  email             String?  @db.VarChar(320)
+  /// 服务商返回的头像 URL
+  avatarUrl         String?  @map("avatar_url") @db.VarChar(2048)
+  /// OAuth 账号绑定创建时间
+  createdAt         DateTime @default(now())
+  /// OAuth 账号绑定更新时间
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  /// 邮箱验证 Token ID
+  id        String    @id @default(cuid()) @db.VarChar(32)
+  /// 关联用户 ID
+  userId    String    @db.VarChar(32)
+  /// Token 哈希值，避免明文 Token 入库
+  tokenHash String    @unique @map("token_hash") @db.VarChar(128)
+  /// Token 过期时间
+  expiresAt DateTime  @map("expires_at")
+  /// Token 使用时间，为空表示未使用
+  usedAt    DateTime? @map("used_at")
+  /// 邮箱验证 Token 创建时间
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
 }
 
 model Subscription {
   /// 订阅记录 ID
-  id                   String             @id @default(cuid())
+  id                   String             @id @default(cuid()) @db.VarChar(32)
   /// 关联用户 ID
-  userId               String
+  userId               String             @db.VarChar(32)
   /// 订阅套餐
   plan                 SubscriptionPlan   @default(FREE)
   /// Stripe 订阅状态
   status               SubscriptionStatus @default(ACTIVE)
   /// Stripe 客户 ID
-  stripeCustomerId     String?            @unique
+  stripeCustomerId     String?            @unique @db.VarChar(128)
   /// Stripe 订阅 ID
-  stripeSubscriptionId String?            @unique
+  stripeSubscriptionId String?            @unique @db.VarChar(128)
   /// 每月分钟额度
-  monthlyMinuteQuota   Int                @default(90)
+  monthlyMinuteQuota   Int                @default(120)
   /// 剩余可用分钟数
-  remainingMinutes     Int                @default(90)
+  remainingMinutes     Int                @default(120)
   /// 单次任务最大音视频分钟数
   maxSingleFileMinutes Int                @default(30)
   /// 单文件上传大小上限
@@ -105,39 +399,68 @@ model Subscription {
   /// 订阅更新时间
   updatedAt            DateTime           @updatedAt
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageLedgers         UsageLedger[]
 
   @@index([userId])
 }
 
+model UsageLedger {
+  /// 用量流水 ID
+  id             String          @id @default(cuid()) @db.VarChar(32)
+  /// 关联用户 ID
+  userId         String          @db.VarChar(32)
+  /// 关联订阅 ID
+  subscriptionId String          @db.VarChar(32)
+  /// 关联任务 ID，手工调整时可为空
+  mediaTaskId    String?         @db.VarChar(32)
+  /// 流水类型：预留、结算、释放或手工调整
+  type           UsageLedgerType
+  /// 分钟变化量，扣减为负数，释放或赠送为正数
+  minutesDelta   Int
+  /// 流水备注，便于排查额度变化原因
+  reason         String?         @db.VarChar(255)
+  /// 用量流水创建时间
+  createdAt      DateTime        @default(now())
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   Subscription    @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  mediaTask      MediaTask?      @relation(fields: [mediaTaskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([subscriptionId, createdAt])
+  @@index([mediaTaskId])
+}
+
 model MediaTask {
   /// 转写任务 ID
-  id               String          @id @default(cuid())
+  id               String          @id @default(cuid()) @db.VarChar(32)
   /// 关联用户 ID，匿名用户为空
-  userId           String?
+  userId           String?         @db.VarChar(32)
+  /// 关联团队 ID，登录或 API Key 创建的任务默认进入团队空间
+  teamId           String?         @db.VarChar(32)
   /// 来源类型：上传或 YouTube
   sourceType       MediaSourceType
   /// 原始文件名或视频标题
-  originalName     String?
+  originalName     String?         @db.VarChar(512)
   /// 原始媒体 URL、R2 对象 URL 或 YouTube 链接
   sourceUrl        String          @db.VarChar(2048)
   /// FFmpeg 预处理后的音频 URL
   normalizedUrl    String?         @db.VarChar(2048)
   /// R2 对象存储 Key
-  objectKey        String?
+  objectKey        String?         @db.VarChar(1024)
   /// 当前处理状态
   status           MediaTaskStatus @default(UPLOADING)
   /// 面向用户的状态说明或错误摘要
   statusMessage    String?         @db.VarChar(1024)
   /// 转写语言代码，auto 表示自动检测
-  language         String?
+  language         String?         @db.VarChar(16)
   /// 服务商检测到的语言代码
-  detectedLanguage String?
+  detectedLanguage String?         @db.VarChar(16)
   /// 音视频时长（秒）
   durationSeconds  Int?
   /// 原始文件大小（字节）
   fileSizeBytes    BigInt?
   /// 实际完成转写的服务商
-  provider         String?
+  provider         String?         @db.VarChar(64)
   /// 识别到的发言人数
   speakerCount     Int?
   /// 处理进度百分比
@@ -145,7 +468,7 @@ model MediaTask {
   /// 本任务扣减的额度分钟数
   quotaMinutes     Int             @default(0)
   /// 错误代码
-  errorCode        String?
+  errorCode        String?         @db.VarChar(64)
   /// 任务创建时间
   createdAt        DateTime        @default(now())
   /// 任务更新时间
@@ -153,19 +476,57 @@ model MediaTask {
   /// 任务完成时间
   completedAt      DateTime?
   user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  team             Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull)
   transcript       Transcript?
   insights         AIInsight[]
   exports          ExportAsset[]
+  usageLedgers     UsageLedger[]
+  shareLinks       ShareLink[]
 
   @@index([userId, createdAt])
+  @@index([teamId, createdAt])
   @@index([status, updatedAt])
+}
+
+model ShareLink {
+  /// 分享链接 ID
+  id           String    @id @default(cuid()) @db.VarChar(32)
+  /// 关联团队 ID
+  teamId       String?   @db.VarChar(32)
+  /// 关联转写任务 ID
+  mediaTaskId  String    @db.VarChar(32)
+  /// 创建人用户 ID
+  createdById  String?   @map("created_by_id") @db.VarChar(32)
+  /// 分享 Token 哈希值，数据库不保存明文 Token
+  tokenHash    String    @unique @map("token_hash") @db.VarChar(128)
+  /// 分享链接标题
+  title        String?   @db.VarChar(160)
+  /// 分享链接是否启用
+  enabled      Boolean   @default(true)
+  /// 过期时间，为空表示长期有效
+  expiresAt    DateTime? @map("expires_at")
+  /// 访问次数
+  accessCount  Int       @default(0) @map("access_count")
+  /// 最后访问时间
+  lastAccessAt DateTime? @map("last_access_at")
+  /// 分享链接创建时间
+  createdAt    DateTime  @default(now())
+  /// 分享链接更新时间
+  updatedAt    DateTime  @updatedAt
+  team         Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  mediaTask    MediaTask @relation(fields: [mediaTaskId], references: [id], onDelete: Cascade)
+  createdBy    User?     @relation("ShareLinkCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([teamId, createdAt])
+  @@index([mediaTaskId, createdAt])
+  @@index([createdById])
 }
 
 model Transcript {
   /// 转写文本 ID
-  id          String    @id @default(cuid())
+  id          String    @id @default(cuid()) @db.VarChar(32)
   /// 关联转写任务 ID
-  mediaTaskId String    @unique
+  mediaTaskId String    @unique @db.VarChar(32)
   /// 完整纯文本转写结果
   plainText   String    @db.LongText
   /// 带时间戳和发言人标签的段落 JSON
@@ -183,19 +544,19 @@ model Transcript {
 
 model AIInsight {
   /// AI 洞察 ID
-  id          String      @id @default(cuid())
+  id          String      @id @default(cuid()) @db.VarChar(32)
   /// 关联转写任务 ID
-  mediaTaskId String
+  mediaTaskId String      @db.VarChar(32)
   /// 洞察类型：总结、问答、思维导图、翻译
   type        InsightType
   /// 洞察生成语言
-  locale      String      @default("en")
+  locale      String      @default("en") @db.VarChar(16)
   /// 洞察标题
-  title       String?
+  title       String?     @db.VarChar(255)
   /// 洞察结构化内容 JSON
   content     Json
   /// 生成洞察使用的模型
-  model       String?
+  model       String?     @db.VarChar(128)
   /// 洞察创建时间
   createdAt   DateTime    @default(now())
   /// 洞察更新时间
@@ -207,13 +568,13 @@ model AIInsight {
 
 model ExportAsset {
   /// 导出文件 ID
-  id          String       @id @default(cuid())
+  id          String       @id @default(cuid()) @db.VarChar(32)
   /// 关联转写任务 ID
-  mediaTaskId String
+  mediaTaskId String       @db.VarChar(32)
   /// 导出格式
   format      ExportFormat
   /// R2 对象 Key
-  objectKey   String?
+  objectKey   String?      @db.VarChar(1024)
   /// 导出文件访问 URL
   url         String?      @db.VarChar(2048)
   /// 导出创建时间

@@ -12,6 +12,7 @@ export class GroqWhisperProvider implements TranscriptionProvider {
     }
 
     const client = new Groq({apiKey: env.GROQ_API_KEY});
+    // Groq SDK 需要 File 对象；这里先从媒体 URL 拉取音频/视频，再交给 Whisper。
     const response = await fetch(input.mediaUrl);
 
     if (!response.ok) {
@@ -19,7 +20,7 @@ export class GroqWhisperProvider implements TranscriptionProvider {
     }
 
     const blob = await response.blob();
-    const file = new File([blob], "vocto-audio.mp3", {type: blob.type || "audio/mpeg"});
+    const file = new File([blob], "votxt-audio.mp3", {type: blob.type || "audio/mpeg"});
     const transcription = await client.audio.transcriptions.create({
       file,
       model: "whisper-large-v3-turbo",

@@ -4,8 +4,10 @@ import {TRANSCRIBE_QUEUE, type TranscribeJob} from "@/lib/queue";
 import {redis} from "@/lib/redis";
 import {prisma} from "@/lib/prisma";
 import {updateTaskStatus} from "@/lib/tasks";
+import {releaseQuotaForFailedTask, settleQuotaForCompletedTask} from "@/lib/usage";
 import {transcribeWithFallback} from "@/server/transcription";
 import {resolveYoutubeAudioUrl} from "@/server/media/prepare";
+import {dispatchTeamWebhook} from "@/lib/webhooks";
 
 const worker = new Worker<TranscribeJob>(
   TRANSCRIBE_QUEUE,
@@ -16,7 +18,7 @@ const worker = new Worker<TranscribeJob>(
       statusMessage: "Preparing audio for transcription."
     });
 
-    // In production this is where yt-dlp and FFmpeg normalize files before the STT call.
+    // 生产环境在这里使用 yt-dlp 和 FFmpeg 解析链接、规范化音频，再交给 STT 服务商。
     const mediaUrl = sourceType === "YOUTUBE" ? await resolveYoutubeAudioUrl(sourceUrl) : sourceUrl;
 
     await updateTaskStatus(taskId, "TRANSCRIBING", {
@@ -45,7 +47,9 @@ const worker = new Worker<TranscribeJob>(
       }
     });
 
-    await updateTaskStatus(taskId, "COMPLETED", {
+    await settleQuotaForCompletedTask({mediaTaskId: taskId, durationSeconds: result.durationSeconds});
+
+    const completedTask = await updateTaskStatus(taskId, "COMPLETED", {
       progress: 100,
       statusMessage: "Transcript is ready.",
       provider: result.provider,
@@ -53,9 +57,24 @@ const worker = new Worker<TranscribeJob>(
       durationSeconds: result.durationSeconds ? Math.round(result.durationSeconds) : undefined,
       speakerCount: result.speakerCount
     });
+
+    await dispatchTeamWebhook({
+      teamId: completedTask.teamId,
+      event: "task.completed",
+      targetType: "media_task",
+      targetId: completedTask.id,
+      payload: {
+        taskId: completedTask.id,
+        status: completedTask.status,
+        provider: completedTask.provider,
+        language: completedTask.detectedLanguage,
+        durationSeconds: completedTask.durationSeconds,
+        originalName: completedTask.originalName
+      }
+    });
   },
   {
-    connection: redis,
+    connection: redis as any,
     concurrency: 3
   }
 );
@@ -63,11 +82,26 @@ const worker = new Worker<TranscribeJob>(
 worker.on("failed", async (job, error) => {
   if (!job) return;
 
-  await updateTaskStatus(job.data.taskId, "FAILED", {
+  await releaseQuotaForFailedTask(job.data.taskId);
+  const failedTask = await updateTaskStatus(job.data.taskId, "FAILED", {
     progress: 100,
     statusMessage: error.message,
     errorCode: "TRANSCRIPTION_FAILED"
   });
+
+  await dispatchTeamWebhook({
+    teamId: failedTask.teamId,
+    event: "task.failed",
+    targetType: "media_task",
+    targetId: failedTask.id,
+    payload: {
+      taskId: failedTask.id,
+      status: failedTask.status,
+      errorCode: failedTask.errorCode,
+      statusMessage: failedTask.statusMessage,
+      originalName: failedTask.originalName
+    }
+  });
 });
 
-console.log(`Vocto worker is listening on ${TRANSCRIBE_QUEUE}.`);
+console.log(`Votxt worker is listening on ${TRANSCRIBE_QUEUE}.`);

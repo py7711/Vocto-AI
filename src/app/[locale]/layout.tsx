@@ -1,15 +1,17 @@
 import type {Metadata} from "next";
 import type {ReactNode} from "react";
-import {NextIntlClientProvider, useMessages} from "next-intl";
+import {NextIntlClientProvider} from "next-intl";
 import {notFound} from "next/navigation";
-import {locales} from "@/i18n";
-import "../globals.css";
+import {isLocale, locales} from "@/lib/locales";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({locale}));
 }
 
-export function generateMetadata({params}: {params: {locale: string}}): Metadata {
+type LocaleParams = {locale: string};
+
+export function generateMetadata({params}: {params: LocaleParams}): Metadata {
+  const {locale} = params;
   const titleByLocale: Record<string, string> = {
     zh: "免费在线语音转文本转换器",
     en: "Free Online Speech to Text Converter",
@@ -22,25 +24,30 @@ export function generateMetadata({params}: {params: {locale: string}}): Metadata
   };
 
   return {
-    title: titleByLocale[params.locale] ?? titleByLocale.en,
-    description: "Vocto AI audio and video transcription workspace"
+    title: titleByLocale[locale] ?? titleByLocale.en,
+    description: "Votxt AI audio and video transcription workspace",
+    icons: {
+      icon: "/favicon.svg"
+    }
   };
 }
 
-export default function LocaleLayout({children, params}: {children: ReactNode; params: {locale: string}}) {
-  if (!locales.includes(params.locale as (typeof locales)[number])) {
+async function loadMessages(locale: string) {
+  return (await import(`../../../messages/${locale}.json`)).default;
+}
+
+export default async function LocaleLayout({children, params}: {children: ReactNode; params: LocaleParams}) {
+  const {locale} = params;
+
+  if (!isLocale(locale)) {
     notFound();
   }
 
-  const messages = useMessages();
+  const messages = await loadMessages(locale);
 
   return (
-    <html lang={params.locale}>
-      <body>
-        <NextIntlClientProvider locale={params.locale} messages={messages}>
-          {children}
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {children}
+    </NextIntlClientProvider>
   );
 }

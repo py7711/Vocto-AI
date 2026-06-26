@@ -1,7 +1,7 @@
-import Groq from "groq-sdk";
 import type {Transcript} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
-import {env} from "@/lib/env";
+import {generateJsonWithFallback} from "@/server/ai/providers";
+import {translateWithFallback} from "@/server/translation";
 
 function fallbackInsights(text: string, locale: string) {
   const sentences = text.split(/(?<=[.!?。！？])\s+/).filter(Boolean);
@@ -39,64 +39,61 @@ export async function generateInsights(
   translationTarget = locale
 ) {
   const text = transcript.editedText || transcript.plainText;
-  let payload = fallbackInsights(text, locale);
-  let model = "local-fallback";
-
-  if (env.GROQ_API_KEY) {
-    const groq = new Groq({apiKey: env.GROQ_API_KEY});
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-70b-versatile",
-      response_format: {type: "json_object"},
-      messages: [
-        {
-          role: "system",
-          content:
-            "You create concise SaaS transcript insights. Return strict JSON with summary, mindMap, qa, translation."
-        },
-        {
-          role: "user",
-          content: JSON.stringify({
-            locale,
-            translationTarget,
-            transcript: text.slice(0, 24000),
-            schema: {
-              summary: {overview: "string", bullets: ["string"]},
-              mindMap: {label: "string", children: [{label: "string", children: []}]},
-              qa: [{question: "string", answer: "string"}],
-              translation: {target: "string", text: "string"}
-            }
-          })
+  const fallbackPayload = fallbackInsights(text, locale);
+  const {payload, model} = await generateJsonWithFallback(
+    {
+      system: "你是企业级 SaaS 转写产品的 AI 洞察引擎。只返回严格 JSON，字段必须包含 summary、mindMap、qa。",
+      user: {
+        locale,
+        transcript: text.slice(0, 24000),
+        schema: {
+          summary: {overview: "string", bullets: ["string"]},
+          mindMap: {label: "string", children: [{label: "string", children: []}]},
+          qa: [{question: "string", answer: "string"}]
         }
-      ]
-    });
-
-    const content = completion.choices[0]?.message.content;
-    if (content) {
-      payload = JSON.parse(content);
-      model = "groq/llama-3.1-70b-versatile";
+      }
+    },
+    {
+      summary: fallbackPayload.summary,
+      mindMap: fallbackPayload.mindMap,
+      qa: fallbackPayload.qa
     }
-  }
+  );
+
+  const translation = await translateWithFallback({
+    text: text.slice(0, 24000),
+    targetLocale: translationTarget,
+    sourceLocale: locale
+  });
+  const finalPayload = {
+    ...payload,
+    translation: {
+      target: translationTarget,
+      provider: translation.provider,
+      text: translation.text
+    }
+  };
 
   const records = await prisma.$transaction([
     prisma.aIInsight.upsert({
       where: {mediaTaskId_type_locale: {mediaTaskId, type: "SUMMARY", locale}},
-      update: {content: payload.summary, model},
-      create: {mediaTaskId, type: "SUMMARY", locale, title: "Summary", content: payload.summary, model}
+      update: {content: finalPayload.summary, model},
+      create: {mediaTaskId, type: "SUMMARY", locale, title: "Summary", content: finalPayload.summary, model}
     }),
     prisma.aIInsight.upsert({
       where: {mediaTaskId_type_locale: {mediaTaskId, type: "MIND_MAP", locale}},
-      update: {content: payload.mindMap, model},
-      create: {mediaTaskId, type: "MIND_MAP", locale, title: "Mind map", content: payload.mindMap, model}
+      update: {content: finalPayload.mindMap, model},
+      create: {mediaTaskId, type: "MIND_MAP", locale, title: "Mind map", content: finalPayload.mindMap, model}
     }),
     prisma.aIInsight.upsert({
       where: {mediaTaskId_type_locale: {mediaTaskId, type: "QA", locale}},
-      update: {content: payload.qa, model},
-      create: {mediaTaskId, type: "QA", locale, title: "Q&A", content: payload.qa, model}
+      update: {content: finalPayload.qa, model},
+      create: {mediaTaskId, type: "QA", locale, title: "Q&A", content: finalPayload.qa, model}
     }),
     prisma.aIInsight.upsert({
       where: {mediaTaskId_type_locale: {mediaTaskId, type: "TRANSLATION", locale}},
-      update: {content: payload.translation, model},
-      create: {mediaTaskId, type: "TRANSLATION", locale, title: "Translation", content: payload.translation, model}
+      update: {content: finalPayload.translation, model: translation.provider},
+      create: {mediaTaskId, type: "TRANSLATION", locale, title: "Translation", content: finalPayload.translation, model: translation.provider}
     })
   ]);
 

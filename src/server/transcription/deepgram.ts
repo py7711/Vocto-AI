@@ -1,6 +1,6 @@
 import {createClient} from "@deepgram/sdk";
 import {env} from "@/lib/env";
-import type {TranscriptionProvider, TranscriptionRequest, TranscriptionResult} from "./types";
+import type {TranscriptSegment, TranscriptionProvider, TranscriptionRequest, TranscriptionResult} from "./types";
 
 export class DeepgramProvider implements TranscriptionProvider {
   name = "deepgram" as const;
@@ -12,6 +12,7 @@ export class DeepgramProvider implements TranscriptionProvider {
     }
 
     const deepgram = createClient(env.DEEPGRAM_API_KEY);
+    // Deepgram 支持 URL 直传、自动语言检测、智能标点和发言人分离。
     const {result, error} = await deepgram.listen.prerecorded.transcribeUrl(
       {url: input.mediaUrl},
       {
@@ -31,7 +32,7 @@ export class DeepgramProvider implements TranscriptionProvider {
     const channel = result.results?.channels?.[0];
     const alternative = channel?.alternatives?.[0];
     const utterances = result.results?.utterances ?? [];
-    const segments =
+    const segments: TranscriptSegment[] =
       utterances.length > 0
         ? utterances.map((utterance) => ({
             start: utterance.start,
@@ -43,7 +44,8 @@ export class DeepgramProvider implements TranscriptionProvider {
             {
               start: 0,
               end: result.metadata?.duration ?? 0,
-              text: alternative?.transcript ?? ""
+              text: alternative?.transcript ?? "",
+              speaker: undefined
             }
           ];
 

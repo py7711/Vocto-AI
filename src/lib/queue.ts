@@ -9,17 +9,23 @@ export type TranscribeJob = {
   enableSpeakerLabels: boolean;
 };
 
-export const TRANSCRIBE_QUEUE = "vocto-transcribe";
+export const TRANSCRIBE_QUEUE = "votxt-transcribe";
 
-export const transcribeQueue = new Queue<TranscribeJob>(TRANSCRIBE_QUEUE, {
-  connection: redis,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 5000
-    },
-    removeOnComplete: 100,
-    removeOnFail: 500
-  }
-});
+let transcribeQueue: Queue<TranscribeJob> | undefined;
+
+export function getTranscribeQueue() {
+  transcribeQueue ??= new Queue<TranscribeJob>(TRANSCRIBE_QUEUE, {
+    connection: redis as any,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 5000
+      },
+      removeOnComplete: 100,
+      removeOnFail: 500
+    }
+  });
+
+  return transcribeQueue;
+}

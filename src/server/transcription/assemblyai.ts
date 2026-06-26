@@ -1,6 +1,6 @@
 import {AssemblyAI} from "assemblyai";
 import {env} from "@/lib/env";
-import type {TranscriptionProvider, TranscriptionRequest, TranscriptionResult} from "./types";
+import type {TranscriptSegment, TranscriptionProvider, TranscriptionRequest, TranscriptionResult} from "./types";
 
 export class AssemblyAIProvider implements TranscriptionProvider {
   name = "assemblyai" as const;
@@ -12,6 +12,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
     }
 
     const client = new AssemblyAI({apiKey: env.ASSEMBLYAI_API_KEY});
+    // AssemblyAI 作为第二个发言人识别服务商，适合在 Deepgram 异常时兜底。
     const transcript = await client.transcripts.transcribe({
       audio: input.mediaUrl,
       speech_models: ["universal-3-pro", "universal-2"],
@@ -25,7 +26,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
     }
 
     const utterances = transcript.utterances ?? [];
-    const segments =
+    const segments: TranscriptSegment[] =
       utterances.length > 0
         ? utterances.map((utterance) => ({
             start: utterance.start / 1000,
@@ -37,7 +38,8 @@ export class AssemblyAIProvider implements TranscriptionProvider {
             {
               start: 0,
               end: (transcript.audio_duration ?? 0) / 1000,
-              text: transcript.text ?? ""
+              text: transcript.text ?? "",
+              speaker: undefined
             }
           ];
 

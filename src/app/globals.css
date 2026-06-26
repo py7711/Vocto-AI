@@ -11,14 +11,23 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  background:
-    linear-gradient(90deg, rgba(16, 24, 32, 0.06) 1px, transparent 1px),
-    linear-gradient(rgba(16, 24, 32, 0.06) 1px, transparent 1px),
-    #f8f3e8;
-  background-size: 44px 44px;
+  background-color: #f8f3e8;
+  background-image:
+    radial-gradient(1100px 520px at 12% -8%, rgba(14, 111, 124, 0.1), transparent 60%),
+    radial-gradient(900px 480px at 96% 4%, rgba(228, 109, 95, 0.09), transparent 58%),
+    linear-gradient(90deg, rgba(16, 24, 32, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(16, 24, 32, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 46px 46px, 46px 46px;
+  background-attachment: fixed;
   color: #101820;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -31,8 +40,68 @@ select {
 .focus-ring {
   outline: 2px solid transparent;
   outline-offset: 2px;
+  transition: outline-color 0.15s ease, box-shadow 0.2s ease, transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .focus-ring:focus-visible {
   outline-color: #0e6f7c;
+}
+
+@layer components {
+  /* 表面与卡片：统一圆角、边框与分层阴影 */
+  .surface {
+    @apply rounded-2xl border border-ink/10 bg-white/80 backdrop-blur;
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink/10 bg-white/80 shadow-soft backdrop-blur transition duration-200;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-ink/15 hover:shadow-card;
+  }
+
+  /* 按钮系统 */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold outline-none transition active:translate-y-px focus-visible:ring-2 focus-visible:ring-tide disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink text-paper shadow-soft hover:shadow-card hover:brightness-110;
+  }
+
+  .btn-accent {
+    @apply btn bg-coral text-white shadow-soft hover:shadow-card hover:brightness-105;
+  }
+
+  .btn-outline {
+    @apply btn border border-ink/15 bg-white/60 text-ink hover:border-ink/30 hover:bg-white;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink/70 hover:bg-ink/5 hover:text-ink;
+  }
+
+  /* 标签 / 徽标 */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold;
+  }
+
+  .chip-tide {
+    @apply chip bg-tide/10 text-tide;
+  }
+
+  .chip-brass {
+    @apply chip bg-brass/15 text-ink;
+  }
+
+  /* 表单控件 */
+  .field {
+    @apply w-full rounded-xl border border-ink/15 bg-white/70 px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink/40 hover:border-ink/25 focus-visible:border-tide focus-visible:ring-2 focus-visible:ring-tide/40;
+  }
+
+  /* 区块标题前缀 */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-black uppercase tracking-wide text-tide ring-1 ring-tide/15;
+  }
 }

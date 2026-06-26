@@ -1,19 +1,27 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
-import {publishTaskUpdate} from "@/lib/tasks";
+import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 
 const updateTranscriptSchema = z.object({
   editedText: z.string().min(1)
 });
 
 export async function PATCH(request: Request, {params}: {params: {taskId: string}}) {
-  const input = updateTranscriptSchema.parse(await request.json());
-  const transcript = await prisma.transcript.update({
-    where: {mediaTaskId: params.taskId},
-    data: {editedText: input.editedText}
-  });
+  try {
+    await assertTaskAccess(params.taskId, "write", request.headers);
+    const input = updateTranscriptSchema.parse(await request.json());
+    const transcript = await prisma.transcript.update({
+      where: {mediaTaskId: params.taskId},
+      data: {editedText: input.editedText}
+    });
 
-  await publishTaskUpdate(params.taskId);
-  return NextResponse.json(transcript);
+    await publishTaskUpdate(params.taskId);
+    return NextResponse.json(transcript);
+  } catch (error) {
+    const accessError = taskAccessErrorResponse(error);
+    if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
+    const message = error instanceof Error ? error.message : "无法保存转写文本。";
+    return NextResponse.json({error: message}, {status: 400});
+  }
 }
