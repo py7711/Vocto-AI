@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Brain,
-  ChevronDown,
   CheckCircle2,
   Clock,
   Download,
@@ -29,7 +28,6 @@ import {
   Save,
   Search,
   Send,
-  Settings2,
   Sparkles,
   Star,
   TicketCheck,
@@ -224,6 +222,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   const [dashboardUploadOpen, setDashboardUploadOpen] = useState(false);
   const [dashboardLinkOpen, setDashboardLinkOpen] = useState(false);
   const [showAppSumoWelcome, setShowAppSumoWelcome] = useState(false);
+  const [authRedirectMessage, setAuthRedirectMessage] = useState<string | null>(null);
 
   const t = (key: string) => {
     try {
@@ -334,12 +333,11 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   }, [copy.readUsageError]);
 
   useEffect(() => {
-    if (variant !== "dashboard" && variant !== "upload") return;
     fetch("/api/auth/me", {cache: "no-store"})
       .then((response) => (response.ok ? response.json() : {user: null}))
       .then((data) => {
         setCurrentUser(data.user ?? null);
-        if (data.user) {
+        if (data.user && (variant === "dashboard" || variant === "upload")) {
           refreshTaskList().catch(() => undefined);
           refreshFolders().catch(() => undefined);
           refreshUsageSnapshot().catch(() => undefined);
@@ -808,12 +806,31 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
     });
   }, [uniqueSpeakers]);
 
+  function redirectToSignIn(reason: string) {
+    setAuthRedirectMessage(reason);
+    window.setTimeout(() => {
+      const next = `${window.location.pathname}${window.location.search}`;
+      window.location.href = `/${locale}/auth/signin?next=${encodeURIComponent(next)}`;
+    }, 1200);
+  }
+
   async function startTask() {
+    if (!currentUser?.id) {
+      redirectToSignIn(copy.signInToTranscribe);
+      return false;
+    }
+
     setBusy(true);
     setError(null);
     setNotice(null);
 
     try {
+      const openCreatedTask = (created: Task) => {
+        setTask(created);
+        if (variant === "upload") {
+          window.location.href = `/${locale}/transcriptions/${created.id}`;
+        }
+      };
       const createTask = async (input: {
         sourceType: "UPLOAD" | "YOUTUBE" | "GOOGLE_DRIVE";
         sourceUrl: string;
@@ -849,7 +866,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           sourceUrl: resolvedMedia?.sourceUrl ?? youtubeUrl,
           originalName: resolvedMedia?.filename || resolvedMedia?.title
         });
-        setTask(created);
+        openCreatedTask(created);
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
         return true;
@@ -861,7 +878,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           sourceUrl: resolvedMedia?.sourceUrl ?? driveUrl,
           originalName: resolvedMedia?.filename || resolvedMedia?.title || "Google Drive 文件"
         });
-        setTask(created);
+        openCreatedTask(created);
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
         return true;
@@ -905,7 +922,11 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           createdTasks.push(created);
         }
 
-        setTask(createdTasks[0] ?? null);
+        if (createdTasks[0]) {
+          openCreatedTask(createdTasks[0]);
+        } else {
+          setTask(null);
+        }
         setNotice(createdTasks.length > 1 ? `${createdTasks.length} transcription jobs queued.` : null);
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
@@ -1140,13 +1161,18 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
     <main className={clsx("min-h-screen", isDashboard || isUpload ? "bg-paper" : "bg-white", !isUpload && !isDashboard && "pt-20")}>
       {!isUpload && !isDashboard ? (
         <SiteHeader
-          showAuthPair={!isDashboard}
+          showAuthPair={!isDashboard && !currentUser}
           primaryCta={{
-            href: `/${locale}/${isDashboard ? "dashboard" : "auth/signin"}`,
-            label: isDashboard ? t("workspace") : "Start for Free",
+            href: `/${locale}/${isDashboard || currentUser ? "dashboard" : "auth/signin"}`,
+            label: isDashboard || currentUser ? copy.goToDashboard : "Start for Free",
             icon: <PlayCircle size={16} />
           }}
         />
+      ) : null}
+      {authRedirectMessage ? (
+        <div className="fixed left-1/2 top-24 z-50 w-[min(calc(100%-2rem),520px)] -translate-x-1/2 rounded-xl border border-violet/25 bg-white px-5 py-4 text-center text-sm font-bold text-violet shadow-lifted">
+          {authRedirectMessage}
+        </div>
       ) : null}
 
       {isUpload ? (
@@ -1177,11 +1203,9 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           summaryLanguage={summaryLanguage}
           setSummaryLanguage={setSummaryLanguage}
           busy={busy}
-          recording={recording}
           notice={notice}
           error={error}
           inputRef={inputRef}
-          toggleRecording={toggleRecording}
           startTask={startTask}
           user={currentUser}
           usageSnapshot={usageSnapshot}
@@ -1193,7 +1217,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       ) : null}
 
       {!isDashboard && !isUpload ? (
-        <section className="bg-gradient-to-b from-primary/10 via-white to-primary/10 px-4 pb-16 pt-16 md:px-8 md:pb-20 md:pt-20">
+        <section className="bg-[#f4f4ff] px-4 pb-16 pt-12 md:px-8 md:pb-20 md:pt-14">
           <div className="mx-auto max-w-6xl text-center">
             <h1 className="mx-auto max-w-5xl text-5xl font-bold leading-tight text-ink md:text-6xl">{t("headline")}</h1>
             <p className="mx-auto mt-6 max-w-4xl text-lg leading-8 text-slate-500 md:text-xl">{t("subheadline")}</p>
@@ -1203,40 +1227,49 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
               <Fact icon={<Download size={40} />} label={t("exportCount")} items={exportFormatItems} />
             </div>
           </div>
-          <div className="mx-auto mt-11 max-w-3xl">
-            <TranscriptionLauncher
-              t={t}
-              copy={copy}
-              mode={mode}
-              setMode={setMode}
-              file={file}
-              setFile={selectFile}
-              youtubeUrl={youtubeUrl}
-              setYoutubeUrl={updateYoutubeUrl}
-              driveUrl={driveUrl}
-              setDriveUrl={updateDriveUrl}
-              language={language}
-              setLanguage={setLanguage}
-              speakerLabels={speakerLabels}
-              setSpeakerLabels={setSpeakerLabels}
-              subtitleEnabled={subtitleEnabled}
-              setSubtitleEnabled={setSubtitleEnabled}
-              premiumModel={premiumModel}
-              setPremiumModel={setPremiumModel}
-              summaryTemplate={summaryTemplate}
-              setSummaryTemplate={setSummaryTemplate}
-              summaryLanguage={summaryLanguage}
-              setSummaryLanguage={setSummaryLanguage}
-              busy={busy}
-              recording={recording}
-              notice={notice}
-              error={error}
-              inputRef={inputRef}
-              toggleRecording={toggleRecording}
-              startTask={startTask}
-              showRecordTab={false}
-              sourceLike
-            />
+          <div className={clsx("mx-auto mt-11", currentUser ? "max-w-2xl" : "max-w-6xl")}>
+            {currentUser ? (
+              <HomeWelcomeCard user={currentUser} copy={copy} locale={locale} />
+            ) : (
+              <TranscriptionLauncher
+                t={t}
+                copy={copy}
+                locale={locale}
+                mode={mode}
+                setMode={setMode}
+                file={file}
+                setFile={selectFile}
+                youtubeUrl={youtubeUrl}
+                setYoutubeUrl={updateYoutubeUrl}
+                driveUrl={driveUrl}
+                setDriveUrl={updateDriveUrl}
+                resolvedMedia={resolvedMedia}
+                setResolvedMedia={setResolvedMedia}
+                language={language}
+                setLanguage={setLanguage}
+                speakerLabels={speakerLabels}
+                setSpeakerLabels={setSpeakerLabels}
+                subtitleEnabled={subtitleEnabled}
+                setSubtitleEnabled={setSubtitleEnabled}
+                premiumModel={premiumModel}
+                setPremiumModel={setPremiumModel}
+                summaryTemplate={summaryTemplate}
+                setSummaryTemplate={setSummaryTemplate}
+                summaryLanguage={summaryLanguage}
+                setSummaryLanguage={setSummaryLanguage}
+                busy={busy}
+                recording={recording}
+                notice={notice}
+                error={error}
+                authRedirectMessage={authRedirectMessage}
+                inputRef={inputRef}
+                toggleRecording={toggleRecording}
+                startTask={startTask}
+                onRequireAuth={redirectToSignIn}
+                showRecordTab={false}
+                sourceLike
+              />
+            )}
           </div>
         </section>
       ) : null}
@@ -1423,7 +1456,6 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
             {dashboardUploadOpen ? (
               <DashboardTaskDialog title="Upload Files" onClose={() => setDashboardUploadOpen(false)}>
                 <DashboardUploadFlow
-                  copy={copy}
                   files={files}
                   selectFiles={selectFiles}
                   inputRef={inputRef}
@@ -1440,12 +1472,25 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
             {dashboardLinkOpen ? (
               <DashboardTaskDialog title="Paste Link" onClose={() => setDashboardLinkOpen(false)}>
                 <DashboardLinkFlow
+                  t={t}
                   copy={copy}
                   youtubeUrl={youtubeUrl}
                   setYoutubeUrl={updateYoutubeUrl}
                   setMode={setMode}
                   resolvedMedia={resolvedMedia}
                   setResolvedMedia={setResolvedMedia}
+                  language={language}
+                  setLanguage={setLanguage}
+                  speakerLabels={speakerLabels}
+                  setSpeakerLabels={setSpeakerLabels}
+                  subtitleEnabled={subtitleEnabled}
+                  setSubtitleEnabled={setSubtitleEnabled}
+                  premiumModel={premiumModel}
+                  setPremiumModel={setPremiumModel}
+                  summaryTemplate={summaryTemplate}
+                  setSummaryTemplate={setSummaryTemplate}
+                  summaryLanguage={summaryLanguage}
+                  setSummaryLanguage={setSummaryLanguage}
                   busy={busy}
                   notice={notice}
                   error={error}
@@ -1576,6 +1621,36 @@ function AppSumoWelcomeDialog({
   );
 }
 
+function HomeWelcomeCard({user, copy, locale}: {user: CurrentUser; copy: ReturnType<typeof getWorkspaceCopy>; locale: string}) {
+  const displayName = user.name?.trim() || user.email.split("@")[0] || copy.account;
+  const initials = displayName
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <section className="rounded-2xl border border-white/80 bg-white px-6 py-8 text-center shadow-lifted md:px-12 md:py-12">
+      <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-[#2f711f] text-3xl font-semibold text-white shadow-card ring-1 ring-ink/10">
+        {user.image ? (
+          // 外部 OAuth 头像域名不可控，用原生 img 避免 next/image 域名限制。
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.image} alt="" className="h-full w-full object-cover" />
+        ) : (
+          initials
+        )}
+      </div>
+      <h2 className="mt-6 text-3xl font-black leading-tight text-ink md:text-4xl">{copy.welcomeBack(displayName)}</h2>
+      <p className="mt-4 break-words text-xl font-semibold text-slate-500">{user.email}</p>
+      <p className="mt-8 text-xl font-medium text-ink/78">{copy.manageTranscriptions}</p>
+      <a href={`/${locale}/dashboard`} className="btn-primary mt-8 px-10 py-4 text-lg">
+        {copy.goToDashboard}
+      </a>
+    </section>
+  );
+}
+
 function DashboardUpgradeCard({locale}: {locale: string}) {
   return (
     <section className="overflow-hidden rounded-xl border border-ink/10 bg-white p-6 shadow-lifted md:p-8">
@@ -1642,7 +1717,6 @@ function DashboardTaskDialog({title, children, onClose}: {title: string; childre
 }
 
 function DashboardUploadFlow({
-  copy,
   files,
   selectFiles,
   inputRef,
@@ -1651,7 +1725,6 @@ function DashboardUploadFlow({
   error,
   startTask
 }: {
-  copy: ReturnType<typeof getWorkspaceCopy>;
   files: File[];
   selectFiles: (files: File[] | FileList | null, options?: {append?: boolean}) => void;
   inputRef: RefObject<HTMLInputElement>;
@@ -1703,23 +1776,49 @@ function DashboardUploadFlow({
 }
 
 function DashboardLinkFlow({
+  t,
   copy,
   youtubeUrl,
   setYoutubeUrl,
   setMode,
   resolvedMedia,
   setResolvedMedia,
+  language,
+  setLanguage,
+  speakerLabels,
+  setSpeakerLabels,
+  subtitleEnabled,
+  setSubtitleEnabled,
+  premiumModel,
+  setPremiumModel,
+  summaryTemplate,
+  setSummaryTemplate,
+  summaryLanguage,
+  setSummaryLanguage,
   busy,
   notice,
   error,
   startTask
 }: {
+  t: (key: string) => string;
   copy: ReturnType<typeof getWorkspaceCopy>;
   youtubeUrl: string;
   setYoutubeUrl: (value: string) => void;
   setMode: (value: InputMode) => void;
   resolvedMedia: ResolvedMedia | null;
   setResolvedMedia: (value: ResolvedMedia | null) => void;
+  language: string;
+  setLanguage: (value: string) => void;
+  speakerLabels: boolean;
+  setSpeakerLabels: (value: boolean) => void;
+  subtitleEnabled: boolean;
+  setSubtitleEnabled: (value: boolean) => void;
+  premiumModel: boolean;
+  setPremiumModel: (value: boolean) => void;
+  summaryTemplate: string;
+  setSummaryTemplate: (value: string) => void;
+  summaryLanguage: string;
+  setSummaryLanguage: (value: string) => void;
   busy: boolean;
   notice: string | null;
   error: string | null;
@@ -1728,28 +1827,40 @@ function DashboardLinkFlow({
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
 
-  async function resolve() {
-    setResolving(true);
-    setResolveError(null);
-    setResolvedMedia(null);
-    try {
-      const data = await fetch("/api/media/resolve", {
+  useEffect(() => {
+    const link = youtubeUrl.trim();
+    if (!link) {
+      setResolvedMedia(null);
+      setResolveError(null);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setResolving(true);
+      setResolveError(null);
+      setResolvedMedia(null);
+      fetch("/api/media/resolve", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({url: youtubeUrl})
-      }).then(async (response) => {
-        const body = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(body.error ?? "无法检查该链接。");
-        return body as ResolvedMedia;
-      });
-      setResolvedMedia(data);
-      setMode(data.sourceType === "GOOGLE_DRIVE" ? "drive" : "youtube");
-    } catch (cause) {
-      setResolveError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setResolving(false);
-    }
-  }
+        body: JSON.stringify({url: link})
+      })
+        .then(async (response) => {
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(body.error ?? "无法检查该链接。");
+          return body as ResolvedMedia;
+        })
+        .then((data) => {
+          setResolvedMedia(data);
+          setMode(data.sourceType === "GOOGLE_DRIVE" ? "drive" : "youtube");
+        })
+        .catch((cause) => {
+          setResolveError(cause instanceof Error ? cause.message : String(cause));
+        })
+        .finally(() => setResolving(false));
+    }, 550);
+
+    return () => window.clearTimeout(timeout);
+  }, [setMode, setResolvedMedia, youtubeUrl]);
 
   return (
     <div>
@@ -1765,13 +1876,28 @@ function DashboardLinkFlow({
           <span key={item} className="rounded-full border border-violet/15 bg-violet/5 px-3 py-1 text-xs font-bold text-ink/65">{item}</span>
         ))}
       </div>
-      <button type="button" onClick={resolve} disabled={resolving || busy || !youtubeUrl} className="btn-outline mt-5 w-full py-3 disabled:opacity-45">
-        {resolving ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-        Check link
-      </button>
+      {resolving ? <p className="mt-4 flex items-center gap-2 text-sm font-bold text-violet"><Loader2 className="animate-spin" size={16} />Checking link...</p> : null}
       {resolveError ? <p className="mt-3 rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{resolveError}</p> : null}
       {resolvedMedia ? <MediaLinkPreview media={resolvedMedia} /> : null}
-      <button type="button" onClick={startTask} disabled={busy || !youtubeUrl || !resolvedMedia} className="btn-primary mt-4 w-full py-3 disabled:opacity-45">
+      {resolvedMedia ? (
+        <TranscriptionSettingsPanel
+          t={t}
+          language={language}
+          setLanguage={setLanguage}
+          speakerLabels={speakerLabels}
+          setSpeakerLabels={setSpeakerLabels}
+          subtitleEnabled={subtitleEnabled}
+          setSubtitleEnabled={setSubtitleEnabled}
+          premiumModel={premiumModel}
+          setPremiumModel={setPremiumModel}
+          summaryTemplate={summaryTemplate}
+          setSummaryTemplate={setSummaryTemplate}
+          summaryLanguage={summaryLanguage}
+          setSummaryLanguage={setSummaryLanguage}
+          compact
+        />
+      ) : null}
+      <button type="button" onClick={startTask} disabled={busy || resolving || !youtubeUrl || !resolvedMedia} className="btn-primary mt-4 w-full py-3 disabled:opacity-45">
         {busy ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
         Start transcription
       </button>
@@ -1784,6 +1910,7 @@ function DashboardLinkFlow({
 function TranscriptionLauncher({
   t,
   copy,
+  locale,
   mode,
   setMode,
   file,
@@ -1792,6 +1919,8 @@ function TranscriptionLauncher({
   setYoutubeUrl,
   driveUrl,
   setDriveUrl,
+  resolvedMedia,
+  setResolvedMedia,
   language,
   setLanguage,
   speakerLabels,
@@ -1808,15 +1937,18 @@ function TranscriptionLauncher({
   recording,
   notice,
   error,
+  authRedirectMessage,
   inputRef,
   toggleRecording,
   startTask,
+  onRequireAuth,
   compact = false,
   showRecordTab = true,
   sourceLike = false
 }: {
   t: (key: string) => string;
   copy: ReturnType<typeof getWorkspaceCopy>;
+  locale: string;
   mode: InputMode;
   setMode: (value: InputMode) => void;
   file: File | null;
@@ -1825,6 +1957,8 @@ function TranscriptionLauncher({
   setYoutubeUrl: (value: string) => void;
   driveUrl: string;
   setDriveUrl: (value: string) => void;
+  resolvedMedia?: ResolvedMedia | null;
+  setResolvedMedia?: (value: ResolvedMedia | null) => void;
   language: string;
   setLanguage: (value: string) => void;
   speakerLabels: boolean;
@@ -1841,71 +1975,192 @@ function TranscriptionLauncher({
   recording: boolean;
   notice: string | null;
   error: string | null;
+  authRedirectMessage?: string | null;
   inputRef: RefObject<HTMLInputElement>;
   toggleRecording: () => void;
   startTask: () => void;
+  onRequireAuth?: (reason: string) => void;
   compact?: boolean;
   showRecordTab?: boolean;
   sourceLike?: boolean;
 }) {
   const liveAudioFormats = "aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, wma";
   const liveVideoFormats = "3gp, mkv, mov, mp4, mpg, ts, webm, wmv";
+  const [resolvingLauncherLink, setResolvingLauncherLink] = useState(false);
+  const [launcherLinkError, setLauncherLinkError] = useState<string | null>(null);
+  const supportedPlatformItems = [
+    ["YouTube", <PlayCircle key="youtube" size={14} />],
+    ["TikTok", <Languages key="tiktok" size={14} />],
+    ["Instagram", <Sparkles key="instagram" size={14} />],
+    ["Facebook", <Globe2 key="facebook" size={14} />],
+    ["X", <X key="x" size={14} />],
+    ["Many other links", <Link2 key="other" size={14} />]
+  ] as const;
+  const hasLinkValue = Boolean((mode === "drive" ? driveUrl : youtubeUrl).trim());
+  const renderModeTab = (targetMode: InputMode, label: string) => {
+    const active = mode === targetMode;
+    return (
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active}
+        onClick={() => setMode(targetMode)}
+        className={clsx(
+          "focus-ring relative flex min-h-14 items-center justify-center px-3 pb-5 pt-1 text-2xl font-black transition",
+          active ? "text-ink after:absolute after:bottom-0 after:h-1 after:w-44 after:max-w-[80%] after:bg-violet" : "text-slate-500 hover:text-ink"
+        )}
+      >
+        {label}
+      </button>
+    );
+  };
+
+  async function resolveLauncherLink() {
+    const link = (mode === "drive" ? driveUrl : youtubeUrl).trim();
+    if (!link || !setResolvedMedia) return;
+    setResolvingLauncherLink(true);
+    setLauncherLinkError(null);
+    setResolvedMedia(null);
+    try {
+      const data = await fetch("/api/media/resolve", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({url: link})
+      }).then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error ?? copy.resolveLinkError);
+        return body as ResolvedMedia;
+      });
+      setResolvedMedia(data);
+      if (data.sourceType === "GOOGLE_DRIVE") setMode("drive");
+    } catch (cause) {
+      setLauncherLinkError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setResolvingLauncherLink(false);
+    }
+  }
 
   return (
-    <aside className={clsx("rounded-lg border bg-white shadow-lifted", sourceLike ? "border-slate-200 p-5 md:p-6" : "border-ink/10", compact ? "p-4" : !sourceLike && "p-6 md:p-8")}>
-      <div className={clsx("grid text-sm font-semibold", sourceLike ? "rounded-md bg-slate-100 p-1 text-slate-500" : "border-b border-ink/10 font-black text-ink/55", showRecordTab ? "grid-cols-3" : "grid-cols-2")}>
-        <ModeButton active={mode === "upload"} icon={<UploadCloud size={17} />} label={t("uploadFile")} onClick={() => setMode("upload")} />
-        <ModeButton active={mode === "youtube"} icon={<Link2 size={17} />} label={t("pasteLink")} onClick={() => setMode("youtube")} />
-        {showRecordTab ? <ModeButton active={mode === "record"} icon={<Mic size={17} />} label={t("recordAudio")} onClick={() => setMode("record")} /> : null}
-      </div>
+    <aside className={clsx("rounded-2xl bg-white shadow-lifted", sourceLike ? "border border-white/80 p-5 md:p-12" : "border border-ink/10", compact ? "p-4" : !sourceLike && "p-6 md:p-8")}>
+      {sourceLike ? (
+        <div className={clsx("grid", showRecordTab ? "grid-cols-3" : "grid-cols-2")}>
+          {renderModeTab("upload", t("uploadFile"))}
+          {renderModeTab("youtube", t("pasteLink"))}
+          {showRecordTab ? renderModeTab("record", t("recordAudio")) : null}
+        </div>
+      ) : (
+        <div className={clsx("grid border-b border-ink/10 text-sm font-black text-ink/55", showRecordTab ? "grid-cols-3" : "grid-cols-2")}>
+          <ModeButton active={mode === "upload"} icon={<UploadCloud size={17} />} label={t("uploadFile")} onClick={() => setMode("upload")} />
+          <ModeButton active={mode === "youtube"} icon={<Link2 size={17} />} label={t("pasteLink")} onClick={() => setMode("youtube")} />
+          {showRecordTab ? <ModeButton active={mode === "record"} icon={<Mic size={17} />} label={t("recordAudio")} onClick={() => setMode("record")} /> : null}
+        </div>
+      )}
 
-      <div className="mt-6">
+      <div className={clsx(sourceLike ? "mt-12" : "mt-6")}>
         {mode === "upload" ? (
-          <div
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              setFile(event.dataTransfer.files[0] ?? null);
-            }}
-            className={clsx(
-              "group flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white p-5 text-center transition",
-              sourceLike ? "border-primary/35 hover:border-primary hover:bg-primary/5" : "border-violet/35 hover:border-violet hover:bg-violet/5",
-              compact ? "min-h-44" : "min-h-56"
-            )}
-          >
-            <span className={clsx("inline-flex h-12 w-12 items-center justify-center rounded-lg text-white shadow-soft transition group-hover:scale-105", sourceLike ? "bg-primary" : "bg-violet")}>
-              <UploadCloud size={25} />
-            </span>
-            <h2 className="mt-4 max-w-full break-words text-xl font-black">{file?.name ?? "Drag files here to upload"}</h2>
-            <p className="my-4 text-xs font-black uppercase tracking-wide text-ink/38">—— OR ——</p>
-            <button type="button" onClick={() => inputRef.current?.click()} className="btn-primary">
-              <UploadCloud size={17} />
-              Upload a file
-            </button>
-            <input ref={inputRef} type="file" className="hidden" accept=".3gp,.aac,.amr,.awb,.flac,.m4a,.mka,.mkv,.mov,.mp2,.mp3,.mp4,.mpg,.oga,.ogg,.opus,.ts,.wav,.weba,.webm,.wma,.wmv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+          <div className="text-center">
+            {sourceLike ? <p className="text-xl font-semibold leading-8 text-slate-500">{copy.uploadPrompt}</p> : null}
+            <div
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (onRequireAuth) {
+                  onRequireAuth(copy.signInToUpload);
+                  return;
+                }
+                setFile(event.dataTransfer.files[0] ?? null);
+              }}
+              className={clsx(
+                "group mt-8 flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white p-5 text-center transition",
+                sourceLike ? "border-violet/55 hover:border-violet hover:bg-violet/5" : "border-violet/35 hover:border-violet hover:bg-violet/5",
+                compact ? "min-h-44" : "min-h-72"
+              )}
+            >
+              <h2 className="mt-1 max-w-full break-words text-xl font-black text-ink">{file?.name ?? copy.dragFilesHere}</h2>
+              <div className="my-6 flex items-center justify-center gap-2 text-xl font-semibold text-slate-300">
+                <span className="h-px w-16 bg-slate-300" />
+                {copy.or}
+                <span className="h-px w-16 bg-slate-300" />
+              </div>
+              <button
+                type="button"
+                data-testid="home-upload-file-button"
+                onClick={() => {
+                  if (onRequireAuth) {
+                    onRequireAuth(copy.signInToUpload);
+                    return;
+                  }
+                  inputRef.current?.click();
+                }}
+                className="btn-primary px-8 py-3 text-base"
+              >
+                <UploadCloud size={18} />
+                {copy.uploadAFile}
+              </button>
+              <input ref={inputRef} type="file" className="hidden" accept=".3gp,.aac,.amr,.awb,.flac,.m4a,.mka,.mkv,.mov,.mp2,.mp3,.mp4,.mpg,.oga,.ogg,.opus,.ts,.wav,.weba,.webm,.wma,.wmv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+              <p className="mt-7 text-sm font-semibold leading-6 text-slate-400">
+                Audio: {liveAudioFormats}
+                <br />
+                Video: {liveVideoFormats}
+              </p>
+            </div>
           </div>
         ) : mode === "youtube" || mode === "drive" ? (
-          <div className={clsx("rounded-lg border p-4", sourceLike ? "border-slate-200 bg-slate-50" : "border-ink/10 bg-paper/45")}>
-            <label className="block">
-              <span className="mb-2 flex items-center gap-2 text-sm font-bold">
-                {mode === "drive" ? <HardDrive size={16} className="text-violet" /> : <Link2 size={16} className="text-violet" />}
-                {mode === "drive" ? "导入 Google Drive" : t("mediaLinkTranscription")}
-              </span>
+          <div className="text-center">
+            {!file && !youtubeUrl ? <p className="text-xl font-semibold leading-8 text-slate-500">{copy.pastePrompt}</p> : null}
+            <div className="mt-7">
+              <p className="flex items-center justify-center gap-2 text-lg font-semibold text-slate-500">
+                <Link2 size={18} />
+                {t("supportedPlatforms")}
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                {supportedPlatformItems.map(([item, icon]) => (
+                  <span key={item} className="inline-flex min-h-10 items-center gap-3 rounded-full border border-violet/20 bg-white px-5 py-2 text-base font-black text-ink shadow-card">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-violet/10 text-violet">{icon}</span>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-8 flex flex-col gap-3 md:flex-row">
               <input
                 value={mode === "drive" ? driveUrl : youtubeUrl}
                 onChange={(event) => (mode === "drive" ? setDriveUrl(event.target.value) : setYoutubeUrl(event.target.value))}
-                className="field"
-                placeholder={mode === "drive" ? "粘贴公开 Google Drive 文件链接" : t("youtubePlaceholder")}
+                className="field h-14 flex-1 text-lg"
+                placeholder={mode === "drive" ? "Paste a public Google Drive file link" : copy.mediaLinkPlaceholder}
               />
-            </label>
-            {mode === "youtube" ? <div className="mt-4">
-              <p className="text-xs font-black uppercase text-ink/45">{t("supportedPlatforms")}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {copy.supportedPlatforms.map((item) => (
-                  <span key={item} className="rounded-full border border-violet/15 bg-white px-2.5 py-1 text-xs font-bold text-ink/65">{item}</span>
-                ))}
+              <button type="button" data-testid="home-link-search-button" onClick={resolveLauncherLink} disabled={resolvingLauncherLink || !hasLinkValue} className="btn-primary h-14 px-8 text-lg disabled:opacity-45">
+                {resolvingLauncherLink ? <Loader2 className="animate-spin" size={18} /> : null}
+                {copy.search}
+              </button>
+            </div>
+            {launcherLinkError ? <p className="mt-4 animate-fade-in rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{launcherLinkError}</p> : null}
+            {resolvedMedia ? (
+              <div className="mx-auto mt-7 max-w-5xl">
+                <MediaLinkPreview media={resolvedMedia} variant="source" />
+                <TranscriptionSettingsPanel
+                  t={t}
+                  language={language}
+                  setLanguage={setLanguage}
+                  speakerLabels={speakerLabels}
+                  setSpeakerLabels={setSpeakerLabels}
+                  subtitleEnabled={subtitleEnabled}
+                  setSubtitleEnabled={setSubtitleEnabled}
+                  premiumModel={premiumModel}
+                  setPremiumModel={setPremiumModel}
+                  summaryTemplate={summaryTemplate}
+                  setSummaryTemplate={setSummaryTemplate}
+                  summaryLanguage={summaryLanguage}
+                  setSummaryLanguage={setSummaryLanguage}
+                  compact
+                  sourceLike
+                />
+                <button type="button" data-testid="home-transcribe-cta" onClick={startTask} disabled={busy} className="btn-primary mt-8 h-14 w-full text-lg disabled:opacity-45">
+                  {busy ? <Loader2 className="animate-spin" size={18} /> : null}
+                  {copy.transcribeForFree}
+                </button>
               </div>
-            </div> : <p className="mt-3 text-xs font-bold leading-5 text-ink/55">The Drive file must be shared so anyone with the link can view it.</p>}
+            ) : null}
           </div>
         ) : (
           <div className={clsx("rounded-lg border-2 border-dashed p-5", sourceLike ? "border-primary/30 bg-slate-50" : "border-violet/30 bg-paper/45")}>
@@ -1924,54 +2179,71 @@ function TranscriptionLauncher({
         )}
       </div>
 
-      <TranscriptionSettingsPanel
-        t={t}
-        language={language}
-        setLanguage={setLanguage}
-        speakerLabels={speakerLabels}
-        setSpeakerLabels={setSpeakerLabels}
-        subtitleEnabled={subtitleEnabled}
-        setSubtitleEnabled={setSubtitleEnabled}
-        premiumModel={premiumModel}
-        setPremiumModel={setPremiumModel}
-        summaryTemplate={summaryTemplate}
-        setSummaryTemplate={setSummaryTemplate}
-        summaryLanguage={summaryLanguage}
-        setSummaryLanguage={setSummaryLanguage}
-        compact={sourceLike || compact}
-      />
+      {!sourceLike ? (
+        <>
+          <TranscriptionSettingsPanel
+            t={t}
+            language={language}
+            setLanguage={setLanguage}
+            speakerLabels={speakerLabels}
+            setSpeakerLabels={setSpeakerLabels}
+            subtitleEnabled={subtitleEnabled}
+            setSubtitleEnabled={setSubtitleEnabled}
+            premiumModel={premiumModel}
+            setPremiumModel={setPremiumModel}
+            summaryTemplate={summaryTemplate}
+            setSummaryTemplate={setSummaryTemplate}
+            summaryLanguage={summaryLanguage}
+            setSummaryLanguage={setSummaryLanguage}
+            compact={compact}
+          />
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-5 text-ink/55">
-          Audio: {liveAudioFormats}
-          <br />
-          Video: {liveVideoFormats}
-        </p>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          {!showRecordTab ? (
-            <button type="button" onClick={() => setMode("record")} className="btn-outline py-3">
-              <Mic size={16} />
-              {t("recordAudio")}
-            </button>
-          ) : null}
-          <button type="button" onClick={startTask} disabled={busy || (mode === "youtube" ? !youtubeUrl : mode === "drive" ? !driveUrl : !file)} className="btn-primary py-3">
-            {busy ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-            {t("start")}
-          </button>
-        </div>
-      </div>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-ink/55">
+              Audio: {liveAudioFormats}
+              <br />
+              Video: {liveVideoFormats}
+            </p>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {!showRecordTab ? (
+                <button type="button" onClick={() => setMode("record")} className="btn-outline py-3">
+                  <Mic size={16} />
+                  {t("recordAudio")}
+                </button>
+              ) : null}
+              <button type="button" onClick={startTask} disabled={busy || (mode === "youtube" ? !youtubeUrl : mode === "drive" ? !driveUrl : !file)} className="btn-primary py-3">
+                {busy ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                {t("start")}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : null}
       {notice ? <p className="mt-3 animate-fade-in rounded-md border border-violet/30 bg-violet/10 px-3 py-2 text-sm text-violet">{notice}</p> : null}
       {error ? <p className="mt-3 animate-fade-in rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{error}</p> : null}
+      {sourceLike ? (
+        <p className="mt-14 text-center text-base font-semibold leading-7 text-slate-500">
+          By using UniScribe, you agree to our{" "}
+          <a href={`/${locale}/terms-of-service`} className="font-semibold text-violet underline underline-offset-2">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href={`/${locale}/privacy-policy`} className="font-semibold text-violet underline underline-offset-2">
+            Privacy Policy
+          </a>.
+        </p>
+      ) : null}
     </aside>
   );
 }
 
 const summaryTemplateOptions = [
-  ["none", "No summary"],
-  ["standard", "Summary"],
+  ["none", "Off"],
+  ["standard", "General"],
   ["meeting", "Meeting notes"],
-  ["study", "Study notes"],
-  ["interview", "Interview brief"]
+  ["course_lecture", "Course"],
+  ["interview", "Interview"],
+  ["podcast", "Podcast"]
 ] as const;
 
 const summaryLanguageOptions = [
@@ -1999,7 +2271,8 @@ function TranscriptionSettingsPanel({
   setSummaryTemplate,
   summaryLanguage,
   setSummaryLanguage,
-  compact
+  compact,
+  sourceLike = false
 }: {
   t: (key: string) => string;
   language: string;
@@ -2015,87 +2288,110 @@ function TranscriptionSettingsPanel({
   summaryLanguage: string;
   setSummaryLanguage: (value: string) => void;
   compact?: boolean;
+  sourceLike?: boolean;
 }) {
-  const [advancedOpen, setAdvancedOpen] = useState(!compact);
+  if (sourceLike) {
+    return (
+      <section className="mt-10 text-left">
+        <div className="grid gap-10">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_280px] md:items-center">
+            <div className="flex gap-5">
+              <Mic size={30} className="mt-1 shrink-0 text-violet" />
+              <div>
+                <p className="text-xl font-semibold text-ink">Audio Language</p>
+                <p className="mt-2 text-base font-semibold leading-7 text-slate-500">Choose the language spoken in your audio. Not your translation language.</p>
+              </div>
+            </div>
+            <select value={language} onChange={(event) => setLanguage(event.target.value)} className="field h-14 rounded-xl bg-slate-50 text-base font-black">
+              {languageChoices.map((item) => (
+                <option key={item} value={item}>
+                  {item === "auto" ? t("auto") : item.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <SettingSwitch icon={<FileAudio size={30} />} label="Generate Subtitle" checked={subtitleEnabled} onChange={setSubtitleEnabled} sourceLike />
+          <SettingSwitch icon={<Globe2 size={30} />} label="Speaker identification" checked={speakerLabels} onChange={setSpeakerLabels} accent="amber" sourceLike />
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_280px] md:items-center">
+            <div className="flex gap-5">
+              <Sparkles size={30} className="mt-1 shrink-0 text-violet" />
+              <p className="text-xl font-semibold text-ink">AI Summary</p>
+            </div>
+            <select value={summaryTemplate} onChange={(event) => setSummaryTemplate(event.target.value)} className="field h-14 rounded-xl bg-slate-50 text-base font-black">
+              {summaryTemplateOptions.map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="mt-5 rounded-lg border border-ink/10 bg-paper/45 p-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label>
-          <span className="mb-2 flex items-center gap-2 text-sm font-bold">
-            <Languages size={16} className="text-violet" />
-            {t("language")}
-          </span>
-          <select value={language} onChange={(event) => setLanguage(event.target.value)} className="field">
+    <section className={clsx("mt-5 rounded-xl border border-ink/10 bg-white p-4 md:p-5", compact && "bg-paper/35")}>
+      <div className="grid gap-5">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_280px] md:items-start">
+          <div className="flex gap-4">
+            <Mic size={24} className="mt-1 shrink-0 text-violet" />
+            <div>
+              <p className="text-base font-black text-ink">Audio Language</p>
+              <p className="mt-1 text-sm font-bold leading-6 text-ink/55">Choose the language spoken in your audio. Not your translation language.</p>
+            </div>
+          </div>
+          <select value={language} onChange={(event) => setLanguage(event.target.value)} className="field h-12 bg-paper/70 text-sm font-black">
             {languageChoices.map((item) => (
               <option key={item} value={item}>
                 {item === "auto" ? t("auto") : item.toUpperCase()}
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
         <SettingSwitch
-          icon={<Globe2 size={16} />}
-          label={t("speakerLabels")}
+          icon={<FileAudio size={24} />}
+          label="Generate Subtitle"
+          checked={subtitleEnabled}
+          onChange={setSubtitleEnabled}
+        />
+        <SettingSwitch
+          icon={<Globe2 size={24} />}
+          label="Speaker identification"
           checked={speakerLabels}
           onChange={setSpeakerLabels}
+          accent="amber"
+        />
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_280px] md:items-center">
+          <div className="flex gap-4">
+            <Sparkles size={24} className="mt-1 shrink-0 text-violet" />
+            <p className="text-base font-black text-ink">AI Summary</p>
+          </div>
+          <select value={summaryTemplate} onChange={(event) => setSummaryTemplate(event.target.value)} className="field h-12 bg-paper/70 text-sm font-black">
+            {summaryTemplateOptions.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_280px] md:items-center">
+          <div className="flex gap-4">
+            <Languages size={24} className="mt-1 shrink-0 text-violet" />
+            <p className="text-base font-black text-ink">Summary language</p>
+          </div>
+          <select value={summaryLanguage} onChange={(event) => setSummaryLanguage(event.target.value)} disabled={summaryTemplate === "none"} className="field h-12 bg-paper/70 text-sm font-black disabled:opacity-45">
+            {summaryLanguageOptions.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
+        <SettingSwitch
+          icon={<Sparkles size={24} />}
+          label="Premium transcription model"
+          description="Prioritize Deepgram or AssemblyAI when richer timing and speaker features are available."
+          checked={premiumModel}
+          onChange={setPremiumModel}
         />
       </div>
-
-      <button
-        type="button"
-        onClick={() => setAdvancedOpen((value) => !value)}
-        className="mt-4 flex w-full items-center justify-between rounded-md border border-ink/10 bg-white px-3.5 py-2.5 text-sm font-black text-ink/70 transition hover:border-violet/25 hover:text-violet"
-        aria-expanded={advancedOpen}
-      >
-        <span className="flex items-center gap-2">
-          <Settings2 size={16} className="text-violet" />
-          Advanced settings
-        </span>
-        <ChevronDown size={16} className={clsx("transition", advancedOpen && "rotate-180")} />
-      </button>
-
-      {advancedOpen ? (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <SettingSwitch
-            icon={<FileAudio size={16} />}
-            label="Generate subtitles"
-            description="Create subtitle-ready timing for SRT and VTT exports."
-            checked={subtitleEnabled}
-            onChange={setSubtitleEnabled}
-          />
-          <SettingSwitch
-            icon={<Sparkles size={16} />}
-            label="Premium transcription model"
-            description="Prioritize the highest-accuracy provider path when available."
-            checked={premiumModel}
-            onChange={setPremiumModel}
-          />
-          <label>
-            <span className="mb-2 flex items-center gap-2 text-sm font-bold">
-              <Brain size={16} className="text-violet" />
-              Summary template
-            </span>
-            <select value={summaryTemplate} onChange={(event) => setSummaryTemplate(event.target.value)} className="field">
-              {summaryTemplateOptions.map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="mb-2 flex items-center gap-2 text-sm font-bold">
-              <Languages size={16} className="text-violet" />
-              Summary language
-            </span>
-            <select value={summaryLanguage} onChange={(event) => setSummaryLanguage(event.target.value)} className="field">
-              {summaryLanguageOptions.map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      ) : null}
     </section>
   );
 }
@@ -2105,24 +2401,49 @@ function SettingSwitch({
   label,
   description,
   checked,
-  onChange
+  onChange,
+  accent = "violet",
+  sourceLike = false
 }: {
   icon: ReactNode;
   label: string;
   description?: string;
   checked: boolean;
   onChange: (value: boolean) => void;
+  accent?: "violet" | "amber";
+  sourceLike?: boolean;
 }) {
-  return (
-    <label className="flex min-h-[52px] items-center justify-between gap-3 rounded-md border border-ink/15 bg-white px-3.5 py-3 transition hover:border-violet/30">
-      <span className="min-w-0">
-        <span className="flex items-center gap-2 text-sm font-bold">
-          <span className="text-violet">{icon}</span>
-          {label}
+  if (sourceLike) {
+    return (
+      <label className="grid cursor-pointer gap-4 md:grid-cols-[minmax(0,1fr)_88px] md:items-center">
+        <span className="flex min-w-0 gap-5">
+          <span className={clsx("mt-1 shrink-0", accent === "amber" ? "text-amber-500" : "text-violet")}>{icon}</span>
+          <span>
+            <span className="block text-xl font-semibold text-ink">{label}</span>
+            {description ? <span className="mt-2 block text-base font-semibold leading-7 text-slate-500">{description}</span> : null}
+          </span>
         </span>
-        {description ? <span className="mt-1 block text-xs leading-5 text-ink/50">{description}</span> : null}
+        <span className={clsx("flex h-10 w-20 items-center rounded-full p-1 transition", checked ? "bg-violet" : "bg-slate-200")}>
+          <span className={clsx("h-8 w-8 rounded-full bg-white shadow-soft transition", checked && "translate-x-10")} />
+        </span>
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="sr-only" />
+      </label>
+    );
+  }
+
+  return (
+    <label className="grid cursor-pointer gap-3 md:grid-cols-[minmax(0,1fr)_88px] md:items-center">
+      <span className="flex min-w-0 gap-4">
+        <span className={clsx("mt-1 shrink-0", accent === "amber" ? "text-amber-500" : "text-violet")}>{icon}</span>
+        <span>
+          <span className="block text-base font-black text-ink">{label}</span>
+          {description ? <span className="mt-1 block text-sm font-bold leading-6 text-ink/50">{description}</span> : null}
+        </span>
       </span>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-5 w-5 shrink-0 accent-violet" />
+      <span className={clsx("flex h-10 w-20 items-center rounded-full p-1 transition", checked ? "bg-violet" : "bg-slate-200")}>
+        <span className={clsx("h-8 w-8 rounded-full bg-white shadow-soft transition", checked && "translate-x-10")} />
+      </span>
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="sr-only" />
     </label>
   );
 }
@@ -2231,11 +2552,9 @@ function UploadWorkspaceShell({
   summaryLanguage,
   setSummaryLanguage,
   busy,
-  recording,
   notice,
   error,
   inputRef,
-  toggleRecording,
   startTask,
   user,
   usageSnapshot,
@@ -2270,11 +2589,9 @@ function UploadWorkspaceShell({
   summaryLanguage: string;
   setSummaryLanguage: (value: string) => void;
   busy: boolean;
-  recording: boolean;
   notice: string | null;
   error: string | null;
   inputRef: RefObject<HTMLInputElement>;
-  toggleRecording: () => void;
   startTask: () => void;
   user: CurrentUser | null;
   usageSnapshot: UsageSnapshot | null;
@@ -2298,40 +2615,55 @@ function UploadWorkspaceShell({
   const [driveError, setDriveError] = useState<string | null>(null);
   const fileCount = files.length;
   const fileLabel = fileCount > 1 ? `${fileCount} files selected` : files[0]?.name;
+  const canStartResolvedLink = Boolean(resolvedMedia && (mode === "youtube" || mode === "drive"));
 
   useEffect(() => {
     if (mode === "youtube") setLinkDialogOpen(true);
     if (mode === "drive") setDriveDialogOpen(true);
   }, [mode]);
 
-  async function resolveMediaLink() {
-    setResolvingLink(true);
-    setLinkResolveError(null);
-    setResolvedMedia(null);
-    try {
-      const data = await fetch("/api/media/resolve", {
+  useEffect(() => {
+    if (!linkDialogOpen) return;
+    const link = youtubeUrl.trim();
+    if (!link) {
+      setResolvedMedia(null);
+      setLinkResolveError(null);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setResolvingLink(true);
+      setLinkResolveError(null);
+      setResolvedMedia(null);
+      fetch("/api/media/resolve", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({url: youtubeUrl})
-      }).then(async (response) => {
-        const body = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(body.error ?? "无法检查该链接。");
-        return body as ResolvedMedia;
-      });
-      setResolvedMedia(data);
-      if (data.provider === "google_drive") {
-        setMode("drive");
-        setDriveUrl(data.sourceUrl || youtubeUrl);
-        setResolvedMedia(data);
-        setLinkDialogOpen(false);
-        setDriveDialogOpen(true);
-      }
-    } catch (cause) {
-      setLinkResolveError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setResolvingLink(false);
-    }
-  }
+        body: JSON.stringify({url: link})
+      })
+        .then(async (response) => {
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(body.error ?? "无法检查该链接。");
+          return body as ResolvedMedia;
+        })
+        .then((data) => {
+          setResolvedMedia(data);
+          if (data.provider === "google_drive") {
+            setMode("drive");
+            setDriveUrl(data.sourceUrl || link);
+            setLinkDialogOpen(false);
+            setDriveDialogOpen(true);
+          } else {
+            setMode("youtube");
+          }
+        })
+        .catch((cause) => {
+          setLinkResolveError(cause instanceof Error ? cause.message : String(cause));
+        })
+        .finally(() => setResolvingLink(false));
+    }, 550);
+
+    return () => window.clearTimeout(timeout);
+  }, [linkDialogOpen, setDriveUrl, setMode, setResolvedMedia, youtubeUrl]);
 
   const refreshDriveConnection = useCallback(async () => {
     const data = await fetch("/api/google-drive/connection", {cache: "no-store"}).then((response) => response.json());
@@ -2550,47 +2882,79 @@ function UploadWorkspaceShell({
       </div>
       {linkDialogOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/35 px-4 py-6">
-          <section className="w-full max-w-lg rounded-xl border border-ink/10 bg-white p-5 shadow-lifted">
+          <section className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-xl border border-ink/10 bg-white p-5 shadow-lifted md:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-black text-ink">Media Link Transcription</h2>
-                <p className="mt-2 text-sm leading-6 text-ink/60">Paste a media link to transcribe video or audio content.</p>
+                <h2 className="text-2xl font-black text-ink">Media Link Transcription</h2>
+                <p className="mt-2 text-base leading-7 text-ink/60">Paste a media link to transcribe video or audio content.</p>
               </div>
               <button type="button" onClick={() => setLinkDialogOpen(false)} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/10 text-ink/55 transition hover:border-violet/25 hover:text-violet" aria-label="Close">
                 <X size={17} />
               </button>
             </div>
-            <div className="mt-5">
-              <p className="text-xs font-black uppercase tracking-wide text-ink/45">Supported platforms</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {copy.supportedPlatforms.map((item) => (
-                  <span key={item} className="rounded-full border border-violet/15 bg-violet/5 px-3 py-1 text-xs font-bold text-ink/65">{item}</span>
-                ))}
+            {!resolvedMedia ? (
+              <div className="mt-7 rounded-xl border border-ink/10 bg-paper/35 p-4">
+                <p className="flex items-center gap-2 text-sm font-bold text-ink/55">
+                  <Link2 size={16} />
+                  Supported platforms
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {copy.supportedPlatforms.map((item) => (
+                    <span key={item} className="rounded-full border border-violet/15 bg-white px-3 py-1.5 text-sm font-bold text-ink/70 shadow-soft">{item}</span>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-7 rounded-xl border border-ink/10 bg-paper/35 p-4">
+                <p className="break-all text-sm font-bold leading-6 text-ink/55">
+                  <Link2 size={16} className="mr-2 inline text-ink/45" />
+                  {resolvedMedia.sourceUrl}
+                </p>
+                <button type="button" onClick={() => { setResolvedMedia(null); setLinkResolveError(null); }} className="mt-3 text-sm font-black text-violet transition hover:text-ink">
+                  Change link
+                </button>
+              </div>
+            )}
             <label className="mt-5 block">
               <span className="sr-only">Link input</span>
-              <input value={youtubeUrl} onChange={(event) => setYoutubeUrl(event.target.value)} className="field" placeholder="Paste a media link" autoFocus />
+              <input value={youtubeUrl} onChange={(event) => setYoutubeUrl(event.target.value)} className="field h-12 text-base" placeholder="Paste a media link" autoFocus />
             </label>
-            <button type="button" onClick={resolveMediaLink} disabled={resolvingLink || busy || !youtubeUrl} className="btn-primary mt-4 w-full py-3">
-              {resolvingLink ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-              Check link
-            </button>
+            {resolvingLink ? (
+              <p className="mt-3 flex items-center gap-2 text-sm font-bold text-violet">
+                <Loader2 className="animate-spin" size={16} />
+                Checking link...
+              </p>
+            ) : null}
             {linkResolveError ? <p className="mt-3 animate-fade-in rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{linkResolveError}</p> : null}
             {resolvedMedia && mode === "youtube" ? (
-              <MediaLinkPreview media={resolvedMedia} />
+              <>
+                <MediaLinkPreview media={resolvedMedia} />
+                <TranscriptionSettingsPanel
+                  t={t}
+                  language={language}
+                  setLanguage={setLanguage}
+                  speakerLabels={speakerLabels}
+                  setSpeakerLabels={setSpeakerLabels}
+                  subtitleEnabled={subtitleEnabled}
+                  setSubtitleEnabled={setSubtitleEnabled}
+                  premiumModel={premiumModel}
+                  setPremiumModel={setPremiumModel}
+                  summaryTemplate={summaryTemplate}
+                  setSummaryTemplate={setSummaryTemplate}
+                  summaryLanguage={summaryLanguage}
+                  setSummaryLanguage={setSummaryLanguage}
+                />
+              </>
             ) : null}
-            {resolvedMedia && mode === "youtube" ? (
-              <button type="button" onClick={startTask} disabled={busy} className="btn-primary mt-3 w-full py-3">
-                {busy ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                Start transcription
-              </button>
-            ) : null}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-paper/65 px-4 py-3 text-sm">
+            <button type="button" onClick={startTask} disabled={busy || resolvingLink || !canStartResolvedLink || mode !== "youtube"} className="btn-primary mt-5 w-full py-3 disabled:opacity-45">
+              {busy ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+              Transcribe
+            </button>
+            <a href={`/${locale}/pricing`} className="mt-4 block text-center text-sm font-black text-violet underline decoration-violet/30 underline-offset-4 transition hover:text-ink">Buy More Minutes</a>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3 border-t border-ink/10 pt-4 text-sm">
               <span className="font-bold text-ink/60">Available minutes:</span>
-              <span className="font-black text-ink">{remaining}</span>
+              <span className="font-black text-violet">{remaining}</span>
             </div>
-            <a href={`/${locale}/pricing`} className="btn-outline mt-3 w-full">Buy More Minutes</a>
           </section>
         </div>
       ) : null}
@@ -2697,8 +3061,38 @@ function UploadWorkspaceShell({
   );
 }
 
-function MediaLinkPreview({media}: {media: ResolvedMedia}) {
+function MediaLinkPreview({media, variant = "card"}: {media: ResolvedMedia; variant?: "card" | "source"}) {
   const sizeLabel = media.contentLength ? `${Math.max(1, Math.ceil(media.contentLength / 1024 / 1024))} MB` : null;
+
+  if (variant === "source") {
+    return (
+      <article className="text-center">
+        <h3 className="mx-auto max-w-3xl break-words text-2xl font-black leading-tight text-ink">{media.title}</h3>
+        {media.durationSeconds ? (
+          <p className="mt-4 flex items-center justify-center gap-2 text-xl font-semibold text-slate-500">
+            <Clock size={22} />
+            {formatDuration(media.durationSeconds)}
+          </p>
+        ) : null}
+        {media.thumbnailUrl ? (
+          <div className="mx-auto mt-8 w-full max-w-[560px] overflow-hidden rounded-lg bg-ink/5">
+            {/* 外部媒体缩略图可能来自 YouTube、Drive 或其它公开源，不适合纳入固定 next/image 域名白名单。 */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={media.thumbnailUrl} alt="" className="aspect-video w-full object-cover" />
+          </div>
+        ) : null}
+        <p className="mx-auto mt-4 max-w-3xl break-all text-sm font-semibold leading-6 text-slate-400">{media.sourceUrl}</p>
+        {sizeLabel ? <p className="mt-2 text-sm font-bold text-slate-400">{sizeLabel}</p> : null}
+        {media.warnings.length ? (
+          <div className="mx-auto mt-4 grid max-w-3xl gap-2">
+            {media.warnings.map((warning) => (
+              <p key={warning} className="rounded-md border border-violet/15 bg-violet/5 px-3 py-2 text-sm font-bold leading-5 text-ink/55">{warning}</p>
+            ))}
+          </div>
+        ) : null}
+      </article>
+    );
+  }
 
   return (
     <article className="mt-4 overflow-hidden rounded-lg border border-violet/18 bg-violet/5">

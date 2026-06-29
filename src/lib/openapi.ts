@@ -8,6 +8,7 @@ import {prisma} from "@/lib/prisma";
 import {publicObjectUrl} from "@/lib/storage";
 import {estimatedMinutesFromFileSize, quotaErrorStatus, reserveQuotaForTask} from "@/lib/usage";
 import {serializeTranscription} from "@/lib/webhook-delivery";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 // OpenAPI 入参采用 snake_case，和前端工作台的 camelCase 任务接口分开维护。
 // 这样可以保持外部 API 稳定，同时让内部页面继续使用更贴近 React/TypeScript 的字段名。
@@ -23,7 +24,7 @@ export const openApiCreateSchema = z.object({
   enable_speaker_labels: z.boolean().optional(),
   subtitle: z.boolean().default(true),
   premium_model: z.boolean().default(false),
-  summary_template: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard"),
+  summary_template: z.enum(summaryTemplateInputValues).default("standard"),
   summary_language: z.string().default("en"),
   file_size_bytes: z.number().int().positive().optional(),
   webhook_url: z.string().url().optional()
@@ -120,7 +121,7 @@ export async function createOpenApiTranscription(request: Request, forceSource?:
       enableSpeakerLabels,
       subtitleEnabled: input.subtitle,
       premiumModel: input.premium_model,
-      summaryTemplate: input.summary_template,
+      summaryTemplate: normalizeSummaryTemplate(input.summary_template),
       summaryLanguage: input.summary_language
     });
 

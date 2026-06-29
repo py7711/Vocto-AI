@@ -8,6 +8,7 @@ import {assertRateLimit} from "@/lib/rate-limit";
 import {prisma} from "@/lib/prisma";
 import {anonymousUserId} from "@/lib/tasks";
 import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 // 兼容旧版/外部客户端的转写字段。工作台内部使用 `/api/tasks`，但历史页面、公开工具
 // 和部分第三方集成会提交 fileId、sourceUrl、languageCode 等旧字段名，所以这里集中做入参归一化。
@@ -28,7 +29,7 @@ export const sourceCreateTaskSchema = z.object({
   enableSpeakerLabels: z.boolean().optional(),
   subtitleEnabled: z.boolean().default(true),
   premiumModel: z.boolean().default(false),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview", "course_lecture", "podcast"]).default("standard"),
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   summaryLanguageCode: z.string().default("en"),
   summaryLanguage: z.string().optional(),
   fileSizeBytes: z.number().int().positive().optional(),
@@ -43,12 +44,6 @@ type TaskWithRelations = MediaTask & {
   folder?: {id: string; name: string; position: number} | null;
   shareLinks?: Array<{id: string; createdAt: Date}>;
 };
-
-function normalizeSummaryTemplate(value: string | undefined) {
-  if (value === "course_lecture") return "study";
-  if (value === "podcast") return "standard";
-  return value ?? "standard";
-}
 
 export function serializeCompatTask(task: TaskWithRelations) {
   // 兼容响应保留 transcriptionFileId、fileId、filename 等旧字段，避免旧客户端升级时出现破坏性变更。
@@ -85,7 +80,7 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
   const sourceUrl = resolveSourceUrl(input, sourceType);
   const language = input.language ?? input.languageCode ?? "auto";
   const enableSpeakerLabels = input.enableSpeakerLabels ?? input.enableSpeakerDiarization;
-  const summaryTemplate = normalizeSummaryTemplate(input.summaryTemplate) as "none" | "standard" | "meeting" | "study" | "interview";
+  const summaryTemplate = normalizeSummaryTemplate(input.summaryTemplate);
   const summaryLanguage = input.summaryLanguage ?? input.summaryLanguageCode ?? "en";
 
   // 兼容入口也必须沿用正式任务创建的额度事务：先校验免费次数和订阅分钟，再创建任务并预留额度。

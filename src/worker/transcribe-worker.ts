@@ -7,6 +7,8 @@ import {updateTaskStatus} from "@/lib/task-status";
 import {releaseQuotaForFailedTask, settleQuotaForCompletedTask} from "@/lib/usage";
 import {transcribeWithFallback} from "@/server/transcription";
 import {isGoogleDriveShareUrl, prepareTaskAudioAsset, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
+import {generateInsights} from "@/server/ai/insights";
+import {normalizeSummaryTemplate} from "@/lib/summary-template";
 
 // worker 是独立 Node 进程，不在 Next.js 请求生命周期内运行。
 // 这里避免导入包含 cookies/getCurrentUser 的 "@/lib/tasks"，否则会间接加载 `server-only`
@@ -42,7 +44,7 @@ async function createWorker() {
   const worker = new Worker<TranscribeJob>(
     TRANSCRIBE_QUEUE,
     async (job) => {
-      const {taskId, sourceUrl, sourceType, language, enableSpeakerLabels, subtitleEnabled, premiumModel} = job.data;
+      const {taskId, sourceUrl, sourceType, language, enableSpeakerLabels, subtitleEnabled, premiumModel, summaryTemplate, summaryLanguage} = job.data;
       await assertNotCanceled(taskId);
       await updateTaskStatus(taskId, "PROCESSING", {
         progress: 15,
@@ -78,7 +80,7 @@ async function createWorker() {
       });
 
       await assertNotCanceled(taskId);
-      await prisma.transcript.upsert({
+      const transcript = await prisma.transcript.upsert({
         where: {mediaTaskId: taskId},
         update: {
           plainText: result.text,
@@ -96,9 +98,19 @@ async function createWorker() {
       await settleQuotaForCompletedTask({mediaTaskId: taskId, durationSeconds: result.durationSeconds});
 
       await assertNotCanceled(taskId);
+      const normalizedSummaryTemplate = normalizeSummaryTemplate(summaryTemplate);
+      if (normalizedSummaryTemplate !== "none") {
+        await updateTaskStatus(taskId, "ANALYZING", {
+          progress: 82,
+          statusMessage: "转写完成，正在生成 AI 摘要和思维导图。"
+        });
+        await generateInsights(taskId, transcript, summaryLanguage || language || "en", undefined, normalizedSummaryTemplate);
+        await assertNotCanceled(taskId);
+      }
+
       await updateTaskStatus(taskId, "COMPLETED", {
         progress: 100,
-        statusMessage: "转写稿已就绪。",
+        statusMessage: normalizedSummaryTemplate === "none" ? "转写稿已就绪。" : "转写稿、AI 摘要和思维导图已就绪。",
         provider: result.provider,
         detectedLanguage: result.language,
         durationSeconds: result.durationSeconds ? Math.round(result.durationSeconds) : prepared.durationSeconds ? Math.round(prepared.durationSeconds) : undefined,

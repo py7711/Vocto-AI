@@ -1,5 +1,3 @@
-type BlogLocale = "zh" | "en" | "es" | "fr" | "de" | "ja" | "ko" | "pt";
-
 type BlogPost = {
   slug: string;
   title: string;
@@ -211,7 +209,7 @@ const enPosts: BlogPost[] = [
 ];
 
 
-export function getBlogPosts(locale: string): BlogPost[] {
+export function getBlogPosts(_locale: string): BlogPost[] {
   return enPosts;
 }
 

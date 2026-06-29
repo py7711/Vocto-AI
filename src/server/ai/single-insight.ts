@@ -1,9 +1,10 @@
 import type {Transcript} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
+import type {SummaryTemplate} from "@/lib/summary-template";
+import {normalizeSummaryTemplate} from "@/lib/summary-template";
 import {generateJsonWithFallback} from "@/server/ai/providers";
 
 type SingleInsightTaskType = "summary" | "mind_map" | "qa";
-type SummaryTemplate = "none" | "standard" | "meeting" | "study" | "interview";
 
 const summaryTemplateInstructions: Record<SummaryTemplate, string> = {
   none: "Do not create a prose summary. Return an empty summary overview and no summary bullets.",
@@ -114,10 +115,11 @@ export async function generateSingleInsight({
   transcript: Transcript;
   taskType: SingleInsightTaskType;
   locale: string;
-  summaryTemplate?: SummaryTemplate;
+  summaryTemplate?: string;
 }) {
   const text = transcriptText(transcript);
-  const {payload, model} = await buildPayload(taskType, text, locale, summaryTemplate);
+  const normalizedTemplate = normalizeSummaryTemplate(summaryTemplate);
+  const {payload, model} = await buildPayload(taskType, text, locale, normalizedTemplate);
   const meta = insightMeta(taskType);
 
   return prisma.aIInsight.upsert({

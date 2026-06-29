@@ -3,11 +3,12 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {generateSingleInsight} from "@/server/ai/single-insight";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const singleInsightSchema = z.object({
   taskType: z.enum(["summary", "mind_map", "qa"]),
   locale: z.string().default("en"),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard"),
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   regenerate: z.boolean().default(true)
 });
 
@@ -29,7 +30,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       transcript: task.transcript,
       taskType: input.taskType,
       locale: input.locale,
-      summaryTemplate: input.summaryTemplate
+      summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate)
     });
     await publishTaskUpdate(task.id);
 

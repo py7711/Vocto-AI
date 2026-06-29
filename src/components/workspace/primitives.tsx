@@ -26,7 +26,7 @@ export function InsightPanel({icon, title, action, children}: {icon: ReactNode; 
   );
 }
 
-export function ModeButton({active, icon, label, onClick}: {active: boolean; icon: ReactNode; label: string; onClick: () => void}) {
+export function ModeButton({active, icon, label, onClick}: {active: boolean; icon?: ReactNode; label: string; onClick: () => void}) {
   return (
     <button
       type="button"
@@ -38,7 +38,7 @@ export function ModeButton({active, icon, label, onClick}: {active: boolean; ico
       )}
       onClick={onClick}
     >
-      {icon}
+      {icon ? icon : null}
       <span className="truncate">{label}</span>
     </button>
   );

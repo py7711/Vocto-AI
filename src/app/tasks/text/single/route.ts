@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {POST as createSingleInsight} from "@/app/api/tasks/[taskId]/insights/single/route";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const sourceSingleTextSchema = z.object({
   transcriptionFileId: z.string().optional(),
@@ -9,15 +10,9 @@ const sourceSingleTextSchema = z.object({
   taskType: z.enum(["summary", "mind_map", "qa"]),
   locale: z.string().optional(),
   summaryLanguageCode: z.string().optional(),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview", "course_lecture", "podcast"]).optional(),
+  summaryTemplate: z.enum(summaryTemplateInputValues).optional(),
   regenerate: z.boolean().optional()
 }).passthrough();
-
-function normalizeSummaryTemplate(value: string | undefined) {
-  if (value === "course_lecture") return "study";
-  if (value === "podcast") return "standard";
-  return value;
-}
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +30,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         taskType: input.taskType,
         locale: input.locale ?? input.summaryLanguageCode ?? "en",
-        summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate) ?? "standard",
+        summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
         regenerate: input.regenerate ?? true
       })
     });

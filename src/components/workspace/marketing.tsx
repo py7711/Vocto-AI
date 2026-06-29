@@ -2,18 +2,14 @@
 
 import {useMemo, useState} from "react";
 import Image from "next/image";
-import {useLocale} from "next-intl";
 import {
   BadgeCheck,
   Brain,
-  Check,
   CheckCircle2,
   ChevronDown,
   Download,
   FileAudio,
   Languages,
-  Link2,
-  MessageSquareQuote,
   Share2,
   Sparkles,
   Star,
@@ -227,7 +223,7 @@ function StarRow() {
   );
 }
 
-export function ProductSections({copy, locale}: {t: (key: string) => string; copy: WorkspaceCopy; locale: string}) {
+export function ProductSections({locale}: {t: (key: string) => string; copy: WorkspaceCopy; locale: string}) {
   const [pricingMode, setPricingMode] = useState<PricingMode>("one-time");
   const [openFaq, setOpenFaq] = useState(0);
   const posts = useMemo(() => getBlogPosts(locale).slice(0, 6), [locale]);

@@ -1,19 +1,44 @@
 "use client";
 
 import {useState} from "react";
-import {BadgeCheck, Clock, Folder, HelpCircle, LogOut, MessageCircle, Monitor, Moon, Pencil, Plus, Settings, Sun, Trash2} from "lucide-react";
+import {ChevronRight, ChevronUp, Clock, FileText, FolderOpen, HelpCircle, Home, LogOut, MessageCircle, Monitor, Moon, Pencil, Plus, Settings, Sun, Trash2} from "lucide-react";
 import type {WorkspaceCopy} from "./copy";
 import type {AssetView, CurrentUser, FolderItem, TaskListItem, UsageSnapshot} from "./types";
-import {PanelTitle} from "./primitives";
 
-function LiveQuotaMetric({label, used, total, suffix}: {label: string; used: number; total: number; suffix?: string}) {
+function clampPercent(value: number, total: number) {
+  if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return 0;
+  return Math.max(0, Math.min(100, (value / total) * 100));
+}
+
+function QuotaRow({
+  icon,
+  label,
+  used,
+  total,
+  suffix,
+  barClassName
+}: {
+  icon: React.ReactNode;
+  label: string;
+  used: number;
+  total: number;
+  suffix?: string;
+  barClassName: string;
+}) {
   return (
-    <div className="rounded-lg border border-ink/10 bg-paper/55 p-3">
-      <div className="text-[11px] font-black uppercase tracking-wide text-ink/45">{label}</div>
-      <div className="mt-2 flex items-end gap-1">
-        <span className="text-3xl font-black leading-none text-ink">{used}</span>
-        <span className="pb-0.5 text-sm font-black text-ink/45">/{total}</span>
-        {suffix ? <span className="pb-0.5 text-xs font-bold text-ink/45">{suffix}</span> : null}
+    <div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 text-slate-500">
+          <span className="grid h-6 w-6 place-items-center">{icon}</span>
+          <span className="text-lg font-black uppercase tracking-wide">{label}</span>
+        </div>
+        <p className="whitespace-nowrap text-lg font-black text-ink">
+          {used}
+          <span className="text-slate-500">/{total}{suffix ? ` ${suffix}` : ""}</span>
+        </p>
+      </div>
+      <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/65">
+        <div className={`h-full rounded-full ${barClassName}`} style={{width: `${clampPercent(used, total)}%`}} />
       </div>
     </div>
   );
@@ -35,12 +60,12 @@ function AccountMenu({locale}: {locale: string}) {
         aria-label="Account menu"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-ink/45 transition hover:bg-ink/5 hover:text-ink"
+        className="focus-ring grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-violet/8 hover:text-violet"
       >
-        <Settings size={16} />
+        <Settings size={17} />
       </button>
       {open ? (
-        <div className="absolute bottom-10 right-0 z-30 w-64 rounded-xl border border-ink/10 bg-white p-2 shadow-card">
+        <div className="absolute bottom-11 right-0 z-30 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-card">
           <a href="mailto:support@uniscribe.co" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-ink/72 hover:bg-paper hover:text-ink">
             <HelpCircle size={16} />
             Email Support
@@ -53,8 +78,8 @@ function AccountMenu({locale}: {locale: string}) {
             <Settings size={16} />
             Settings
           </a>
-          <div className="mt-2 border-t border-ink/10 pt-2">
-            <p className="px-3 pb-2 text-xs font-black uppercase tracking-wide text-ink/45">Theme</p>
+          <div className="mt-2 border-t border-slate-200 pt-2">
+            <p className="px-3 pb-2 text-xs font-black uppercase tracking-wide text-slate-500">Theme</p>
             <div className="grid grid-cols-3 gap-1">
               {[
                 ["Light", Sun],
@@ -77,7 +102,7 @@ function AccountMenu({locale}: {locale: string}) {
               })}
             </div>
           </div>
-          <button type="button" onClick={signOut} className="mt-2 flex w-full items-center gap-2 rounded-lg border-t border-ink/10 px-3 py-2 pt-3 text-left text-sm font-bold text-coral hover:bg-coral/10">
+          <button type="button" onClick={signOut} className="mt-2 flex w-full items-center gap-2 rounded-lg border-t border-slate-200 px-3 py-2 pt-3 text-left text-sm font-bold text-coral hover:bg-coral/10">
             <LogOut size={16} />
             Sign out
           </button>
@@ -127,62 +152,102 @@ export function WorkspaceSidebar({
   onSelectTask: (taskId: string) => void;
 }) {
   const subscription = user?.subscriptions?.[0];
-  const planName = usageSnapshot?.subscription.plan ?? subscription?.plan ?? "ANONYMOUS";
+  const planName = usageSnapshot?.subscription.plan ?? subscription?.plan ?? "FREE";
+  const planLabel = planName === "ANONYMOUS" ? "FREE" : planName.toUpperCase();
   const quota = usageSnapshot?.subscription.monthlyMinuteQuota ?? subscription?.monthlyMinuteQuota ?? 120;
   const remaining = usageSnapshot?.subscription.remainingMinutes ?? subscription?.remainingMinutes ?? quota;
-  const usedMinutes = usageSnapshot?.subscription.usedMinutes ?? (subscription ? Math.max(0, quota - remaining) : 0);
+  const usedMinutes = usageSnapshot?.subscription.usedMinutes ?? Math.max(0, quota - remaining);
   const dailyUsed = usageSnapshot?.dailyFree.used ?? user?.dailyFreeCount ?? 0;
   const dailyLimit = usageSnapshot?.dailyFree.limit ?? 3;
   const [folderName, setFolderName] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
 
+  async function submitFolder() {
+    const nextName = folderName.trim();
+    if (!nextName) {
+      setCreatingFolder((value) => !value);
+      return;
+    }
+    await createFolder(nextName);
+    setFolderName("");
+    setCreatingFolder(false);
+  }
+
   return (
-    <aside className="grid content-start gap-4">
-      <section className="rounded-xl border border-ink/10 bg-white p-4 shadow-soft">
-        <PanelTitle icon={<BadgeCheck size={18} />} label="Current Plan" />
-        <div className="mt-3">
-          <p className="break-words text-2xl font-black uppercase">{planName === "ANONYMOUS" ? "FREE" : planName}</p>
+    <aside className="grid content-start gap-7">
+      <section className="rounded-xl border border-slate-200 bg-[#f7f7ff] p-6 shadow-card">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-black uppercase tracking-wide text-slate-500">Current Plan</h2>
+          <a href={`/${locale}/pricing`} className="inline-flex items-center gap-3 rounded-full border border-emerald-200 bg-emerald-100 px-5 py-3 text-lg font-black uppercase text-emerald-700 shadow-soft transition hover:border-emerald-300 hover:bg-emerald-50">
+            {planLabel}
+            <ChevronRight size={20} />
+          </a>
         </div>
-        <div className="mt-4 grid gap-3">
-          <LiveQuotaMetric label="DAILY" used={dailyUsed} total={dailyLimit} />
-          <LiveQuotaMetric label="MINUTES" used={usedMinutes} total={quota} suffix="min" />
+
+        <div className="mt-7 grid gap-8">
+          <QuotaRow icon={<FileText size={22} />} label="Daily" used={dailyUsed} total={dailyLimit} barClassName="bg-violet" />
+          <QuotaRow icon={<Clock size={23} />} label="Minutes" used={usedMinutes} total={quota} suffix="min" barClassName="bg-emerald-500" />
         </div>
-        {usageSnapshot ? (
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-bold">
-            <div className="rounded-lg bg-paper p-2.5 ring-1 ring-ink/5">
-              <div className="text-ink/50">{copy.monthTasks}</div>
-              <div className="mt-1 text-base text-ink">{usageSnapshot.tasks.periodCount}</div>
-            </div>
-            <div className="rounded-lg bg-paper p-2.5 ring-1 ring-ink/5">
-              <div className="text-ink/50">{copy.remainingMinutes}</div>
-              <div className="mt-1 text-base text-ink">{remaining}</div>
-            </div>
-          </div>
-        ) : null}
-        <a href={`/${locale}/pricing`} className="btn-primary mt-4 w-full">{t("upgradePlan")}</a>
+
+        <a href={`/${locale}/pricing`} className="btn-primary mt-9 h-16 w-full rounded-lg text-xl shadow-glow">
+          {t("upgradePlan")}
+        </a>
       </section>
 
-      <section className="rounded-xl border border-ink/10 bg-white p-4 shadow-soft">
-        <div className="flex items-center justify-between gap-3">
-          <PanelTitle icon={<Folder size={18} />} label={t("folders")} />
-          <button type="button" onClick={() => { if (folderName.trim()) createFolder(folderName).then(() => setFolderName("")); }} className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md border border-ink/10 text-ink/55 transition hover:border-violet/25 hover:text-violet" aria-label="Create folder">
-            <Plus size={15} />
-          </button>
+      <a href={`/${locale}/dashboard`} className="focus-ring flex min-h-20 items-center gap-5 rounded-xl bg-violet/10 px-5 text-2xl font-semibold text-violet transition hover:bg-violet/15">
+        <Home size={34} strokeWidth={1.9} />
+        Dashboard
+      </a>
+
+      <section>
+        <div className="flex items-center justify-between gap-4 px-4">
+          <div className="flex items-center gap-5">
+            <FolderOpen size={36} strokeWidth={1.8} className="text-slate-500" />
+            <h2 className="text-2xl font-semibold text-ink">{t("folders")}</h2>
+          </div>
+          <div className="flex items-center gap-8 text-slate-500">
+            <button type="button" onClick={submitFolder} className="focus-ring grid h-9 w-9 place-items-center rounded-lg transition hover:bg-violet/8 hover:text-violet" aria-label="Create folder">
+              <Plus size={29} strokeWidth={1.8} />
+            </button>
+            <ChevronUp size={28} strokeWidth={1.8} />
+          </div>
         </div>
-        <label className="mt-3 block">
-          <span className="sr-only">New folder name</span>
-          <input value={folderName} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && folderName.trim()) createFolder(folderName).then(() => setFolderName("")); }} className="field h-9 text-sm" placeholder="New folder" />
-        </label>
-        <div className="mt-3 grid gap-1.5">
-          <button type="button" onClick={() => setSelectedFolderId(null)} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm font-bold ring-1 ring-ink/5 transition ${selectedFolderId === null ? "bg-violet text-white" : "bg-paper hover:bg-violet/8 hover:text-violet"}`}>
-            <span>{t("uncategorized")}</span>
+
+        {creatingFolder ? (
+          <label className="mt-5 block px-4">
+            <span className="sr-only">New folder name</span>
+            <input
+              value={folderName}
+              onChange={(event) => setFolderName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") submitFolder().catch(() => undefined);
+                if (event.key === "Escape") {
+                  setFolderName("");
+                  setCreatingFolder(false);
+                }
+              }}
+              className="field h-12 rounded-lg text-base"
+              placeholder="New folder"
+              autoFocus
+            />
+          </label>
+        ) : null}
+
+        <div className="mt-11 grid gap-3">
+          <button
+            type="button"
+            onClick={() => setSelectedFolderId(null)}
+            className={`ml-[4.5rem] rounded-lg px-4 py-3 text-left text-2xl font-semibold transition ${selectedFolderId === null ? "bg-violet text-white shadow-card" : "text-ink hover:bg-violet/8 hover:text-violet"}`}
+          >
+            {t("uncategorized")}
           </button>
           {folders.map((folder) => (
-            <div key={folder.id} className={`rounded-lg ring-1 ring-ink/5 ${selectedFolderId === folder.id ? "bg-violet text-white" : "bg-paper text-ink"}`}>
+            <div key={folder.id} className={`ml-[4.5rem] rounded-lg transition ${selectedFolderId === folder.id ? "bg-violet text-white shadow-card" : "text-ink hover:bg-violet/8"}`}>
               {editingFolderId === folder.id ? (
                 <form
-                  className="flex items-center gap-1 p-1"
+                  className="flex items-center gap-2 p-2"
                   onSubmit={(event) => {
                     event.preventDefault();
                     if (!editingName.trim()) return;
@@ -192,71 +257,39 @@ export function WorkspaceSidebar({
                     });
                   }}
                 >
-                  <input value={editingName} onChange={(event) => setEditingName(event.target.value)} className="field h-8 min-w-0 flex-1 bg-white text-sm text-ink" autoFocus />
+                  <input value={editingName} onChange={(event) => setEditingName(event.target.value)} className="field h-10 min-w-0 flex-1 bg-white text-sm text-ink" autoFocus />
                   <button type="submit" className="rounded-md px-2 text-xs font-black text-violet">保存</button>
                 </form>
               ) : (
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => setSelectedFolderId(folder.id)} className="min-w-0 flex-1 px-3 py-2 text-left text-sm font-bold">
+                  <button type="button" onClick={() => setSelectedFolderId(folder.id)} className="min-w-0 flex-1 px-4 py-3 text-left text-lg font-semibold">
                     <span className="block truncate">{folder.name}</span>
-                    <span className={selectedFolderId === folder.id ? "text-xs text-white/65" : "text-xs text-ink/45"}>{folder._count?.mediaTasks ?? 0}</span>
+                    <span className={selectedFolderId === folder.id ? "text-xs text-white/65" : "text-xs text-slate-500"}>{folder._count?.mediaTasks ?? 0}</span>
                   </button>
-                  <button type="button" onClick={() => { setEditingFolderId(folder.id); setEditingName(folder.name); }} className="grid h-8 w-8 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`重命名 ${folder.name}`}>
-                    <Pencil size={13} />
+                  <button type="button" onClick={() => { setEditingFolderId(folder.id); setEditingName(folder.name); }} className="grid h-9 w-9 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`重命名 ${folder.name}`}>
+                    <Pencil size={14} />
                   </button>
-                  <button type="button" onClick={() => deleteFolder(folder.id)} className="grid h-8 w-8 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`删除 ${folder.name}`}>
-                    <Trash2 size={13} />
+                  <button type="button" onClick={() => deleteFolder(folder.id)} className="grid h-9 w-9 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`删除 ${folder.name}`}>
+                    <Trash2 size={14} />
                   </button>
                 </div>
               )}
             </div>
           ))}
         </div>
-        <div className="mt-4 border-t border-ink/10 pt-4">
-          <p className="text-xs font-black uppercase tracking-wide text-ink/45">{copy.account}</p>
-          <div className="mt-2 flex items-center gap-3">
-            <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-violet text-sm font-black uppercase text-white">
-              {(user?.name || user?.email || "U").slice(0, 1)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-ink">{user?.name || copy.anonymousUser}</p>
-              <p className="truncate text-xs font-bold text-ink/55">{user?.email || copy.loginSyncHint}</p>
-            </div>
-            <AccountMenu locale={locale} />
-          </div>
-        </div>
       </section>
 
-      <section className="rounded-xl border border-violet/15 bg-violet p-4 text-white shadow-soft">
-        <PanelTitle icon={<Clock size={18} />} label="Limited Time" />
-        <h3 className="mt-3 text-lg font-black">Discounted Yearly Basic Plan</h3>
-        <p className="mt-1 text-sm text-white/75">Just $5.00 per month</p>
-        <div className="mt-4 rounded-lg bg-white/12 p-3 text-sm">
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-black">50% OFF</span>
-            <span className="font-black">$60.00 <span className="text-white/45 line-through">$120.00</span></span>
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
+        <p className="text-xs font-black uppercase tracking-wide text-slate-500">{copy.account}</p>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-violet text-sm font-black uppercase text-white">
+            {(user?.name || user?.email || "U").slice(0, 1)}
           </div>
-          <p className="mt-1 text-xs font-bold text-white/65">billed yearly</p>
-          <ul className="mt-3 grid gap-1.5 text-xs font-bold text-white/82">
-            <li>1,200 min/mo</li>
-            <li>Premium model</li>
-            <li>Speaker identification</li>
-            <li>Priority email support</li>
-          </ul>
-        </div>
-        <div className="mt-4">
-          <p className="text-center text-xs font-black uppercase tracking-wide text-white/60">Limited Time</p>
-          <div className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-1 text-center text-sm font-black">
-            <span className="rounded-md bg-white/15 px-2 py-2">05</span>
-            <span className="text-white/45">:</span>
-            <span className="rounded-md bg-white/15 px-2 py-2">35</span>
-            <span className="text-white/45">:</span>
-            <span className="rounded-md bg-white/15 px-2 py-2">05</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-black text-ink">{user?.name || copy.anonymousUser}</p>
+            <p className="truncate text-xs font-bold text-slate-500">{user?.email || copy.loginSyncHint}</p>
           </div>
-        </div>
-        <div className="mt-4 grid gap-2">
-          <a href={`/${locale}/pricing`} className="inline-flex w-full items-center justify-center rounded-md bg-white px-4 py-2.5 text-sm font-black text-violet transition hover:bg-white/90">Upgrade Now</a>
-          <a href={`/${locale}/pricing`} className="inline-flex w-full items-center justify-center rounded-md border border-white/30 px-4 py-2.5 text-sm font-black text-white transition hover:bg-white/10">See All Plans</a>
+          <AccountMenu locale={locale} />
         </div>
       </section>
     </aside>

@@ -635,8 +635,140 @@ export type WorkspaceCopy = ReturnType<typeof getWorkspaceCopy>;
 export function getWorkspaceCopy(locale: string) {
   const localeKey = locale.toLowerCase().split("-")[0] as keyof typeof workspaceCopy;
   const copy = workspaceCopy[localeKey] ?? workspaceCopy.en;
+  const localized = {
+    zh: {
+      uploadPrompt: "从设备上传音频/视频文件进行转写",
+      pastePrompt: "粘贴媒体链接，转写视频或音频内容。",
+      dragFilesHere: "拖拽文件到此处上传",
+      or: "或",
+      uploadAFile: "上传文件",
+      mediaLinkPlaceholder: "粘贴媒体链接",
+      search: "搜索",
+      transcribeForFree: "免费转写",
+      signInToUpload: "请先登录后上传文件，即将跳转至登录页面。",
+      signInToTranscribe: "请先登录后开始转写，即将跳转至登录页面。",
+      resolveLinkError: "无法检查该链接。",
+      manageTranscriptions: "查看和管理你的转写任务",
+      goToDashboard: "前往仪表盘",
+      welcomeBack: (name: string) => `欢迎回来，${name}`
+    },
+    en: {
+      uploadPrompt: "Upload audio/video files from device to transcribe",
+      pastePrompt: "Paste a media link to transcribe video or audio content.",
+      dragFilesHere: "Drag files here to upload",
+      or: "OR",
+      uploadAFile: "Upload a file",
+      mediaLinkPlaceholder: "Paste a media link",
+      search: "Search",
+      transcribeForFree: "Transcribe for Free",
+      signInToUpload: "Please sign in to upload files. Redirecting to sign in.",
+      signInToTranscribe: "Please sign in to start transcription. Redirecting to sign in.",
+      resolveLinkError: "Unable to check this link.",
+      manageTranscriptions: "View and manage your transcriptions",
+      goToDashboard: "Go to dashboard",
+      welcomeBack: (name: string) => `Welcome back, ${name}`
+    },
+    es: {
+      uploadPrompt: "Sube archivos de audio/video desde tu dispositivo para transcribir",
+      pastePrompt: "Pega un enlace multimedia para transcribir video o audio.",
+      dragFilesHere: "Arrastra archivos aquí para subirlos",
+      or: "O",
+      uploadAFile: "Subir archivo",
+      mediaLinkPlaceholder: "Pega un enlace multimedia",
+      search: "Buscar",
+      transcribeForFree: "Transcribir gratis",
+      signInToUpload: "Inicia sesión para subir archivos. Redirigiendo al inicio de sesión.",
+      signInToTranscribe: "Inicia sesión para transcribir. Redirigiendo al inicio de sesión.",
+      resolveLinkError: "No se pudo comprobar este enlace.",
+      manageTranscriptions: "Ver y gestionar tus transcripciones",
+      goToDashboard: "Ir al panel",
+      welcomeBack: (name: string) => `Bienvenido de nuevo, ${name}`
+    },
+    fr: {
+      uploadPrompt: "Importez des fichiers audio/vidéo depuis votre appareil pour transcrire",
+      pastePrompt: "Collez un lien média pour transcrire une vidéo ou un audio.",
+      dragFilesHere: "Déposez les fichiers ici",
+      or: "OU",
+      uploadAFile: "Importer un fichier",
+      mediaLinkPlaceholder: "Collez un lien média",
+      search: "Rechercher",
+      transcribeForFree: "Transcrire gratuitement",
+      signInToUpload: "Connectez-vous pour importer des fichiers. Redirection vers la connexion.",
+      signInToTranscribe: "Connectez-vous pour lancer la transcription. Redirection vers la connexion.",
+      resolveLinkError: "Impossible de vérifier ce lien.",
+      manageTranscriptions: "Consulter et gérer vos transcriptions",
+      goToDashboard: "Aller au tableau",
+      welcomeBack: (name: string) => `Bon retour, ${name}`
+    },
+    de: {
+      uploadPrompt: "Audio-/Videodateien vom Gerät zur Transkription hochladen",
+      pastePrompt: "Füge einen Medienlink ein, um Video oder Audio zu transkribieren.",
+      dragFilesHere: "Dateien zum Hochladen hierher ziehen",
+      or: "ODER",
+      uploadAFile: "Datei hochladen",
+      mediaLinkPlaceholder: "Medienlink einfügen",
+      search: "Suchen",
+      transcribeForFree: "Kostenlos transkribieren",
+      signInToUpload: "Bitte melde dich zum Hochladen an. Weiterleitung zur Anmeldung.",
+      signInToTranscribe: "Bitte melde dich zum Transkribieren an. Weiterleitung zur Anmeldung.",
+      resolveLinkError: "Dieser Link konnte nicht geprüft werden.",
+      manageTranscriptions: "Transkriptionen ansehen und verwalten",
+      goToDashboard: "Zum Dashboard",
+      welcomeBack: (name: string) => `Willkommen zurück, ${name}`
+    },
+    ja: {
+      uploadPrompt: "デバイスから音声/動画ファイルをアップロードして文字起こし",
+      pastePrompt: "メディアリンクを貼り付けて動画または音声を文字起こしします。",
+      dragFilesHere: "ここにファイルをドラッグしてアップロード",
+      or: "または",
+      uploadAFile: "ファイルをアップロード",
+      mediaLinkPlaceholder: "メディアリンクを貼り付け",
+      search: "検索",
+      transcribeForFree: "無料で文字起こし",
+      signInToUpload: "ファイルをアップロードするにはログインしてください。ログインページへ移動します。",
+      signInToTranscribe: "文字起こしを開始するにはログインしてください。ログインページへ移動します。",
+      resolveLinkError: "このリンクを確認できませんでした。",
+      manageTranscriptions: "文字起こしを表示・管理",
+      goToDashboard: "ダッシュボードへ",
+      welcomeBack: (name: string) => `おかえりなさい、${name}`
+    },
+    ko: {
+      uploadPrompt: "기기에서 오디오/비디오 파일을 업로드해 전사",
+      pastePrompt: "미디어 링크를 붙여넣어 비디오 또는 오디오를 전사하세요.",
+      dragFilesHere: "파일을 여기에 끌어 업로드",
+      or: "또는",
+      uploadAFile: "파일 업로드",
+      mediaLinkPlaceholder: "미디어 링크 붙여넣기",
+      search: "검색",
+      transcribeForFree: "무료 전사",
+      signInToUpload: "파일을 업로드하려면 로그인하세요. 로그인 페이지로 이동합니다.",
+      signInToTranscribe: "전사를 시작하려면 로그인하세요. 로그인 페이지로 이동합니다.",
+      resolveLinkError: "이 링크를 확인할 수 없습니다.",
+      manageTranscriptions: "전사 작업 보기 및 관리",
+      goToDashboard: "대시보드로 이동",
+      welcomeBack: (name: string) => `다시 오신 것을 환영합니다, ${name}`
+    },
+    pt: {
+      uploadPrompt: "Envie arquivos de áudio/vídeo do dispositivo para transcrever",
+      pastePrompt: "Cole um link de mídia para transcrever vídeo ou áudio.",
+      dragFilesHere: "Arraste arquivos aqui para enviar",
+      or: "OU",
+      uploadAFile: "Enviar arquivo",
+      mediaLinkPlaceholder: "Cole um link de mídia",
+      search: "Buscar",
+      transcribeForFree: "Transcrever grátis",
+      signInToUpload: "Entre para enviar arquivos. Redirecionando para o login.",
+      signInToTranscribe: "Entre para iniciar a transcrição. Redirecionando para o login.",
+      resolveLinkError: "Não foi possível verificar este link.",
+      manageTranscriptions: "Ver e gerenciar suas transcrições",
+      goToDashboard: "Ir para o painel",
+      welcomeBack: (name: string) => `Bem-vindo de volta, ${name}`
+    }
+  } as const;
+  const home = localized[localeKey as keyof typeof localized] ?? localized.en;
   return {
     ...copy,
+    ...home,
     supportedPlatforms: ["YouTube", "TikTok", "Instagram", "Facebook", "X", "Many other links"]
   };
 }
@@ -649,7 +781,7 @@ export const fallbackMessages: Record<string, string> = {
   subheadline:
     "上传文件、粘贴视频链接或直接录音。UniScribe 会生成可编辑转写、发言人段落、AI 总结、思维导图、问答、翻译和多格式导出。",
   formats: "支持 11+ 媒体格式",
-  languages: "支持 87 种语言",
+  languages: "支持 63 种语言",
   exportCount: "支持 5 种导出",
   allTranscriptions: "全部转写",
   uploadFiles: "上传文件",

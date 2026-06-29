@@ -1,9 +1,9 @@
 import type {Transcript} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
+import type {SummaryTemplate} from "@/lib/summary-template";
+import {normalizeSummaryTemplate} from "@/lib/summary-template";
 import {generateJsonWithFallback} from "@/server/ai/providers";
 import {translateWithFallback} from "@/server/translation";
-
-type SummaryTemplate = "none" | "standard" | "meeting" | "study" | "interview";
 
 const summaryTemplateInstructions: Record<SummaryTemplate, string> = {
   none: "Do not create a prose summary. Return an empty summary overview and no summary bullets, but still create mindMap and qa.",
@@ -53,8 +53,9 @@ export async function generateInsights(
   transcript: Transcript,
   locale: string,
   translationTarget = locale,
-  summaryTemplate: SummaryTemplate = "standard"
+  summaryTemplateInput: string = "standard"
 ) {
+  const summaryTemplate = normalizeSummaryTemplate(summaryTemplateInput);
   const text = transcript.editedText || transcript.plainText;
   const fallbackPayload = fallbackInsights(text, locale, summaryTemplate);
   const {payload, model} = await generateJsonWithFallback(

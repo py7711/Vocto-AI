@@ -79,6 +79,7 @@ export type CurrentUser = {
   id: string;
   email: string;
   name?: string | null;
+  image?: string | null;
   role?: string;
   dailyFreeCount?: number;
   dailyResetAt?: string | null;

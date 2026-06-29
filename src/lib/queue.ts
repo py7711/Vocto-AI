@@ -1,6 +1,7 @@
 import {Queue} from "bullmq";
 import {env} from "@/lib/env";
 import {createRedisConnection, describeRedisConnectionError} from "@/lib/redis";
+import type {SummaryTemplateInput} from "@/lib/summary-template";
 
 export type TranscribeJob = {
   taskId: string;
@@ -13,7 +14,7 @@ export type TranscribeJob = {
   enableSpeakerLabels: boolean;
   subtitleEnabled?: boolean;
   premiumModel?: boolean;
-  summaryTemplate?: "none" | "standard" | "meeting" | "study" | "interview";
+  summaryTemplate?: SummaryTemplateInput;
   summaryLanguage?: string;
   youtubeFallback?: boolean;
 };

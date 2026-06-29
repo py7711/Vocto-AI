@@ -80,14 +80,12 @@ function ytDlpUnavailableError(attempted: string[]) {
 
 async function withYtDlp<T>(operation: (spec: CommandSpec) => Promise<T>) {
   const attempted: string[] = [];
-  let lastError: unknown;
 
   for (const candidate of ytDlpCandidates()) {
     attempted.push(commandLabel(candidate));
     try {
       return await operation(candidate);
     } catch (error) {
-      lastError = error;
       if (executableNotFound(error)) continue;
 
       const message = error instanceof Error ? error.message : "";
@@ -700,7 +698,6 @@ export async function downloadYoutubeSubtitle(url: string, languageCode: string,
 
 export function resolveGoogleDriveDownloadUrl(url: string) {
   const parsed = new URL(url);
-  const host = parsed.hostname.toLowerCase();
   if (!isGoogleDriveShareUrl(url)) {
     throw new Error("不支持的 Google Drive 链接。");
   }

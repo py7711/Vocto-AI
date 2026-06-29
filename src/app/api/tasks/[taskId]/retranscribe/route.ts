@@ -5,13 +5,14 @@ import {getTranscribeQueue} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl} from "@/server/media/prepare";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const retranscribeSchema = z.object({
   language: z.string().optional(),
   enableSpeakerLabels: z.boolean().default(true),
   subtitleEnabled: z.boolean().default(true),
   premiumModel: z.boolean().default(false),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard"),
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   summaryLanguage: z.string().default("en")
 });
 
@@ -65,7 +66,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       enableSpeakerLabels: input.enableSpeakerLabels,
       subtitleEnabled: input.subtitleEnabled,
       premiumModel: input.premiumModel,
-      summaryTemplate: input.summaryTemplate,
+      summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
       summaryLanguage: input.summaryLanguage
     });
 

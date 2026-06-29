@@ -6,6 +6,7 @@ import {getTranscribeQueue} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {putObject} from "@/lib/storage";
 import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const importSchema = z.object({
   fileId: z.string().min(1),
@@ -14,7 +15,7 @@ const importSchema = z.object({
   enableSpeakerLabels: z.boolean().default(true),
   subtitleEnabled: z.boolean().default(true),
   premiumModel: z.boolean().default(false),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard"),
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   summaryLanguage: z.string().default("en")
 });
 
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
         enableSpeakerLabels: input.enableSpeakerLabels,
         subtitleEnabled: input.subtitleEnabled,
         premiumModel: input.premiumModel,
-        summaryTemplate: input.summaryTemplate,
+        summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
         summaryLanguage: input.summaryLanguage
       });
     } catch (queueError) {

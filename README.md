@@ -84,11 +84,13 @@ pnpm run docs:check
 pnpm run assets:check
 pnpm run auth:seed:check
 pnpm run deps:check
+pnpm run source:check
 pnpm run structure:check
+pnpm run unused:check
 ./node_modules/.bin/tsc --noEmit
 ```
 
-其中 `docs:check` 用于确认项目 Markdown 文档都已登记、保持中文交付口径且没有旧品牌或克隆过程残留；`assets:check` 用于确认 `public` 静态资源仍有真实引用；`auth:seed:check` 用于确认 QA 测试账号种子密码与登录算法一致；`deps:check` 用于发现疑似未使用的 package 依赖；`structure:check` 用于确认路由文件没有完全重复、`@/app` 代理目标存在、产品文档覆盖当前页面和 API、Prisma 模型与 `all.sql` 表结构一致。
+其中 `docs:check` 用于确认项目 Markdown 文档都已登记、保持中文交付口径且没有旧品牌或克隆过程残留；`assets:check` 用于确认 `public` 静态资源仍有真实引用；`auth:seed:check` 用于确认 QA 测试账号种子密码与登录算法一致；`deps:check` 用于发现疑似未使用的 package 依赖；`source:check` 用于确认源码可由 Next 路由、Worker、脚本或配置入口静态追踪到，并检查关键边界文件的中文注释覆盖；`structure:check` 用于确认路由文件没有完全重复、`@/app` 代理目标存在、产品文档覆盖当前页面和 API、Prisma 模型与 `all.sql` 表结构一致；`unused:check` 用于发现未使用的声明、导入、参数和类型残留。
 
 ## 注意事项
 

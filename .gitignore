@@ -9,5 +9,8 @@ coverage
 tsconfig.tsbuildinfo
 prisma/dev.db
 exports
+!src/app/api/tasks/\[taskId\]/exports/
+!src/app/api/tasks/\[taskId\]/exports/\[format\]/
+!src/app/api/tasks/\[taskId\]/exports/\[format\]/route.ts
 /uploads/
 .DS_Store

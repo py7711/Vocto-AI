@@ -6,6 +6,7 @@ import {anonymousUserId} from "@/lib/tasks";
 import {assertRateLimit} from "@/lib/rate-limit";
 import {getCurrentUser} from "@/lib/auth";
 import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const createTaskSchema = z.object({
   sourceType: z.enum(["UPLOAD", "YOUTUBE", "GOOGLE_DRIVE"]),
@@ -17,7 +18,7 @@ const createTaskSchema = z.object({
   enableSpeakerLabels: z.boolean().default(true),
   subtitleEnabled: z.boolean().default(true),
   premiumModel: z.boolean().default(false),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard"),
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   summaryLanguage: z.string().default("en"),
   fileSizeBytes: z.number().int().positive().optional()
 });
@@ -166,7 +167,7 @@ export async function POST(request: Request) {
         enableSpeakerLabels: input.enableSpeakerLabels,
         subtitleEnabled: input.subtitleEnabled,
         premiumModel: input.premiumModel,
-        summaryTemplate: input.summaryTemplate,
+        summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
         summaryLanguage: input.summaryLanguage
       });
     } catch (queueError) {

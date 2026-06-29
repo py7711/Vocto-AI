@@ -3,11 +3,12 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {generateInsights} from "@/server/ai/insights";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
+import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const insightSchema = z.object({
   locale: z.string().default("en"),
   translationTarget: z.string().optional(),
-  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard")
+  summaryTemplate: z.enum(summaryTemplateInputValues).default("standard")
 });
 
 export async function POST(request: Request, {params}: {params: {taskId: string}}) {
@@ -23,7 +24,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       return NextResponse.json({error: "转写文本尚未准备好。"}, {status: 409});
     }
 
-    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget, input.summaryTemplate);
+    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget, normalizeSummaryTemplate(input.summaryTemplate));
     await publishTaskUpdate(task.id);
 
     return NextResponse.json(insights);
