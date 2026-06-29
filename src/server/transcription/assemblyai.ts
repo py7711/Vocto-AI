@@ -8,7 +8,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
 
   async transcribe(input: TranscriptionRequest): Promise<TranscriptionResult> {
     if (!env.ASSEMBLYAI_API_KEY) {
-      throw new Error("ASSEMBLYAI_API_KEY is missing.");
+      throw new Error("ASSEMBLYAI_API_KEY 未配置。");
     }
 
     const client = new AssemblyAI({apiKey: env.ASSEMBLYAI_API_KEY});
@@ -22,7 +22,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
     });
 
     if (transcript.status === "error") {
-      throw new Error(transcript.error ?? "AssemblyAI transcription failed.");
+      throw new Error(transcript.error ?? "AssemblyAI 转写失败。");
     }
 
     const utterances = transcript.utterances ?? [];
@@ -32,7 +32,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
             start: utterance.start / 1000,
             end: utterance.end / 1000,
             text: utterance.text,
-            speaker: utterance.speaker ? `Speaker ${utterance.speaker}` : undefined
+            speaker: utterance.speaker ? `发言人 ${utterance.speaker}` : undefined
           }))
         : [
             {
@@ -54,7 +54,7 @@ export class AssemblyAIProvider implements TranscriptionProvider {
         end: word.end / 1000,
         word: word.text,
         confidence: word.confidence,
-        speaker: word.speaker ? `Speaker ${word.speaker}` : undefined
+        speaker: word.speaker ? `发言人 ${word.speaker}` : undefined
       })),
       speakerCount: new Set(segments.map((segment) => segment.speaker).filter(Boolean)).size || undefined
     };

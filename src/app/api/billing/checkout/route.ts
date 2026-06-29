@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const subscription = user.subscriptions?.[0];
     let stripeCustomerId = subscription?.stripeCustomerId ?? null;
 
-    // 一个 Votxt 用户对应一个 Stripe Customer，后续升级、降级、开票都复用该客户记录。
+    // 一个 UniScribe 用户对应一个 Stripe Customer，后续升级、降级、开票都复用该客户记录。
     if (!stripeCustomerId) {
       const customer = await createStripeCustomer({email: user.email, name: user.name, userId: user.id});
       stripeCustomerId = customer.id;
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({url: session.url});
   } catch (error) {
-    const message = error instanceof Error ? error.message : "无法创建 Stripe Checkout。";
+    const message = error instanceof Error ? error.message : "无法创建 Stripe 支付会话。";
     return NextResponse.json({error: message}, {status: 400});
   }
 }

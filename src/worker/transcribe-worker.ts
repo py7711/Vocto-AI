@@ -1,107 +1,133 @@
 import "dotenv/config";
 import {Worker} from "bullmq";
 import {TRANSCRIBE_QUEUE, type TranscribeJob} from "@/lib/queue";
-import {redis} from "@/lib/redis";
+import {createRedisConnection, describeRedisConnectionError, getRedisConnectionError} from "@/lib/redis";
 import {prisma} from "@/lib/prisma";
-import {updateTaskStatus} from "@/lib/tasks";
+import {updateTaskStatus} from "@/lib/task-status";
 import {releaseQuotaForFailedTask, settleQuotaForCompletedTask} from "@/lib/usage";
 import {transcribeWithFallback} from "@/server/transcription";
-import {resolveYoutubeAudioUrl} from "@/server/media/prepare";
-import {dispatchTeamWebhook} from "@/lib/webhooks";
+import {isGoogleDriveShareUrl, prepareTaskAudioAsset, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
 
-const worker = new Worker<TranscribeJob>(
-  TRANSCRIBE_QUEUE,
-  async (job) => {
-    const {taskId, sourceUrl, sourceType, language, enableSpeakerLabels} = job.data;
-    await updateTaskStatus(taskId, "PROCESSING", {
-      progress: 15,
-      statusMessage: "Preparing audio for transcription."
-    });
-
-    // 生产环境在这里使用 yt-dlp 和 FFmpeg 解析链接、规范化音频，再交给 STT 服务商。
-    const mediaUrl = sourceType === "YOUTUBE" ? await resolveYoutubeAudioUrl(sourceUrl) : sourceUrl;
-
-    await updateTaskStatus(taskId, "TRANSCRIBING", {
-      progress: 35,
-      statusMessage: "Transcribing with provider fallback."
-    });
-
-    const result = await transcribeWithFallback({
-      mediaUrl,
-      language,
-      enableSpeakerLabels
-    });
-
-    await prisma.transcript.upsert({
-      where: {mediaTaskId: taskId},
-      update: {
-        plainText: result.text,
-        segments: result.segments,
-        words: result.words ?? undefined
-      },
-      create: {
-        mediaTaskId: taskId,
-        plainText: result.text,
-        segments: result.segments,
-        words: result.words ?? undefined
-      }
-    });
-
-    await settleQuotaForCompletedTask({mediaTaskId: taskId, durationSeconds: result.durationSeconds});
-
-    const completedTask = await updateTaskStatus(taskId, "COMPLETED", {
-      progress: 100,
-      statusMessage: "Transcript is ready.",
-      provider: result.provider,
-      detectedLanguage: result.language,
-      durationSeconds: result.durationSeconds ? Math.round(result.durationSeconds) : undefined,
-      speakerCount: result.speakerCount
-    });
-
-    await dispatchTeamWebhook({
-      teamId: completedTask.teamId,
-      event: "task.completed",
-      targetType: "media_task",
-      targetId: completedTask.id,
-      payload: {
-        taskId: completedTask.id,
-        status: completedTask.status,
-        provider: completedTask.provider,
-        language: completedTask.detectedLanguage,
-        durationSeconds: completedTask.durationSeconds,
-        originalName: completedTask.originalName
-      }
-    });
-  },
-  {
-    connection: redis as any,
-    concurrency: 3
+// worker 是独立 Node 进程，不在 Next.js 请求生命周期内运行。
+// 这里避免导入包含 cookies/getCurrentUser 的 "@/lib/tasks"，否则会间接加载 `server-only`
+// 并在 `pnpm run worker` 启动阶段抛错；worker 只需要状态更新能力，直接使用 task-status 即可。
+class JobCanceledError extends Error {
+  constructor() {
+    super("转写任务已取消。");
+    this.name = "JobCanceledError";
   }
-);
+}
 
-worker.on("failed", async (job, error) => {
-  if (!job) return;
-
-  await releaseQuotaForFailedTask(job.data.taskId);
-  const failedTask = await updateTaskStatus(job.data.taskId, "FAILED", {
-    progress: 100,
-    statusMessage: error.message,
-    errorCode: "TRANSCRIPTION_FAILED"
+async function assertNotCanceled(taskId: string) {
+  const task = await prisma.mediaTask.findUnique({
+    where: {id: taskId},
+    select: {status: true}
   });
+  if (task?.status === "CANCELED") {
+    throw new JobCanceledError();
+  }
+}
 
-  await dispatchTeamWebhook({
-    teamId: failedTask.teamId,
-    event: "task.failed",
-    targetType: "media_task",
-    targetId: failedTask.id,
-    payload: {
-      taskId: failedTask.id,
-      status: failedTask.status,
-      errorCode: failedTask.errorCode,
-      statusMessage: failedTask.statusMessage,
-      originalName: failedTask.originalName
+async function createWorker() {
+  const connection = createRedisConnection();
+
+  try {
+    await connection.connect();
+  } catch (error) {
+    console.error(describeRedisConnectionError(getRedisConnectionError(connection, error)));
+    connection.disconnect();
+    process.exit(1);
+  }
+
+  const worker = new Worker<TranscribeJob>(
+    TRANSCRIBE_QUEUE,
+    async (job) => {
+      const {taskId, sourceUrl, sourceType, language, enableSpeakerLabels, subtitleEnabled, premiumModel} = job.data;
+      await assertNotCanceled(taskId);
+      await updateTaskStatus(taskId, "PROCESSING", {
+        progress: 15,
+        statusMessage: "正在提取音频并上传到 R2。"
+      });
+
+      const taskRecord = await prisma.mediaTask.findUnique({
+        where: {id: taskId},
+        select: {originalName: true, objectKey: true}
+      });
+      const preparableSourceUrl = sourceType === "GOOGLE_DRIVE" && isGoogleDriveShareUrl(sourceUrl)
+        ? resolveGoogleDriveDownloadUrl(sourceUrl)
+        : sourceUrl;
+      const prepared = await prepareTaskAudioAsset({
+        taskId,
+        sourceType,
+        sourceUrl: preparableSourceUrl,
+        originalName: taskRecord?.originalName,
+        objectKey: taskRecord?.objectKey
+      });
+
+      await assertNotCanceled(taskId);
+      await updateTaskStatus(taskId, "TRANSCRIBING", {
+        progress: 35,
+        statusMessage: prepared.chunkCount ? `已创建 ${prepared.chunkCount} 个音频切片，正在使用服务商降级策略转写。` : "音频已上传 R2，正在使用服务商降级策略转写。"
+      });
+
+      const result = await transcribeWithFallback({
+        mediaUrl: prepared.mediaUrl,
+        language,
+        enableSpeakerLabels,
+        premiumModel
+      });
+
+      await assertNotCanceled(taskId);
+      await prisma.transcript.upsert({
+        where: {mediaTaskId: taskId},
+        update: {
+          plainText: result.text,
+          segments: result.segments,
+          words: subtitleEnabled === false ? undefined : (result.words ?? undefined)
+        },
+        create: {
+          mediaTaskId: taskId,
+          plainText: result.text,
+          segments: result.segments,
+          words: subtitleEnabled === false ? undefined : (result.words ?? undefined)
+        }
+      });
+
+      await settleQuotaForCompletedTask({mediaTaskId: taskId, durationSeconds: result.durationSeconds});
+
+      await assertNotCanceled(taskId);
+      await updateTaskStatus(taskId, "COMPLETED", {
+        progress: 100,
+        statusMessage: "转写稿已就绪。",
+        provider: result.provider,
+        detectedLanguage: result.language,
+        durationSeconds: result.durationSeconds ? Math.round(result.durationSeconds) : prepared.durationSeconds ? Math.round(prepared.durationSeconds) : undefined,
+        speakerCount: result.speakerCount
+      });
+    },
+    {
+      connection: connection as any,
+      concurrency: 3
     }
-  });
-});
+  );
 
-console.log(`Votxt worker is listening on ${TRANSCRIBE_QUEUE}.`);
+  worker.on("error", (error) => {
+    console.error(describeRedisConnectionError(error));
+  });
+
+  worker.on("failed", async (job, error) => {
+    if (!job) return;
+    if (error instanceof JobCanceledError) return;
+
+    await releaseQuotaForFailedTask(job.data.taskId);
+    await updateTaskStatus(job.data.taskId, "FAILED", {
+      progress: 100,
+      statusMessage: error.message,
+      errorCode: "TRANSCRIPTION_FAILED"
+    });
+  });
+
+  console.log(`UniScribe worker 正在监听队列 ${TRANSCRIBE_QUEUE}。`);
+}
+
+void createWorker();

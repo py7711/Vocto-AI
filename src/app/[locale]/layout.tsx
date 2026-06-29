@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import type {ReactNode} from "react";
 import {NextIntlClientProvider} from "next-intl";
 import {notFound} from "next/navigation";
-import {isLocale, locales} from "@/lib/locales";
+import {isLocale, locales, messagesLocale} from "@/lib/locales";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({locale}));
@@ -14,7 +14,7 @@ export function generateMetadata({params}: {params: LocaleParams}): Metadata {
   const {locale} = params;
   const titleByLocale: Record<string, string> = {
     zh: "免费在线语音转文本转换器",
-    en: "Free Online Speech to Text Converter",
+    en: "Convert audio and video to text online for free",
     es: "Convertidor gratuito de voz a texto en línea",
     fr: "Convertisseur gratuit voix en texte en ligne",
     de: "Kostenloser Online-Sprache-zu-Text-Konverter",
@@ -25,7 +25,7 @@ export function generateMetadata({params}: {params: LocaleParams}): Metadata {
 
   return {
     title: titleByLocale[locale] ?? titleByLocale.en,
-    description: "Votxt AI audio and video transcription workspace",
+    description: "UniScribe lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats.",
     icons: {
       icon: "/favicon.svg"
     }
@@ -33,7 +33,7 @@ export function generateMetadata({params}: {params: LocaleParams}): Metadata {
 }
 
 async function loadMessages(locale: string) {
-  return (await import(`../../../messages/${locale}.json`)).default;
+  return (await import(`../../../messages/${messagesLocale(locale)}.json`)).default;
 }
 
 export default async function LocaleLayout({children, params}: {children: ReactNode; params: LocaleParams}) {

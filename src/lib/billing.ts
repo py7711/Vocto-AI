@@ -58,7 +58,7 @@ export async function createCheckoutSession(input: {
     throw new Error(`Stripe 价格 ID 未配置：${input.plan}`);
   }
 
-  // 在 Checkout Session 和 Subscription 上同时写入元数据，确保任一 Webhook 先到都能找到用户和套餐。
+  // 在 Stripe 支付会话和订阅对象上同时写入元数据，确保任一 Webhook 先到都能找到用户和套餐。
   const body = new URLSearchParams();
   body.set("mode", "subscription");
   body.set("customer", input.customerId);

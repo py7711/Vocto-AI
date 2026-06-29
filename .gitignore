@@ -1,5 +1,6 @@
 .next
 node_modules
+.pnpm-store
 .env
 .env*.local
 dist
@@ -8,5 +9,5 @@ coverage
 tsconfig.tsbuildinfo
 prisma/dev.db
 exports
-uploads
+/uploads/
 .DS_Store

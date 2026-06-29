@@ -8,7 +8,7 @@ export class GroqWhisperProvider implements TranscriptionProvider {
 
   async transcribe(input: TranscriptionRequest): Promise<TranscriptionResult> {
     if (!env.GROQ_API_KEY) {
-      throw new Error("GROQ_API_KEY is missing.");
+      throw new Error("GROQ_API_KEY 未配置。");
     }
 
     const client = new Groq({apiKey: env.GROQ_API_KEY});
@@ -16,11 +16,11 @@ export class GroqWhisperProvider implements TranscriptionProvider {
     const response = await fetch(input.mediaUrl);
 
     if (!response.ok) {
-      throw new Error(`Unable to fetch media for Groq: ${response.status}`);
+      throw new Error(`无法为 Groq 拉取媒体文件：${response.status}`);
     }
 
     const blob = await response.blob();
-    const file = new File([blob], "votxt-audio.mp3", {type: blob.type || "audio/mpeg"});
+    const file = new File([blob], "uniscribe-audio.mp3", {type: blob.type || "audio/mpeg"});
     const transcription = await client.audio.transcriptions.create({
       file,
       model: "whisper-large-v3-turbo",

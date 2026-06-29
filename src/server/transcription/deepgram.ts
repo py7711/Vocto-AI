@@ -8,7 +8,7 @@ export class DeepgramProvider implements TranscriptionProvider {
 
   async transcribe(input: TranscriptionRequest): Promise<TranscriptionResult> {
     if (!env.DEEPGRAM_API_KEY) {
-      throw new Error("DEEPGRAM_API_KEY is missing.");
+      throw new Error("DEEPGRAM_API_KEY 未配置。");
     }
 
     const deepgram = createClient(env.DEEPGRAM_API_KEY);
@@ -38,7 +38,7 @@ export class DeepgramProvider implements TranscriptionProvider {
             start: utterance.start,
             end: utterance.end,
             text: utterance.transcript,
-            speaker: utterance.speaker !== undefined ? `Speaker ${Number(utterance.speaker) + 1}` : undefined
+            speaker: utterance.speaker !== undefined ? `发言人 ${Number(utterance.speaker) + 1}` : undefined
           }))
         : [
             {
@@ -62,7 +62,7 @@ export class DeepgramProvider implements TranscriptionProvider {
         end: word.end,
         word: word.word,
         confidence: word.confidence,
-        speaker: word.speaker !== undefined ? `Speaker ${Number(word.speaker) + 1}` : undefined
+        speaker: word.speaker !== undefined ? `发言人 ${Number(word.speaker) + 1}` : undefined
       })),
       speakerCount: speakers.size || undefined
     };

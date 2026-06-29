@@ -1,0 +1,97 @@
+import {Document as DocxDocument, HeadingLevel, Packer, Paragraph, TextRun} from "docx";
+
+type InsightRecord = {
+  type: string;
+  content: any;
+};
+
+type OutlineSection = {
+  title: string;
+  lines: string[];
+};
+
+function text(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function flattenMindMap(node: any, depth = 0): string[] {
+  if (!node) return [];
+  const label = text(node.label);
+  const current = label ? [`${"  ".repeat(depth)}- ${label}`] : [];
+  const children = Array.isArray(node.children) ? node.children.flatMap((child: any) => flattenMindMap(child, depth + 1)) : [];
+  return [...current, ...children];
+}
+
+export function buildOutline(input: {title: string; provider?: string | null; insights: InsightRecord[]}) {
+  const summary = input.insights.find((item) => item.type === "SUMMARY")?.content;
+  const mindMap = input.insights.find((item) => item.type === "MIND_MAP")?.content;
+  const qa = input.insights.find((item) => item.type === "QA")?.content;
+  const sections: OutlineSection[] = [];
+
+  const overview = text(summary?.overview);
+  const bullets: string[] = Array.isArray(summary?.bullets) ? summary.bullets.map((line: unknown) => text(line)).filter(Boolean) : [];
+  if (overview || bullets.length) {
+    sections.push({
+      title: "Summary",
+      lines: [overview, ...bullets.map((line) => `- ${line}`)].filter(Boolean)
+    });
+  }
+
+  const mindMapLines = flattenMindMap(mindMap);
+  if (mindMapLines.length) {
+    sections.push({title: "Mind map", lines: mindMapLines});
+  }
+
+  const questions = Array.isArray(qa)
+    ? qa.flatMap((item: any, index: number) => {
+        const question = text(item.question) || `Question ${index + 1}`;
+        const answer = text(item.answer);
+        return answer ? [`Q: ${question}`, `A: ${answer}`] : [`Q: ${question}`];
+      })
+    : [];
+  if (questions.length) {
+    sections.push({title: "Questions", lines: questions});
+  }
+
+  return {
+    title: input.title || "UniScribe Outline",
+    provider: input.provider ?? null,
+    sections
+  };
+}
+
+type Outline = ReturnType<typeof buildOutline>;
+
+export function renderOutlineMarkdown(outline: Outline) {
+  const meta = outline.provider ? `\n\n_${outline.provider}_` : "";
+  const sections = outline.sections.map((section) => `## ${section.title}\n\n${section.lines.join("\n")}`).join("\n\n");
+  return `# ${outline.title}${meta}\n\n${sections || "_No outline content is available yet._"}\n`;
+}
+
+export function renderOutlineText(outline: Outline) {
+  const sections = outline.sections.map((section) => `${section.title}\n${"-".repeat(section.title.length)}\n${section.lines.join("\n")}`).join("\n\n");
+  return `${outline.title}${outline.provider ? `\n${outline.provider}` : ""}\n\n${sections || "No outline content is available yet."}\n`;
+}
+
+export function renderOutlineJson(outline: Outline) {
+  return JSON.stringify(outline, null, 2);
+}
+
+export async function renderOutlineDocx(outline: Outline) {
+  const children: Paragraph[] = [
+    new Paragraph({text: outline.title, heading: HeadingLevel.HEADING_1})
+  ];
+  if (outline.provider) {
+    children.push(new Paragraph({children: [new TextRun({text: outline.provider, italics: true, color: "5D6870"})]}));
+  }
+  for (const section of outline.sections) {
+    children.push(new Paragraph({text: section.title, heading: HeadingLevel.HEADING_2}));
+    for (const line of section.lines) {
+      children.push(new Paragraph({text: line, spacing: {after: 80}}));
+    }
+  }
+  if (!outline.sections.length) {
+    children.push(new Paragraph({text: "No outline content is available yet."}));
+  }
+  return Packer.toBuffer(new DocxDocument({sections: [{children}]}));
+}

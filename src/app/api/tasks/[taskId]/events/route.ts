@@ -1,4 +1,4 @@
-import {redis} from "@/lib/redis";
+import {createRedisConnection, describeRedisConnectionError, getRedisConnectionError} from "@/lib/redis";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 
 export const dynamic = "force-dynamic";
@@ -15,12 +15,18 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
   }
 
   const encoder = new TextEncoder();
-  const subscriber = redis.duplicate();
+  const subscriber = createRedisConnection();
 
   const stream = new ReadableStream({
     async start(controller) {
       // 每个任务使用独立频道，Worker 更新状态后会发布完整任务快照。
-      await subscriber.subscribe(`task:${params.taskId}`);
+      try {
+        await subscriber.subscribe(`task:${params.taskId}`);
+      } catch (error) {
+        console.error(describeRedisConnectionError(getRedisConnectionError(subscriber, error)));
+        controller.error(error);
+        return;
+      }
       subscriber.on("message", (_channel, message) => {
         controller.enqueue(encoder.encode(`event: update\ndata: ${message}\n\n`));
       });
@@ -29,7 +35,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
     },
     async cancel() {
       // 浏览器关闭连接时主动释放 Redis 订阅，避免长连接泄漏。
-      await subscriber.unsubscribe(`task:${params.taskId}`);
+      await subscriber.unsubscribe(`task:${params.taskId}`).catch(() => undefined);
       subscriber.disconnect();
     }
   });

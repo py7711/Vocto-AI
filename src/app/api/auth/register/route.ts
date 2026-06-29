@@ -1,15 +1,14 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {createEmailVerificationToken, hashPassword, setSessionCookie} from "@/lib/auth";
+import {createEmailVerificationToken, hashPasswordCredential, isPasswordCredential, setSessionCookie} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {sendVerificationEmail} from "@/lib/email";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
-import {ensureDefaultTeam, writeAuditLog} from "@/lib/teams";
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  passwordCredential: z.string().refine(isPasswordCredential),
   firstName: z.string().min(1).max(80).optional(),
   lastName: z.string().min(1).max(80).optional(),
   locale: z.string().default("zh")
@@ -29,40 +28,25 @@ export async function POST(request: Request) {
     }
 
     const name = [input.firstName, input.lastName].filter(Boolean).join(" ") || email.split("@")[0];
-    const passwordHash = await hashPassword(input.password);
+    const passwordHash = await hashPasswordCredential(input.passwordCredential);
 
-    const user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          email,
-          name,
-          passwordHash,
-          locale: input.locale,
-          subscriptions: {
-            create: {
-              plan: "FREE",
-              status: "ACTIVE",
-              monthlyMinuteQuota: 120,
-              remainingMinutes: 120,
-              maxSingleFileMinutes: 30
-            }
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash,
+        locale: input.locale,
+        subscriptions: {
+          create: {
+            plan: "FREE",
+            status: "ACTIVE",
+            monthlyMinuteQuota: 120,
+            remainingMinutes: 120,
+            maxSingleFileMinutes: 30
           }
-        },
-        select: {id: true, email: true, name: true, role: true, locale: true}
-      });
-
-      const team = await ensureDefaultTeam(createdUser, tx);
-      await writeAuditLog({
-        teamId: team.id,
-        userId: createdUser.id,
-        action: "auth.register",
-        targetType: "user",
-        targetId: createdUser.id,
-        metadata: {email: createdUser.email},
-        tx
-      });
-
-      return createdUser;
+        }
+      },
+      select: {id: true, email: true, name: true, role: true, locale: true}
     });
 
     const token = await createEmailVerificationToken(user.id);

@@ -4,8 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Votxt",
-    template: "%s | Votxt"
+    default: "UniScribe",
+    template: "%s | UniScribe"
   },
   icons: {
     icon: "/favicon.svg"

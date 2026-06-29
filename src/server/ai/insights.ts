@@ -3,9 +3,25 @@ import {prisma} from "@/lib/prisma";
 import {generateJsonWithFallback} from "@/server/ai/providers";
 import {translateWithFallback} from "@/server/translation";
 
-function fallbackInsights(text: string, locale: string) {
+type SummaryTemplate = "none" | "standard" | "meeting" | "study" | "interview";
+
+const summaryTemplateInstructions: Record<SummaryTemplate, string> = {
+  none: "Do not create a prose summary. Return an empty summary overview and no summary bullets, but still create mindMap and qa.",
+  standard: "Create a concise general-purpose summary with the most important points.",
+  meeting: "Create meeting notes focused on decisions, action items, owners, risks, and follow-ups.",
+  study: "Create study notes focused on concepts, definitions, examples, and review questions.",
+  interview: "Create an interview brief focused on themes, quotes-as-paraphrases, candidate signals, and follow-up questions."
+};
+
+function fallbackInsights(text: string, locale: string, summaryTemplate: SummaryTemplate) {
   const sentences = text.split(/(?<=[.!?。！？])\s+/).filter(Boolean);
   const summary = sentences.slice(0, 5).join(" ");
+  const summaryPrefixes: Record<Exclude<SummaryTemplate, "none">, string> = {
+    standard: locale.startsWith("zh") ? "摘要" : "Summary",
+    meeting: locale.startsWith("zh") ? "会议纪要" : "Meeting notes",
+    study: locale.startsWith("zh") ? "学习笔记" : "Study notes",
+    interview: locale.startsWith("zh") ? "访谈简报" : "Interview brief"
+  };
   const topics = sentences.slice(0, 6).map((sentence, index) => ({
     id: `topic-${index + 1}`,
     label: sentence.slice(0, 80),
@@ -14,8 +30,8 @@ function fallbackInsights(text: string, locale: string) {
 
   return {
     summary: {
-      overview: summary || text.slice(0, 800),
-      bullets: sentences.slice(0, 8).map((sentence) => sentence.slice(0, 180))
+      overview: summaryTemplate === "none" ? "" : `${summaryPrefixes[summaryTemplate]}: ${summary || text.slice(0, 800)}`,
+      bullets: summaryTemplate === "none" ? [] : sentences.slice(0, 8).map((sentence) => sentence.slice(0, 180))
     },
     mindMap: {
       label: locale.startsWith("zh") ? "核心内容" : "Core ideas",
@@ -36,15 +52,18 @@ export async function generateInsights(
   mediaTaskId: string,
   transcript: Transcript,
   locale: string,
-  translationTarget = locale
+  translationTarget = locale,
+  summaryTemplate: SummaryTemplate = "standard"
 ) {
   const text = transcript.editedText || transcript.plainText;
-  const fallbackPayload = fallbackInsights(text, locale);
+  const fallbackPayload = fallbackInsights(text, locale, summaryTemplate);
   const {payload, model} = await generateJsonWithFallback(
     {
-      system: "你是企业级 SaaS 转写产品的 AI 洞察引擎。只返回严格 JSON，字段必须包含 summary、mindMap、qa。",
+      system: "你是 UniScribe 音视频转文字产品的 AI 洞察引擎，帮助用户整理摘要、思维导图和问答。只返回严格 JSON，字段必须包含 summary、mindMap、qa。",
       user: {
         locale,
+        summaryTemplate,
+        summaryInstruction: summaryTemplateInstructions[summaryTemplate],
         transcript: text.slice(0, 24000),
         schema: {
           summary: {overview: "string", bullets: ["string"]},

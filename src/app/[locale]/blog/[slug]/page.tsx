@@ -12,7 +12,7 @@ export function generateStaticParams() {
 export function generateMetadata({params}: {params: BlogPostParams}): Metadata {
   const post = getBlogPost(params.locale, params.slug);
   if (!post) {
-    return {title: "Votxt Blog"};
+    return {title: "UniScribe Blog"};
   }
 
   return {

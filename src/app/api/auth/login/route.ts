@@ -1,13 +1,12 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {setSessionCookie, verifyPassword} from "@/lib/auth";
+import {isPasswordCredential, setSessionCookie, verifyPasswordCredential} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {prisma} from "@/lib/prisma";
-import {ensureDefaultTeam, writeAuditLog} from "@/lib/teams";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1),
+  passwordCredential: z.string().refine(isPasswordCredential),
   locale: z.string().default("en")
 });
 
@@ -22,19 +21,25 @@ export async function POST(request: Request) {
       select: {id: true, email: true, name: true, role: true, passwordHash: true}
     });
 
-    if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
+    if (!user || !(await verifyPasswordCredential(input.passwordCredential, user.passwordHash))) {
       return NextResponse.json({error: authMessage("invalidLogin", input.locale)}, {status: 401});
     }
 
-    const team = await ensureDefaultTeam(user);
-    await prisma.user.update({where: {id: user.id}, data: {lastLoginAt: new Date()}});
-    await writeAuditLog({
-      teamId: team.id,
-      userId: user.id,
-      action: "auth.login",
-      targetType: "user",
-      targetId: user.id,
-      headers: request.headers
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({where: {id: user.id}, data: {lastLoginAt: new Date()}});
+      const subscription = await tx.subscription.findFirst({where: {userId: user.id}, select: {id: true}});
+      if (!subscription) {
+        await tx.subscription.create({
+          data: {
+            userId: user.id,
+            plan: "FREE",
+            status: "ACTIVE",
+            monthlyMinuteQuota: 120,
+            remainingMinutes: 120,
+            maxSingleFileMinutes: 30
+          }
+        });
+      }
     });
     await setSessionCookie(user.id);
     return NextResponse.json({user: {id: user.id, email: user.email, name: user.name, role: user.role}});

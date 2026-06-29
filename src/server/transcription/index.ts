@@ -5,8 +5,8 @@ import type {TranscriptionProvider, TranscriptionRequest, TranscriptionResult} f
 
 export async function transcribeWithFallback(input: TranscriptionRequest): Promise<TranscriptionResult> {
   // 需要发言人识别时，优先选择支持 diarization 的 Deepgram/AssemblyAI；
-  // 不需要发言人识别时，优先选择速度和成本更适合批量任务的 Groq Whisper。
-  const providers: TranscriptionProvider[] = input.enableSpeakerLabels
+  // 高精度模式也优先选择支持更丰富时间轴和说话人能力的服务商。
+  const providers: TranscriptionProvider[] = input.enableSpeakerLabels || input.premiumModel
     ? [new DeepgramProvider(), new AssemblyAIProvider(), new GroqWhisperProvider()]
     : [new GroqWhisperProvider(), new DeepgramProvider(), new AssemblyAIProvider()];
 

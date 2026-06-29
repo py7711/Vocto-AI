@@ -6,7 +6,8 @@ import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/li
 
 const insightSchema = z.object({
   locale: z.string().default("en"),
-  translationTarget: z.string().optional()
+  translationTarget: z.string().optional(),
+  summaryTemplate: z.enum(["none", "standard", "meeting", "study", "interview"]).default("standard")
 });
 
 export async function POST(request: Request, {params}: {params: {taskId: string}}) {
@@ -19,10 +20,10 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     });
 
     if (!task?.transcript) {
-      return NextResponse.json({error: "Transcript is not ready"}, {status: 409});
+      return NextResponse.json({error: "转写文本尚未准备好。"}, {status: 409});
     }
 
-    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget);
+    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget, input.summaryTemplate);
     await publishTaskUpdate(task.id);
 
     return NextResponse.json(insights);

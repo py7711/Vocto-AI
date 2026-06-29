@@ -5,14 +5,43 @@ import {prisma} from "@/lib/prisma";
 import {buildShareUrl, createShareToken} from "@/lib/share-links";
 import {hashToken} from "@/lib/auth";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
-import {writeAuditLog} from "@/lib/teams";
-import {dispatchTeamWebhook} from "@/lib/webhooks";
 
 const createShareSchema = z.object({
   locale: z.string().min(2).max(16).default("zh"),
   title: z.string().max(160).optional(),
   expiresInDays: z.number().int().min(1).max(365).optional()
 });
+
+export async function GET(request: Request, {params}: {params: {taskId: string}}) {
+  try {
+    await assertTaskAccess(params.taskId, "read", request.headers);
+    const now = new Date();
+    const shareLink = await prisma.shareLink.findFirst({
+      where: {
+        mediaTaskId: params.taskId,
+        enabled: true,
+        OR: [{expiresAt: null}, {expiresAt: {gt: now}}]
+      },
+      orderBy: {createdAt: "desc"},
+      select: {
+        id: true,
+        title: true,
+        enabled: true,
+        expiresAt: true,
+        accessCount: true,
+        lastAccessAt: true,
+        createdAt: true
+      }
+    });
+
+    return NextResponse.json({shareLink});
+  } catch (error) {
+    const accessError = taskAccessErrorResponse(error);
+    if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
+    const message = error instanceof Error ? error.message : "无法读取分享状态。";
+    return NextResponse.json({error: message}, {status: 400});
+  }
+}
 
 export async function POST(request: Request, {params}: {params: {taskId: string}}) {
   try {
@@ -40,35 +69,16 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       }
     });
 
-    await writeAuditLog({
-      teamId: task.teamId,
-      userId: access.user?.id ?? null,
-      action: "share_link.create",
-      targetType: "share_link",
-      targetId: shareLink.id,
-      metadata: {mediaTaskId: task.id, expiresAt: expiresAt?.toISOString()},
-      headers: request.headers
-    });
-
     const responseShareLink = {
         id: shareLink.id,
         url: buildShareUrl({appUrl: env.NEXT_PUBLIC_APP_URL, locale: input.locale, token: rawToken}),
+        title: shareLink.title,
+        enabled: shareLink.enabled,
         expiresAt: shareLink.expiresAt,
+        accessCount: shareLink.accessCount,
+        lastAccessAt: shareLink.lastAccessAt,
         createdAt: shareLink.createdAt
       };
-
-    await dispatchTeamWebhook({
-      teamId: task.teamId,
-      event: "share_link.create",
-      targetType: "share_link",
-      targetId: shareLink.id,
-      payload: {
-        shareLinkId: shareLink.id,
-        mediaTaskId: task.id,
-        url: responseShareLink.url,
-        expiresAt: shareLink.expiresAt?.toISOString() ?? null
-      }
-    });
 
     return NextResponse.json({
       shareLink: responseShareLink
@@ -77,6 +87,28 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法创建分享链接。";
+    return NextResponse.json({error: message}, {status: 400});
+  }
+}
+
+export async function DELETE(request: Request, {params}: {params: {taskId: string}}) {
+  try {
+    await assertTaskAccess(params.taskId, "write", request.headers);
+    const result = await prisma.shareLink.updateMany({
+      where: {
+        mediaTaskId: params.taskId,
+        enabled: true
+      },
+      data: {
+        enabled: false
+      }
+    });
+
+    return NextResponse.json({ok: true, disabledCount: result.count});
+  } catch (error) {
+    const accessError = taskAccessErrorResponse(error);
+    if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
+    const message = error instanceof Error ? error.message : "无法停用分享链接。";
     return NextResponse.json({error: message}, {status: 400});
   }
 }

@@ -7,9 +7,12 @@ import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 
 const scrypt = promisify(scryptCallback);
-const sessionCookieName = "votxt_session";
-const oauthStateCookieName = "votxt_oauth_state";
+const sessionCookieName = "uniscribe_session";
+const oauthStateCookieName = "uniscribe_oauth_state";
 const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
+// 前端不会直接提交明文密码，而是提交 sha256(uniscribe-password-v1:${password})。
+// 后端再对这个 credential 做 scrypt 入库，避免数据库中出现可直接用于登录表单的明文等价值材料。
+const passwordCredentialPattern = /^sha256:[a-f0-9]{64}$/;
 
 function sign(value: string) {
   return createHmac("sha256", env.AUTH_SECRET).update(value).digest("base64url");
@@ -28,6 +31,7 @@ function decodeSession(token: string | undefined) {
   const expected = sign(payload);
   const actualBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expected);
+  // 签名比较必须使用 timingSafeEqual，避免根据比较耗时泄漏有效签名片段。
   if (actualBuffer.length !== expectedBuffer.length || !timingSafeEqual(actualBuffer, expectedBuffer)) {
     return null;
   }
@@ -42,13 +46,13 @@ function decodeSession(token: string | undefined) {
   }
 }
 
-export async function hashPassword(password: string) {
+async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("base64url");
   const hash = (await scrypt(password, salt, 64)) as Buffer;
   return `scrypt:${salt}:${hash.toString("base64url")}`;
 }
 
-export async function verifyPassword(password: string, storedHash: string | null | undefined) {
+async function verifyPassword(password: string, storedHash: string | null | undefined) {
   if (!storedHash) return false;
   const [algorithm, salt, hash] = storedHash.split(":");
   if (algorithm !== "scrypt" || !salt || !hash) return false;
@@ -56,6 +60,32 @@ export async function verifyPassword(password: string, storedHash: string | null
   const actual = (await scrypt(password, salt, 64)) as Buffer;
   const expected = Buffer.from(hash, "base64url");
   return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+export function isPasswordCredential(value: string) {
+  return passwordCredentialPattern.test(value);
+}
+
+function createPasswordCredential(password: string) {
+  return `sha256:${createHash("sha256").update(`uniscribe-password-v1:${password}`).digest("hex")}`;
+}
+
+export async function hashPasswordCredential(passwordCredential: string) {
+  if (!isPasswordCredential(passwordCredential)) {
+    throw new Error("密码凭据格式不正确。");
+  }
+  return hashPassword(passwordCredential);
+}
+
+export async function hashRawPassword(password: string) {
+  // 设置密码和重置密码接收的是明文密码，必须先转换成和浏览器登录一致的 credential。
+  // 如果直接 scrypt 明文密码，登录接口用 passwordCredential 校验时会永远匹配失败。
+  return hashPasswordCredential(createPasswordCredential(password));
+}
+
+export async function verifyPasswordCredential(passwordCredential: string, storedHash: string | null | undefined) {
+  if (!isPasswordCredential(passwordCredential)) return false;
+  return verifyPassword(passwordCredential, storedHash);
 }
 
 export async function setSessionCookie(userId: string) {
@@ -69,18 +99,26 @@ export async function setSessionCookie(userId: string) {
 }
 
 export function setOAuthStateCookie(state: string) {
-  cookies().set(oauthStateCookieName, `${state}.${sign(state)}`, {
+  setSignedStateCookie(oauthStateCookieName, state);
+}
+
+export function setSignedStateCookie(name: string, state: string, maxAge = 10 * 60) {
+  cookies().set(name, `${state}.${sign(state)}`, {
     httpOnly: true,
     sameSite: "lax",
     secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
-    maxAge: 10 * 60,
+    maxAge,
     path: "/"
   });
 }
 
 export function consumeOAuthStateCookie(expectedState: string) {
-  const value = cookies().get(oauthStateCookieName)?.value;
-  cookies().set(oauthStateCookieName, "", {
+  return consumeSignedStateCookie(oauthStateCookieName, expectedState);
+}
+
+export function consumeSignedStateCookie(name: string, expectedState: string) {
+  const value = cookies().get(name)?.value;
+  cookies().set(name, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
@@ -126,6 +164,33 @@ export async function createEmailVerificationToken(userId: string) {
     }
   });
   return rawToken;
+}
+
+export async function createPasswordResetToken(userId: string) {
+  const rawToken = createRawToken();
+  const tokenHash = hashToken(rawToken);
+  await prisma.emailVerificationToken.create({
+    data: {
+      userId,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+    }
+  });
+  return rawToken;
+}
+
+export async function resetPasswordWithToken(rawToken: string, password: string) {
+  const tokenHash = hashToken(rawToken);
+  const token = await prisma.emailVerificationToken.findUnique({where: {tokenHash}});
+  if (!token || token.usedAt || token.expiresAt < new Date()) return null;
+
+  const passwordHash = await hashRawPassword(password);
+  await prisma.$transaction([
+    prisma.emailVerificationToken.update({where: {id: token.id}, data: {usedAt: new Date()}}),
+    prisma.user.update({where: {id: token.userId}, data: {passwordHash}})
+  ]);
+
+  return token.userId;
 }
 
 export async function verifyEmailToken(rawToken: string) {

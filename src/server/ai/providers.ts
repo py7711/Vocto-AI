@@ -19,6 +19,8 @@ async function callDeepSeek(input: JsonChatInput) {
     throw new Error("DEEPSEEK_API_KEY 未配置。");
   }
 
+  // DeepSeek 是默认主力模型：要求 JSON 输出，避免摘要、问答和思维导图在前端解析时
+  // 因自然语言解释或 Markdown 包裹而失败。
   const response = await fetch(`${env.DEEPSEEK_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
@@ -45,6 +47,8 @@ async function callGemini(input: JsonChatInput) {
     throw new Error("GEMINI_API_KEY 未配置。");
   }
 
+  // Gemini 的 API 形态不同于 OpenAI 兼容接口，需要把系统提示和用户载荷合并到 parts 中。
+  // 这里仍强制 responseMimeType 为 JSON，保持上层解析逻辑一致。
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -69,6 +73,7 @@ async function callGroq(input: JsonChatInput) {
     throw new Error("GROQ_API_KEY 未配置。");
   }
 
+  // Groq 作为最后的在线兜底，优先保证 AI 后处理可用；全部在线模型失败后才回退本地规则。
   const groq = new Groq({apiKey: env.GROQ_API_KEY});
   const completion = await groq.chat.completions.create({
     model: "llama-3.1-70b-versatile",
@@ -87,6 +92,8 @@ export async function generateJsonWithFallback<T>(input: JsonChatInput, localFal
   const errors: string[] = [];
   const providers = [callDeepSeek, callGemini, callGroq];
 
+  // 上层页面需要稳定返回结构，因此这里不把单个模型失败直接抛给用户；
+  // errors 会随结果返回，便于排障时看到每个服务商的失败原因。
   for (const provider of providers) {
     try {
       const result = await provider(input);

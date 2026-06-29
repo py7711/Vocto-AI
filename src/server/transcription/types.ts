@@ -5,7 +5,9 @@ export type TranscriptSegment = {
   speaker?: string;
 };
 
-export type TranscriptWord = {
+// words 目前通过 TranscriptionResult 间接使用，具体供应商可选择返回逐词时间戳。
+// 即使没有被外部直接 import，也不能删除，否则会丢掉高精度供应商的词级结果类型。
+type TranscriptWord = {
   start: number;
   end: number;
   word: string;
@@ -17,6 +19,7 @@ export type TranscriptionRequest = {
   mediaUrl: string;
   language?: string;
   enableSpeakerLabels: boolean;
+  premiumModel?: boolean;
 };
 
 export type TranscriptionResult = {

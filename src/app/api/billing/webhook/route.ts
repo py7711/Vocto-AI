@@ -65,7 +65,7 @@ async function updateSubscriptionFromCheckoutSession(session: any) {
   if (!userId || !planKey || !billingPlans[planKey] || !stripeCustomerId || !stripeSubscriptionId) return;
 
   const plan = billingPlans[planKey];
-  // Checkout 完成事件通常比 subscription.updated 更快到达，先乐观刷新额度，后续订阅事件再校准账期。
+  // 支付会话完成事件通常比 subscription.updated 更快到达，先乐观刷新额度，后续订阅事件再校准账期。
   await prisma.subscription.updateMany({
     where: {userId, stripeCustomerId},
     data: {

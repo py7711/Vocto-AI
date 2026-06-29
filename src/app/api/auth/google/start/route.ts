@@ -9,6 +9,8 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const locale = url.searchParams.get("locale") || "zh";
+  const requestedNext = url.searchParams.get("next");
+  const nextPath = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "";
   const state = createRawToken();
   setOAuthStateCookie(state);
 
@@ -18,7 +20,7 @@ export async function GET(request: Request) {
   authorizationUrl.searchParams.set("redirect_uri", `${appUrl}/api/auth/google/callback`);
   authorizationUrl.searchParams.set("response_type", "code");
   authorizationUrl.searchParams.set("scope", "openid email profile");
-  authorizationUrl.searchParams.set("state", `${state}:${locale}`);
+  authorizationUrl.searchParams.set("state", `${state}:${locale}:${encodeURIComponent(nextPath)}`);
   authorizationUrl.searchParams.set("prompt", "select_account");
 
   return NextResponse.redirect(authorizationUrl);

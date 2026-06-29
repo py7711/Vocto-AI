@@ -20,7 +20,12 @@ export async function getPublicShare(token: string) {
       mediaTask: {
         include: {
           transcript: true,
-          insights: true
+          insights: true,
+          ratings: {
+            select: {
+              rating: true
+            }
+          }
         }
       }
     }

@@ -1,4 +1,5 @@
 import {notFound} from "next/navigation";
+import Image from "next/image";
 import {ArrowLeft, CalendarDays, Clock, FileText} from "lucide-react";
 import {getBlogPost} from "@/lib/blog";
 import {SiteFooter, SiteHeader} from "@/components/site-shell";
@@ -39,6 +40,10 @@ export function BlogPostPage({locale, slug}: {locale: string; slug: string}) {
             <span className="inline-flex items-center gap-2"><CalendarDays size={16} />{post.date}</span>
             <span className="inline-flex items-center gap-2"><Clock size={16} />{post.readTime}</span>
           </div>
+        </div>
+
+        <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-soft">
+          <Image src={post.coverImage} alt={post.coverAlt} fill sizes="(min-width: 768px) 768px, 100vw" className="object-cover" priority />
         </div>
 
         <div className="mt-8 grid gap-6">

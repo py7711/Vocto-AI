@@ -1,4 +1,6 @@
-import type {ReactNode} from "react";
+"use client";
+
+import {useEffect, useState, type ReactNode} from "react";
 import {CheckCircle2, FileAudio, Loader2, LockKeyhole} from "lucide-react";
 import clsx from "clsx";
 import type {Task} from "./types";
@@ -12,10 +14,13 @@ export function PanelTitle({icon, label}: {icon: ReactNode; label: string}) {
   );
 }
 
-export function InsightPanel({icon, title, children}: {icon: ReactNode; title: string; children: ReactNode}) {
+export function InsightPanel({icon, title, action, children}: {icon: ReactNode; title: string; action?: ReactNode; children: ReactNode}) {
   return (
     <section className="rounded-2xl border border-ink/10 bg-white/70 p-4 transition hover:border-ink/15 hover:shadow-soft">
-      <PanelTitle icon={icon} label={title} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <PanelTitle icon={icon} label={title} />
+        {action}
+      </div>
       <div className="mt-3 text-sm leading-6 text-ink/78">{children}</div>
     </section>
   );
@@ -24,6 +29,9 @@ export function InsightPanel({icon, title, children}: {icon: ReactNode; title: s
 export function ModeButton({active, icon, label, onClick}: {active: boolean; icon: ReactNode; label: string; onClick: () => void}) {
   return (
     <button
+      type="button"
+      role="tab"
+      aria-selected={active}
       className={clsx(
         "focus-ring flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-bold transition",
         active ? "bg-white text-ink shadow-soft" : "text-ink/55 hover:text-ink"
@@ -36,42 +44,32 @@ export function ModeButton({active, icon, label, onClick}: {active: boolean; ico
   );
 }
 
-export function AssetTab({active, label, onClick}: {active: boolean; label: string; onClick: () => void}) {
-  return (
-    <button type="button" className={clsx("focus-ring rounded-lg px-2 py-2 text-xs font-black transition", active ? "bg-white text-ink shadow-soft" : "text-ink/55 hover:text-ink")} onClick={onClick}>
-      {label}
-    </button>
-  );
-}
+export function Fact({icon, label, items}: {icon: ReactNode; label: string; items: readonly string[]}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeItem = items[activeIndex] ?? "";
 
-export function QuotaLine({label, value, percent}: {label: string; value: string; percent: number}) {
+  useEffect(() => {
+    if (items.length < 2) return;
+
+    setActiveIndex(0);
+    const interval = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % items.length);
+    }, 1800);
+
+    return () => window.clearInterval(interval);
+  }, [items]);
+
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-3 text-xs font-bold text-ink/65">
-        <span>{label}</span>
-        <span className="text-ink/80">{value}</span>
+    <div className="flex min-w-0 items-center gap-2">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-primary">{icon}</div>
+      <div className="w-[250px] min-w-0">
+        <div className="text-lg font-semibold text-ink">{label}</div>
+        <div className="h-7 overflow-hidden text-primary">
+          <div key={activeItem} className="animate-fade-up truncate whitespace-nowrap">
+            {activeItem}
+          </div>
+        </div>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-ink/10">
-        <div className="h-full rounded-full bg-gradient-to-r from-tide to-sage transition-all duration-500" style={{width: `${percent}%`}} />
-      </div>
-    </div>
-  );
-}
-
-export function UsageMetric({label, value}: {label: string; value: string}) {
-  return (
-    <div className="rounded-xl bg-paper/70 p-3 ring-1 ring-ink/5">
-      <div className="text-xs font-bold text-ink/50">{label}</div>
-      <div className="mt-1 break-words text-base font-black text-ink">{value}</div>
-    </div>
-  );
-}
-
-export function Fact({icon, label}: {icon: ReactNode; label: string}) {
-  return (
-    <div className="min-h-20 rounded-xl border border-ink/10 bg-white/60 p-2.5 transition hover:border-tide/30 hover:bg-white/80">
-      <div className="mb-2 text-tide">{icon}</div>
-      <div className="leading-4">{label}</div>
     </div>
   );
 }

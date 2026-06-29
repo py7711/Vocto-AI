@@ -9,6 +9,8 @@ type PaidPlan = "BASIC" | "STANDARD" | "PRO";
 type PricingActionProps = {
   plan?: PaidPlan;
   label: string;
+  showPortal?: boolean;
+  mode?: "one-time" | "monthly" | "annual";
 };
 
 const actionCopy = {
@@ -66,13 +68,18 @@ async function readJson(response: Response) {
   return response.json().catch(() => ({})) as Promise<{url?: string; error?: string}>;
 }
 
-export function PricingAction({plan, label}: PricingActionProps) {
+export function PricingAction({plan, label, showPortal = false, mode}: PricingActionProps) {
   const locale = useLocale();
   const copy = actionCopy[locale as keyof typeof actionCopy] ?? actionCopy.en;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function startCheckout() {
+    if (mode === "one-time") {
+      window.location.href = `/${locale}/auth/signin`;
+      return;
+    }
+
     if (!plan) {
       window.location.href = `/${locale}/auth/signup`;
       return;
@@ -133,10 +140,12 @@ export function PricingAction({plan, label}: PricingActionProps) {
         {busy ? <Loader2 size={17} className="animate-spin" /> : <ArrowRight size={17} />}
         {busy ? copy.busy : label}
       </button>
-      <button type="button" onClick={openPortal} disabled={busy} className="btn-outline w-full py-3">
-        <ExternalLink size={16} />
-        {copy.manage}
-      </button>
+      {showPortal ? (
+        <button type="button" onClick={openPortal} disabled={busy} className="btn-outline w-full py-3">
+          <ExternalLink size={16} />
+          {copy.manage}
+        </button>
+      ) : null}
       {error ? <p className="animate-fade-in rounded-xl border border-coral/25 bg-coral/10 px-3 py-2 text-xs font-bold leading-5 text-coral">{error}</p> : null}
     </div>
   );

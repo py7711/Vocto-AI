@@ -17,17 +17,45 @@ html {
 
 body {
   margin: 0;
-  background-color: #f8f3e8;
-  background-image:
-    radial-gradient(1100px 520px at 12% -8%, rgba(14, 111, 124, 0.1), transparent 60%),
-    radial-gradient(900px 480px at 96% 4%, rgba(228, 109, 95, 0.09), transparent 58%),
-    linear-gradient(90deg, rgba(16, 24, 32, 0.035) 1px, transparent 1px),
-    linear-gradient(rgba(16, 24, 32, 0.035) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 46px 46px, 46px 46px;
-  background-attachment: fixed;
-  color: #101820;
+  background-color: #ffffff;
+  color: #020817;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  background-color: #020817;
+  color: #f8fafc;
+}
+
+.dark .bg-white,
+.dark .bg-card {
+  background-color: #020817;
+}
+
+.dark .bg-paper,
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
+  background-color: #0f172a;
+}
+
+.dark .text-ink {
+  color: #f8fafc;
+}
+
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-slate-700,
+.dark .text-ink\/55,
+.dark .text-ink\/60,
+.dark .text-ink\/65,
+.dark .text-ink\/70 {
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.dark .border-slate-200,
+.dark .border-ink\/10 {
+  border-color: rgba(148, 163, 184, 0.22);
 }
 
 button,
@@ -50,11 +78,11 @@ select {
 @layer components {
   /* 表面与卡片：统一圆角、边框与分层阴影 */
   .surface {
-    @apply rounded-2xl border border-ink/10 bg-white/80 backdrop-blur;
+    @apply rounded-xl border border-ink/10 bg-white/90 backdrop-blur;
   }
 
   .card {
-    @apply rounded-2xl border border-ink/10 bg-white/80 shadow-soft backdrop-blur transition duration-200;
+    @apply rounded-xl border border-ink/10 bg-white/90 shadow-soft backdrop-blur transition duration-200;
   }
 
   .card-hover {
@@ -63,19 +91,19 @@ select {
 
   /* 按钮系统 */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold outline-none transition active:translate-y-px focus-visible:ring-2 focus-visible:ring-tide disabled:cursor-not-allowed disabled:opacity-45;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-bold outline-none transition active:translate-y-px focus-visible:ring-2 focus-visible:ring-violet disabled:cursor-not-allowed disabled:opacity-45;
   }
 
   .btn-primary {
-    @apply btn bg-ink text-paper shadow-soft hover:shadow-card hover:brightness-110;
+    @apply btn bg-violet text-white hover:bg-violetDark;
   }
 
   .btn-accent {
-    @apply btn bg-coral text-white shadow-soft hover:shadow-card hover:brightness-105;
+    @apply btn bg-violet text-white hover:bg-violetDark;
   }
 
   .btn-outline {
-    @apply btn border border-ink/15 bg-white/60 text-ink hover:border-ink/30 hover:bg-white;
+    @apply btn border border-ink/15 bg-white text-ink hover:border-violet/30 hover:bg-violet/5;
   }
 
   .btn-ghost {
@@ -88,7 +116,7 @@ select {
   }
 
   .chip-tide {
-    @apply chip bg-tide/10 text-tide;
+    @apply chip bg-violet/10 text-violet;
   }
 
   .chip-brass {
@@ -97,11 +125,11 @@ select {
 
   /* 表单控件 */
   .field {
-    @apply w-full rounded-xl border border-ink/15 bg-white/70 px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink/40 hover:border-ink/25 focus-visible:border-tide focus-visible:ring-2 focus-visible:ring-tide/40;
+    @apply w-full rounded-md border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink/40 hover:border-ink/25 focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet/30;
   }
 
   /* 区块标题前缀 */
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-black uppercase tracking-wide text-tide ring-1 ring-tide/15;
+    @apply inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-violet ring-1 ring-violet/15;
   }
 }

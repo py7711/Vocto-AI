@@ -2,7 +2,6 @@ import {NextResponse} from "next/server";
 import {consumeOAuthStateCookie, setSessionCookie} from "@/lib/auth";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
-import {ensureDefaultTeam, writeAuditLog} from "@/lib/teams";
 
 type GoogleTokenResponse = {
   access_token?: string;
@@ -60,7 +59,9 @@ export async function GET(request: Request) {
   const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state") || "";
-  const [rawState, locale = "zh"] = state.split(":");
+  const [rawState, locale = "zh", encodedNext = ""] = state.split(":");
+  const requestedNext = encodedNext ? decodeURIComponent(encodedNext) : "";
+  const nextPath = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : `/${locale}/dashboard?oauth=google`;
 
   try {
     if (!code || !rawState || !consumeOAuthStateCookie(rawState)) {
@@ -123,24 +124,9 @@ export async function GET(request: Request) {
       });
     }
 
-    const team = await ensureDefaultTeam({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      locale
-    });
     await prisma.user.update({where: {id: user.id}, data: {lastLoginAt: new Date()}});
-    await writeAuditLog({
-      teamId: team.id,
-      userId: user.id,
-      action: "auth.oauth.google",
-      targetType: "user",
-      targetId: user.id,
-      metadata: {email},
-      headers: request.headers
-    });
     await setSessionCookie(user.id);
-    return NextResponse.redirect(`${appUrl}/${locale}/dashboard?oauth=google`);
+    return NextResponse.redirect(`${appUrl}${nextPath}`);
   } catch (error) {
     const message = encodeURIComponent(error instanceof Error ? error.message : "Google 登录失败。");
     return NextResponse.redirect(`${appUrl}/${locale}/auth/signin?error=${message}`);
