@@ -74,7 +74,7 @@ const workflow = [
 const featureBlocks = [
   {
     title: "Convert Audio & Video to Text in Seconds",
-    text: "With AI technology, you can quickly turn your audio and video files into text in just a few minutes. It supports 87 languages and a range of common audio and video formats.",
+    text: "With AI technology, you can quickly turn your audio and video files into text in just a few minutes. It supports 63 languages and a range of common audio and video formats.",
     image: asset("transcription.png"),
     icon: FileAudio
   },
@@ -117,7 +117,7 @@ const freeFeatures = [
   "Each file can be up to 30 minutes long. Upload 1 file at a time.",
   "Limited to transcribe 3 files per day",
   "Basic transcription model (standard accuracy)",
-  "Transcription available in 87 languages",
+  "Transcription available in 63 languages",
   "Word, CSV, PDF, TXT, SRT, VTT export formats"
 ];
 
@@ -125,7 +125,7 @@ const paidFeatures = [
   "Each file can be up to 10 hours long / 5 GB. Upload 50 files at a time.",
   "No daily file limit for transcription",
   "Premium transcription model (highest accuracy)",
-  "Transcription available in 87 languages",
+  "Transcription available in 63 languages",
   "AI translation",
   "Word, CSV, PDF, TXT, SRT, VTT export formats",
   "Enhanced AI Insights",
@@ -186,7 +186,7 @@ const faqs = [
   ["Which audio/video formats do you support?", "Audio formats include aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, and wma. Video formats include 3gp, mkv, mov, mp4, mpg, ts, webm, and wmv."],
   ["Can I upload large files?", "Paid plans allow files up to 10 hours long and 5 GB, with up to 50 files uploaded at a time."],
   ["Can I export my transcript?", "Yes. UniScribe supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
-  ["Which languages does UniScribe support for transcription?", "UniScribe supports transcription in 87 languages."],
+  ["Which languages does UniScribe support for transcription?", "UniScribe supports transcription in 63 languages."],
   ["How soon can I expect my transcription results?", "Most files finish quickly. The exact time depends on file duration, size, provider, and queue load."],
   ["Are my payments secure with UniScribe?", "Payments are handled through secure checkout and subscription billing flows, with card and crypto payment support through Stripe."],
   ["How does UniScribe protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],

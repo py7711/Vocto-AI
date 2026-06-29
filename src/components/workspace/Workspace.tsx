@@ -1,14 +1,16 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject} from "react";
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject} from "react";
 import {useLocale, useTranslations} from "next-intl";
 import {useSearchParams} from "next/navigation";
 import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
   Brain,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Download,
   FileAudio,
@@ -20,6 +22,7 @@ import {
   Link2,
   Loader2,
   Mic,
+  MoreHorizontal,
   Network,
   Pencil,
   PlayCircle,
@@ -47,6 +50,114 @@ import {ProductSections} from "./marketing";
 import {formatDateTime, formatDuration, taskDisplayName} from "./format";
 
 const maxBatchFiles = 50;
+
+type DashboardPaidPlan = "BASIC" | "STANDARD" | "PRO";
+type DashboardPricingMode = "one-time" | "monthly" | "annual";
+
+type DashboardPricingPlan = {
+  name: string;
+  tagline: string;
+  price: string;
+  suffix: string;
+  quota: string;
+  cta: string;
+  plan?: DashboardPaidPlan;
+  popular?: boolean;
+  previousPrice?: string;
+  note?: string;
+  features: Array<string | {label: string; badge: string}>;
+};
+
+const dashboardFreeFeatures = [
+  "120 minutes of transcription per month",
+  "Each file can be up to 30 minutes long. Upload 1 file at a time.",
+  "Limited to transcribe 3 files per day",
+  "Basic transcription model (standard accuracy)",
+  "Transcription available in 63 languages",
+  {label: "AI translation", badge: "New"},
+  "Word, CSV, PDF, TXT, SRT, VTT export formats",
+  {label: "Limited AI Insights", badge: "New"},
+  "30-day retention period for media files",
+  "Email support"
+] as const;
+
+const dashboardPaidFeatures = [
+  "Each file can be up to 10 hours long / 5 GB. Upload 50 files at a time.",
+  "No daily file limit for transcription",
+  "Premium transcription model (highest accuracy)",
+  "Transcription available in 63 languages",
+  {label: "AI translation", badge: "New"},
+  "Word, CSV, PDF, TXT, SRT, VTT export formats",
+  {label: "Enhanced AI Insights", badge: "New"},
+  "YouTube transcription",
+  "Speaker identification",
+  "API access",
+  "Bulk transcription",
+  "No retention period for media files",
+  "Priority email support"
+] as const;
+
+const dashboardPricingModes: Record<DashboardPricingMode, {label: string; badge?: string; plans: DashboardPricingPlan[]}> = {
+  "one-time": {
+    label: "One-Time",
+    plans: [
+      {
+        name: "Lite",
+        tagline: "A flexible pack for short projects.",
+        price: "$12.9",
+        suffix: "One-time payment",
+        quota: "300 minutes total transcription",
+        cta: "Get started",
+        features: ["90-day validity", ...dashboardPaidFeatures]
+      },
+      {
+        name: "Plus",
+        tagline: "More minutes for occasional heavy work.",
+        price: "$19.9",
+        suffix: "One-time payment",
+        quota: "600 minutes total transcription",
+        cta: "Get started",
+        popular: true,
+        features: ["90-day validity", ...dashboardPaidFeatures]
+      }
+    ]
+  },
+  monthly: {
+    label: "Monthly",
+    plans: [
+      {name: "Free", tagline: "Great for trials and individual projects.", price: "$0", suffix: "/ month", quota: "No credit card required", cta: "Get started", features: [...dashboardFreeFeatures]},
+      {name: "Basic", tagline: "Perfect for regular users and daily tasks.", price: "$10", suffix: "/ month", quota: "1200 minutes of transcription per month", cta: "Subscribe now", plan: "BASIC", features: ["$10 per 500 extra minutes", ...dashboardPaidFeatures]},
+      {name: "Standard", tagline: "The best balance for growing needs.", price: "$20", suffix: "/ month", quota: "3000 minutes of transcription per month", cta: "Subscribe now", plan: "STANDARD", popular: true, features: ["$15 per 1000 extra minutes", ...dashboardPaidFeatures]},
+      {name: "Pro", tagline: "Ideal for high-volume users and teams.", price: "$30", suffix: "/ month", quota: "6000 minutes of transcription per month", cta: "Subscribe now", plan: "PRO", features: ["$20 per 3000 extra minutes", ...dashboardPaidFeatures]}
+    ]
+  },
+  annual: {
+    label: "Annual",
+    badge: "Save 40%",
+    plans: [
+      {name: "Free", tagline: "Great for trials and individual projects.", price: "$0", suffix: "/ month", quota: "No credit card required", cta: "Get started", features: [...dashboardFreeFeatures]},
+      {name: "Basic", tagline: "Perfect for regular users and daily tasks.", price: "$5", previousPrice: "$10", note: "($60 / year, billed yearly)", suffix: "/ month", quota: "1200 minutes of transcription per month", cta: "Subscribe now", plan: "BASIC", features: ["$10 per 500 extra minutes", ...dashboardPaidFeatures]},
+      {name: "Standard", tagline: "The best balance for growing needs.", price: "$12", previousPrice: "$20", note: "($144 / year, billed yearly)", suffix: "/ month", quota: "3000 minutes of transcription per month", cta: "Subscribe now", plan: "STANDARD", popular: true, features: ["$15 per 1000 extra minutes", ...dashboardPaidFeatures]},
+      {name: "Pro", tagline: "Ideal for high-volume users and teams.", price: "$18", previousPrice: "$30", note: "($216 / year, billed yearly)", suffix: "/ month", quota: "6000 minutes of transcription per month", cta: "Subscribe now", plan: "PRO", features: ["$20 per 3000 extra minutes", ...dashboardPaidFeatures]}
+    ]
+  }
+};
+
+const dashboardFaqs = [
+  ["Can I try the service for free?", "Yes. The Free plan includes 120 minutes per month, up to 3 files per day, 30 minutes per file, standard transcription, translation, exports, and limited AI insights."],
+  ["Which audio/video formats do you support?", "Audio formats include aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, and wma. Video formats include 3gp, mkv, mov, mp4, mpg, ts, webm, and wmv."],
+  ["Can I upload large files?", "Paid plans allow files up to 10 hours long and 5 GB, with up to 50 files uploaded at a time."],
+  ["Can I export my transcript?", "Yes. UniScribe supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
+  ["Which languages does UniScribe support for transcription?", "UniScribe supports transcription in 63 languages."],
+  ["How soon can I expect my transcription results?", "Most files finish quickly. The exact time depends on file duration, size, provider, and queue load."],
+  ["Are my payments secure with UniScribe?", "Payments are handled through secure checkout and subscription billing flows."],
+  ["How does UniScribe protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],
+  ["When will I be billed?", "Subscription plans are billed monthly or yearly depending on the option you choose."],
+  ["What happens if I cancel my subscription?", "You keep access for the paid period, and the subscription does not renew afterward."],
+  ["Can I get a refund?", "Refund handling follows the refund policy linked from the footer."],
+  ["How long are one-time packages valid for?", "One-time packages are valid for 90 days."],
+  ["What's the difference between one-time packages and subscription plans?", "One-time packages add a fixed pool of minutes, while subscriptions renew monthly or yearly with plan benefits."]
+] as const;
 
 const supportedFormatItems = ["mpg", "mp3", "mp4", "m4a", "wav", "mov", "mkv", "webm", "wmv", "flac", "media links"] as const;
 
@@ -213,6 +324,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   const [assetView, setAssetView] = useState<AssetView>("transcripts");
   const [assetSearch, setAssetSearch] = useState("");
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [bulkMode, setBulkMode] = useState(false);
   const [batchExportFormat, setBatchExportFormat] = useState("txt");
   const [batchShowSpeaker, setBatchShowSpeaker] = useState(true);
   const [batchShowTimestamp, setBatchShowTimestamp] = useState(true);
@@ -638,6 +750,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       });
       if (action === "delete" && task && selectedTaskIds.includes(task.id)) setTask(null);
       setSelectedTaskIds([]);
+      setBulkMode(false);
       await refreshTaskList().catch(() => undefined);
       await refreshFolders().catch(() => undefined);
       await refreshUsageSnapshot().catch(() => undefined);
@@ -683,6 +796,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       anchor.remove();
       URL.revokeObjectURL(url);
       setNotice(`已导出 ${selectedTaskIds.length} 个选中的转写。`);
+      setBulkMode(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -1156,6 +1270,11 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
 
   const isDashboard = variant === "dashboard";
   const isUpload = variant === "upload";
+  const heroFacts = [
+    {icon: <FileAudio size={40} />, label: t("formats"), items: supportedFormatItems},
+    {icon: <Languages size={40} />, label: t("languages"), items: supportedLanguageItems},
+    {icon: <Download size={40} />, label: t("exportCount"), items: exportFormatItems}
+  ] as const;
 
   return (
     <main className={clsx("min-h-screen", isDashboard || isUpload ? "bg-paper" : "bg-white", !isUpload && !isDashboard && "pt-20")}>
@@ -1217,17 +1336,8 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       ) : null}
 
       {!isDashboard && !isUpload ? (
-        <section className="bg-[#f4f4ff] px-4 pb-16 pt-12 md:px-8 md:pb-20 md:pt-14">
-          <div className="mx-auto max-w-6xl text-center">
-            <h1 className="mx-auto max-w-5xl text-5xl font-bold leading-tight text-ink md:text-6xl">{t("headline")}</h1>
-            <p className="mx-auto mt-6 max-w-4xl text-lg leading-8 text-slate-500 md:text-xl">{t("subheadline")}</p>
-            <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center justify-center gap-8 text-left lg:flex-row lg:gap-10 xl:gap-16">
-              <Fact icon={<FileAudio size={40} />} label={t("formats")} items={supportedFormatItems} />
-              <Fact icon={<Languages size={40} />} label={t("languages")} items={supportedLanguageItems} />
-              <Fact icon={<Download size={40} />} label={t("exportCount")} items={exportFormatItems} />
-            </div>
-          </div>
-          <div className={clsx("mx-auto mt-11", currentUser ? "max-w-2xl" : "max-w-6xl")}>
+        <MarketingHero title={t("headline")} description={t("subheadline")} facts={heroFacts}>
+          <div className={clsx("mx-auto", currentUser ? "max-w-2xl" : "max-w-3xl")}>
             {currentUser ? (
               <HomeWelcomeCard user={currentUser} copy={copy} locale={locale} />
             ) : (
@@ -1271,11 +1381,11 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
               />
             )}
           </div>
-        </section>
+        </MarketingHero>
       ) : null}
 
       {isDashboard ? (
-      <section id="workspace" className="mx-auto grid max-w-7xl gap-5 px-4 py-6 md:px-8 xl:grid-cols-[280px_1fr]">
+      <section id="workspace" className="grid min-h-screen gap-0 bg-white xl:grid-cols-[405px_minmax(0,1fr)]">
           <WorkspaceSidebar
             t={t}
             copy={copy}
@@ -1296,101 +1406,114 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
             activeTaskId={task?.id}
             onSelectTask={loadTaskDetail}
           />
-          <section className="min-h-[calc(100vh-120px)]">
+          <section className="min-h-screen min-w-0 border-l border-slate-200 px-6 py-11 md:px-10 xl:px-12">
             <DashboardUpgradeCard locale={locale} />
 
-            <div className="mt-7 rounded-xl border border-ink/10 bg-white p-4 shadow-lifted md:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <h1 className="text-3xl font-black tracking-tight text-ink">{t("allTranscriptions")}</h1>
-                <label className="flex min-w-[240px] items-center gap-2 rounded-md border border-ink/15 bg-white px-3 py-2 transition focus-within:border-violet">
-                  <Search size={16} className="text-ink/45" />
-                  <input value={assetSearch} onChange={(event) => setAssetSearch(event.target.value)} className="w-full bg-transparent text-sm outline-none" placeholder={t("searchPlaceholder")} />
+            <div className="mt-14 bg-white">
+              <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_360px]">
+                <h1 className="text-3xl font-black tracking-tight text-ink">{selectedFolderId ? folders.find((folder) => folder.id === selectedFolderId)?.name ?? t("allTranscriptions") : t("allTranscriptions")}</h1>
+                <label className="flex h-14 items-center gap-3 rounded-md border border-slate-200 bg-white px-4 transition focus-within:border-violet md:justify-self-end md:w-[360px]">
+                  <Search size={20} className="text-slate-500" />
+                  <input value={assetSearch} onChange={(event) => setAssetSearch(event.target.value)} className="w-full bg-transparent text-base font-semibold text-slate-600 outline-none placeholder:text-slate-500" placeholder={t("searchPlaceholder")} />
                 </label>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => { setMode("upload"); setDashboardUploadOpen(true); }} className="btn-primary">
-                  <UploadCloud size={16} />
-                  {t("uploadFiles")}
-                  </button>
-                  <button type="button" onClick={() => { setMode("youtube"); setDashboardLinkOpen(true); }} className="btn-outline">
-                  <Link2 size={16} />
-                  {t("pasteLink")}
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                <select
-                  value=""
-                  onChange={(event) => {
-                    if (!event.target.value) return;
-                    runBatchAction("move", event.target.value === "uncategorized" ? null : event.target.value).catch(() => undefined);
-                    event.target.value = "";
-                  }}
-                  disabled={!selectedTaskIds.length || busy}
-                  className="field h-10 w-44 bg-white text-sm font-bold disabled:opacity-45"
-                  aria-label="Move selected transcriptions"
-                >
-                  <option value="">{selectedTaskIds.length ? `Move ${selectedTaskIds.length}` : t("bulkActions")}</option>
-                  <option value="uncategorized">{t("uncategorized")}</option>
-                  {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={batchExportFormat}
-                  onChange={(event) => setBatchExportFormat(event.target.value)}
-                  disabled={!selectedTaskIds.length || busy}
-                  className="field h-10 w-24 bg-white text-sm font-bold uppercase disabled:opacity-45"
-                  aria-label="Batch export format"
-                >
-                  {exportFormats.map((format) => (
-                    <option key={format} value={format}>{format.toUpperCase()}</option>
-                  ))}
-                </select>
-                <button type="button" onClick={() => exportSelectedTasks().catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="btn-outline disabled:opacity-45">
-                  <Download size={16} />
-                  Export selected
-                </button>
-                <details className="relative">
-                  <summary className="btn-outline h-10 cursor-pointer list-none px-3 py-2 text-sm">Export options</summary>
-                  <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-ink/10 bg-white p-3 text-xs font-bold text-ink/65 shadow-card">
-                    <label className="flex items-center justify-between gap-3">
-                      Speaker names
-                      <input type="checkbox" checked={batchShowSpeaker} onChange={(event) => setBatchShowSpeaker(event.target.checked)} className="h-4 w-4 accent-violet" />
-                    </label>
-                    <label className="mt-2 flex items-center justify-between gap-3">
-                      Timestamps
-                      <input type="checkbox" checked={batchShowTimestamp} onChange={(event) => setBatchShowTimestamp(event.target.checked)} className="h-4 w-4 accent-violet" />
-                    </label>
-                    <label className="mt-2 grid gap-1">
-                      Subtitle max chars
-                      <input type="number" min={1} max={2000} value={batchSubtitleMaxChars} onChange={(event) => setBatchSubtitleMaxChars(Number(event.target.value) || 84)} className="field h-9 bg-white text-sm" />
-                    </label>
-                    <label className="mt-2 grid gap-1">
-                      Subtitle max seconds
-                      <input type="number" min={0.1} max={60} step={0.1} value={batchSubtitleMaxDurationSeconds} onChange={(event) => setBatchSubtitleMaxDurationSeconds(Number(event.target.value) || 6)} className="field h-9 bg-white text-sm" />
-                    </label>
-                  </div>
-                </details>
-                <button type="button" onClick={() => runBatchAction("delete").catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="btn-outline border-coral/25 text-coral disabled:opacity-45">
-                  <Trash2 size={16} />
-                  Delete selected
-                </button>
-                <button type="button" onClick={() => runBatchAction("delete_originals").catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="btn-outline border-coral/25 text-coral disabled:opacity-45">
-                  <X size={16} />
-                  Delete originals
-                </button>
-                </div>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                {bulkMode ? (
+                  <>
+                    <p className="text-sm font-bold text-ink/55">{selectedTaskIds.length} items selected</p>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <select
+                        value=""
+                        onChange={(event) => {
+                          if (!event.target.value) return;
+                          runBatchAction("move", event.target.value === "uncategorized" ? null : event.target.value).catch(() => undefined);
+                          event.target.value = "";
+                        }}
+                        disabled={!selectedTaskIds.length || busy}
+                        className="field h-9 w-32 bg-white py-1.5 text-sm font-bold disabled:opacity-45"
+                        aria-label="Move selected transcriptions"
+                      >
+                        <option value="">Move</option>
+                        <option value="uncategorized">{t("uncategorized")}</option>
+                        {folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>{folder.name}</option>
+                        ))}
+                      </select>
+                      <details className="relative">
+                        <summary className="btn-outline h-9 cursor-pointer list-none px-3 py-1.5 text-sm">Export</summary>
+                        <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-ink/10 bg-white p-3 text-xs font-bold text-ink/65 shadow-card">
+                          <label className="grid gap-1">
+                            Format
+                            <select value={batchExportFormat} onChange={(event) => setBatchExportFormat(event.target.value)} className="field h-9 bg-white text-sm font-bold uppercase">
+                              {exportFormats.map((format) => (
+                                <option key={format} value={format}>{format.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="mt-3 flex items-center justify-between gap-3">
+                            Speaker names
+                            <input type="checkbox" checked={batchShowSpeaker} onChange={(event) => setBatchShowSpeaker(event.target.checked)} className="h-4 w-4 accent-violet" />
+                          </label>
+                          <label className="mt-2 flex items-center justify-between gap-3">
+                            Timestamps
+                            <input type="checkbox" checked={batchShowTimestamp} onChange={(event) => setBatchShowTimestamp(event.target.checked)} className="h-4 w-4 accent-violet" />
+                          </label>
+                          <label className="mt-2 grid gap-1">
+                            Subtitle max chars
+                            <input type="number" min={1} max={2000} value={batchSubtitleMaxChars} onChange={(event) => setBatchSubtitleMaxChars(Number(event.target.value) || 84)} className="field h-9 bg-white text-sm" />
+                          </label>
+                          <label className="mt-2 grid gap-1">
+                            Subtitle max seconds
+                            <input type="number" min={0.1} max={60} step={0.1} value={batchSubtitleMaxDurationSeconds} onChange={(event) => setBatchSubtitleMaxDurationSeconds(Number(event.target.value) || 6)} className="field h-9 bg-white text-sm" />
+                          </label>
+                          <button type="button" onClick={() => exportSelectedTasks().catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="btn-primary mt-3 h-9 w-full py-1.5 disabled:opacity-45">
+                            <Download size={15} />
+                            Export
+                          </button>
+                        </div>
+                      </details>
+                      <button type="button" onClick={() => runBatchAction("delete").catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="btn-outline h-9 border-coral/25 px-3 py-1.5 text-coral disabled:opacity-45">
+                        <Trash2 size={15} />
+                        Delete
+                      </button>
+                      <button type="button" onClick={() => runBatchAction("delete_originals").catch(() => undefined)} disabled={!selectedTaskIds.length || busy} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-coral/20 text-coral transition hover:bg-coral/10 disabled:opacity-45" aria-label="Delete original files">
+                        <X size={15} />
+                      </button>
+                      <button type="button" onClick={() => { setBulkMode(false); setSelectedTaskIds([]); }} className="btn-ghost h-9 px-3 py-1.5">
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-4">
+                      <button type="button" onClick={() => { setMode("upload"); setDashboardUploadOpen(true); }} className="inline-flex h-14 items-center justify-center gap-3 rounded-md bg-primary px-7 text-lg font-semibold text-white shadow-soft transition hover:bg-primary/90">
+                        <UploadCloud size={16} />
+                        {t("uploadFiles")}
+                      </button>
+                      <button type="button" onClick={() => { setMode("youtube"); setDashboardLinkOpen(true); }} className="inline-flex h-14 items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-7 text-lg font-semibold text-ink shadow-soft transition hover:border-primary/30 hover:text-primary">
+                        <Link2 size={16} />
+                        {t("pasteLink")}
+                      </button>
+                    </div>
+                    <button type="button" onClick={() => setBulkMode(true)} className="inline-flex h-10 items-center gap-3 px-2 text-lg font-semibold text-slate-500 transition hover:text-primary">
+                      <MoreHorizontal size={22} />
+                      {t("bulkActions")}
+                    </button>
+                  </>
+                )}
               </div>
 
-              <div className="mt-4">
-                <TranscriptionTable tasks={filteredTasks} folders={folders} copy={copy} locale={locale} t={t} activeTaskId={task?.id} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} onSelectTask={loadTaskDetail} moveTask={moveTask} />
+              <div className="mt-16">
+                <TranscriptionTable tasks={filteredTasks} folders={folders} copy={copy} locale={locale} t={t} activeTaskId={task?.id} selectedTaskIds={selectedTaskIds} setSelectedTaskIds={setSelectedTaskIds} bulkMode={bulkMode} onSelectTask={loadTaskDetail} moveTask={moveTask} />
               </div>
 
+              {task ? (
               <div className="mt-5">
                 <StatusStrip task={task} t={t} />
               </div>
+              ) : null}
               {task ? (
                 <TaskWorkspace
                   task={task}
@@ -1651,52 +1774,228 @@ function HomeWelcomeCard({user, copy, locale}: {user: CurrentUser; copy: ReturnT
   );
 }
 
-function DashboardUpgradeCard({locale}: {locale: string}) {
+function MarketingHero({
+  title,
+  description,
+  facts,
+  children
+}: {
+  title: string;
+  description: string;
+  facts: readonly {icon: ReactNode; label: string; items: readonly string[]}[];
+  children: ReactNode;
+}) {
   return (
-    <section className="overflow-hidden rounded-xl border border-ink/10 bg-white p-6 shadow-lifted md:p-8">
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-black tracking-tight text-ink">Discounted Yearly Basic Plan</h2>
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-black text-amber-700">Just $5.00 per month</span>
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-black text-amber-700">50% OFF</span>
+    <section className="bg-gradient-to-b from-primary/10 via-white to-primary/10 px-4 pb-16 pt-12 md:px-8 md:pb-20 md:pt-16">
+      <div className="mx-auto max-w-5xl text-center">
+        <h1 className="mx-auto text-2xl font-extrabold leading-normal text-ink md:text-5xl lg:text-6xl">
+          <span className="text-primary">{title}</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-5xl text-sm leading-6 text-slate-500 md:mt-6 md:text-xl md:leading-8">{description}</p>
+      </div>
+
+      <div className="mx-auto mt-8 hidden max-w-5xl items-center justify-center gap-8 text-left md:flex lg:gap-16">
+        {facts.map((item) => (
+          <Fact key={item.label} icon={item.icon} label={item.label} items={item.items} />
+        ))}
+      </div>
+
+      <div className="mx-auto mt-8 md:mt-10">{children}</div>
+    </section>
+  );
+}
+
+function DashboardUpgradeCard({locale}: {locale: string}) {
+  const [showPlans, setShowPlans] = useState(false);
+  const [pricingMode, setPricingMode] = useState<DashboardPricingMode>("annual");
+  const [openFaq, setOpenFaq] = useState(0);
+  const activePricing = dashboardPricingModes[pricingMode];
+
+  return (
+    <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lifted">
+      <div className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-[#e7e5ff]" />
+      <div className="pointer-events-none absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-slate-50" />
+
+      <div className="relative p-6 md:p-8">
+        <div className="grid gap-7 min-[1400px]:grid-cols-[minmax(0,1fr)_390px] min-[1400px]:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl font-semibold tracking-tight text-ink md:text-[28px]">Discounted Yearly Basic Plan</h2>
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-4 py-1 text-sm font-bold text-amber-700">Just $5.00 per month</span>
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-4 py-1 text-sm font-bold text-amber-700">50% OFF</span>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-end gap-4">
+              <span className="font-mono text-6xl font-semibold leading-none tracking-tight text-ink md:text-7xl">$60.00</span>
+              <span className="pb-2 text-xl font-semibold text-slate-500 line-through md:text-2xl">$120.00</span>
+              <span className="pb-2 text-lg font-semibold text-slate-500">billed yearly</span>
+            </div>
+
+            <div className="mt-8 grid gap-x-12 gap-y-5 text-base font-semibold text-slate-500 sm:grid-cols-2 md:text-lg">
+              {["1,200 min/mo", "Premium model", "Speaker identification", "Priority email support"].map((item) => (
+                <div key={item} className="flex items-center gap-4">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <a href={`/${locale}/pricing`} className="inline-flex min-h-14 min-w-[220px] items-center justify-center gap-3 whitespace-nowrap rounded-md bg-primary px-6 py-3 text-base font-semibold text-white shadow-[0_16px_30px_rgba(100,103,242,0.24)] transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                <Sparkles size={19} />
+                Upgrade Now
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowPlans((value) => !value)}
+                className="inline-flex min-h-12 items-center justify-center gap-2 text-base font-semibold text-slate-500 underline decoration-slate-400 underline-offset-4 transition hover:text-primary"
+                aria-expanded={showPlans}
+                aria-controls="dashboard-all-plans"
+              >
+                See All Plans
+                <ChevronDown size={18} className={clsx("transition", showPlans && "rotate-180")} />
+              </button>
+            </div>
           </div>
-          <div className="mt-8 flex flex-wrap items-end gap-4">
-            <span className="text-6xl font-black leading-none tracking-tight text-ink">$60.00</span>
-            <span className="pb-2 text-xl font-black text-ink/45 line-through">$120.00</span>
-            <span className="pb-2 text-lg font-bold text-ink/55">billed yearly</span>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center shadow-soft min-[1400px]:justify-self-end">
+            <div className="flex items-center justify-center gap-3 text-xl font-semibold text-ink">
+              <Clock size={23} className="text-slate-500" />
+              Limited Time
+            </div>
+            <div className="mt-6 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-3 font-mono text-4xl font-semibold text-ink">
+              {["00", "33", "91"].map((value, index) => (
+                <Fragment key={value}>
+                  {index > 0 ? <span className="text-slate-500">:</span> : null}
+                  <span className="rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-card">{value}</span>
+                </Fragment>
+              ))}
+            </div>
           </div>
-          <div className="mt-7 grid gap-3 text-base font-bold text-ink/62 sm:grid-cols-2">
-            {["1,200 min/mo", "Premium model", "Speaker identification", "Priority email support"].map((item) => (
-              <div key={item} className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-violet" />
-                <span>{item}</span>
+        </div>
+
+        {showPlans ? (
+          <div id="dashboard-all-plans" className="mt-10 max-h-[720px] min-w-0 max-w-full overflow-y-auto border-t border-slate-200 pt-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold tracking-tight text-ink">Affordable Pricing</h3>
+              <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-500">Effortlessly transcribe audio and video, saving you time and helping you focus on what matters</p>
+            </div>
+
+            <div role="tablist" aria-label="Billing options" className="mx-auto mt-7 grid w-fit grid-cols-3 gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 text-sm font-medium">
+              {(Object.keys(dashboardPricingModes) as DashboardPricingMode[]).map((mode) => {
+                const option = dashboardPricingModes[mode];
+                const active = pricingMode === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setPricingMode(mode)}
+                    className={clsx("rounded-sm px-3 py-1.5 transition", active ? "bg-white text-ink shadow-soft" : "text-slate-600 hover:bg-white/70 hover:text-ink")}
+                  >
+                    {option.label}
+                    {option.badge ? <span className="ml-1 inline-flex rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold leading-3 text-white">{option.badge}</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-8 min-w-0 max-w-full overflow-x-auto pb-8 [scrollbar-width:thin]">
+              <div className={clsx("mx-auto flex min-w-max items-stretch gap-8 px-1", pricingMode === "one-time" && "justify-center")}>
+                {activePricing.plans.map((plan) => (
+                  <DashboardPlanCard key={plan.name} plan={plan} locale={locale} />
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="border-t border-slate-200 pt-9">
+              <h3 className="text-center text-3xl font-bold tracking-tight text-ink md:text-4xl">Frequently Asked Questions</h3>
+              <div className="mx-auto mt-8 max-w-4xl divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+                {dashboardFaqs.map(([question, answer], index) => {
+                  const active = openFaq === index;
+                  return (
+                    <article key={question}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaq(active ? -1 : index)}
+                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-medium transition hover:bg-slate-50 md:py-5 md:text-lg"
+                        aria-expanded={active}
+                      >
+                        <span>{question}</span>
+                        <ChevronDown size={18} className={clsx("shrink-0 transition", active && "rotate-180")} />
+                      </button>
+                      {active ? <p className="px-5 pb-5 text-sm leading-6 text-slate-600">{answer}</p> : null}
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div className="mt-7 flex flex-col gap-3 sm:max-w-3xl sm:flex-row">
-            <a href={`/${locale}/pricing`} className="btn-primary flex-1 py-3">
-              <Sparkles size={18} />
-              Upgrade Now
-            </a>
-            <a href={`/${locale}/pricing`} className="inline-flex items-center justify-center text-sm font-black text-ink/55 underline decoration-ink/30 underline-offset-4 transition hover:text-violet">See All Plans</a>
-          </div>
-        </div>
-        <div className="rounded-xl border border-ink/10 bg-paper/60 p-5 text-center">
-          <div className="flex items-center justify-center gap-2 text-lg font-black text-ink">
-            <Clock size={20} className="text-ink/55" />
-            Limited Time
-          </div>
-          <div className="mt-5 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2 text-3xl font-black text-ink">
-            <span className="rounded-md border border-ink/10 bg-white px-3 py-3 shadow-soft">08</span>
-            <span className="text-ink/40">:</span>
-            <span className="rounded-md border border-ink/10 bg-white px-3 py-3 shadow-soft">11</span>
-            <span className="text-ink/40">:</span>
-            <span className="rounded-md border border-ink/10 bg-white px-3 py-3 shadow-soft">30</span>
-          </div>
-        </div>
+        ) : null}
       </div>
     </section>
+  );
+}
+
+function DashboardPlanCard({plan, locale}: {plan: DashboardPricingPlan; locale: string}) {
+  return (
+    <article className={clsx("relative flex w-[320px] shrink-0 flex-col rounded-lg border bg-white text-ink shadow-sm", plan.plan === "BASIC" ? "border-primary" : "border-slate-200", plan.popular && "pt-0")}>
+      {plan.popular ? (
+        <div className="px-6 pt-5">
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">Most popular</span>
+        </div>
+      ) : null}
+
+      <div className={clsx("flex min-h-[140px] flex-col p-6", plan.popular && "pt-4")}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-2xl font-semibold leading-none tracking-tight">{plan.name}</h3>
+            <p className="mb-4 pt-2 pb-4 text-sm leading-5 text-slate-500">{plan.tagline}</p>
+          </div>
+          <BadgeCheck className="shrink-0 text-primary" size={21} />
+        </div>
+      </div>
+
+      <div className="px-6">
+        <a
+          href={`/${locale}/pricing`}
+          className={clsx(
+            "mb-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+            plan.popular ? "bg-primary text-white hover:bg-primary/90" : "border border-slate-200 bg-white text-ink hover:border-primary hover:bg-white"
+          )}
+        >
+          {plan.cta}
+        </a>
+
+        <div className="flex items-end">
+          <p className="mt-2 pb-1 font-mono text-5xl leading-none">{plan.price}</p>
+          <p className="mb-1.5 ml-2 text-[13px] leading-4 text-slate-500">{plan.suffix}</p>
+        </div>
+        {plan.previousPrice || plan.note ? (
+          <p className="mt-2 text-sm font-medium text-slate-500">
+            {plan.previousPrice ? <span className="text-sm text-slate-400 line-through">{plan.previousPrice}</span> : null}
+            {plan.note ? <span className="ml-2">{plan.note}</span> : null}
+          </p>
+        ) : null}
+        <p className="mt-4 text-sm font-semibold text-primary">{plan.quota}</p>
+      </div>
+
+      <div className="mt-6 grid flex-1 content-start gap-3 px-6 pb-6">
+        {plan.features.map((feature) => {
+          const label = typeof feature === "string" ? feature : feature.label;
+          return (
+            <p key={label} className="flex items-start gap-2 text-sm leading-5 text-slate-600">
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-primary" />
+              <span>
+                {label}
+                {typeof feature === "string" ? null : <span className="ml-1 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{feature.badge}</span>}
+              </span>
+            </p>
+          );
+        })}
+      </div>
+    </article>
   );
 }
 
@@ -2006,8 +2305,8 @@ function TranscriptionLauncher({
         aria-selected={active}
         onClick={() => setMode(targetMode)}
         className={clsx(
-          "focus-ring relative flex min-h-14 items-center justify-center px-3 pb-5 pt-1 text-2xl font-black transition",
-          active ? "text-ink after:absolute after:bottom-0 after:h-1 after:w-44 after:max-w-[80%] after:bg-violet" : "text-slate-500 hover:text-ink"
+          "focus-ring relative flex min-h-12 items-center justify-center rounded-sm px-3 pb-4 pt-1 text-base font-medium transition md:text-lg",
+          active ? "font-bold text-ink after:absolute after:bottom-0 after:h-[3px] after:w-28 after:max-w-[70%] after:bg-primary" : "text-slate-500 hover:text-ink"
         )}
       >
         {label}
@@ -2041,9 +2340,9 @@ function TranscriptionLauncher({
   }
 
   return (
-    <aside className={clsx("rounded-2xl bg-white shadow-lifted", sourceLike ? "border border-white/80 p-5 md:p-12" : "border border-ink/10", compact ? "p-4" : !sourceLike && "p-6 md:p-8")}>
+    <aside className={clsx("bg-white", sourceLike ? "rounded-xl p-0 md:p-6" : "rounded-2xl border border-ink/10 shadow-lifted", compact ? "p-4" : !sourceLike && "p-6 md:p-8")}>
       {sourceLike ? (
-        <div className={clsx("grid", showRecordTab ? "grid-cols-3" : "grid-cols-2")}>
+        <div className={clsx("grid h-12", showRecordTab ? "grid-cols-3" : "grid-cols-2")}>
           {renderModeTab("upload", t("uploadFile"))}
           {renderModeTab("youtube", t("pasteLink"))}
           {showRecordTab ? renderModeTab("record", t("recordAudio")) : null}
@@ -2056,10 +2355,10 @@ function TranscriptionLauncher({
         </div>
       )}
 
-      <div className={clsx(sourceLike ? "mt-12" : "mt-6")}>
+      <div className={clsx(sourceLike ? "mt-6" : "mt-6")}>
         {mode === "upload" ? (
           <div className="text-center">
-            {sourceLike ? <p className="text-xl font-semibold leading-8 text-slate-500">{copy.uploadPrompt}</p> : null}
+            {sourceLike ? <p className="text-base font-medium leading-7 text-slate-500 md:text-lg">{copy.uploadPrompt}</p> : null}
             <div
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
@@ -2071,13 +2370,13 @@ function TranscriptionLauncher({
                 setFile(event.dataTransfer.files[0] ?? null);
               }}
               className={clsx(
-                "group mt-8 flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white p-5 text-center transition",
+                "group mt-6 flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white p-5 text-center transition",
                 sourceLike ? "border-violet/55 hover:border-violet hover:bg-violet/5" : "border-violet/35 hover:border-violet hover:bg-violet/5",
-                compact ? "min-h-44" : "min-h-72"
+                compact ? "min-h-44" : sourceLike ? "min-h-[300px]" : "min-h-72"
               )}
             >
-              <h2 className="mt-1 max-w-full break-words text-xl font-black text-ink">{file?.name ?? copy.dragFilesHere}</h2>
-              <div className="my-6 flex items-center justify-center gap-2 text-xl font-semibold text-slate-300">
+              <h2 className="mt-1 max-w-full break-words text-lg font-semibold text-ink md:text-xl">{file?.name ?? copy.dragFilesHere}</h2>
+              <div className="my-5 flex items-center justify-center gap-2 text-sm font-semibold uppercase text-slate-300 md:my-6">
                 <span className="h-px w-16 bg-slate-300" />
                 {copy.or}
                 <span className="h-px w-16 bg-slate-300" />
@@ -2095,10 +2394,10 @@ function TranscriptionLauncher({
                 className="btn-primary px-8 py-3 text-base"
               >
                 <UploadCloud size={18} />
-                {copy.uploadAFile}
+                Select files from your device
               </button>
               <input ref={inputRef} type="file" className="hidden" accept=".3gp,.aac,.amr,.awb,.flac,.m4a,.mka,.mkv,.mov,.mp2,.mp3,.mp4,.mpg,.oga,.ogg,.opus,.ts,.wav,.weba,.webm,.wma,.wmv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
-              <p className="mt-7 text-sm font-semibold leading-6 text-slate-400">
+              <p className="mt-6 text-sm font-medium leading-6 text-slate-400">
                 Audio: {liveAudioFormats}
                 <br />
                 Video: {liveVideoFormats}
@@ -2107,7 +2406,7 @@ function TranscriptionLauncher({
           </div>
         ) : mode === "youtube" || mode === "drive" ? (
           <div className="text-center">
-            {!file && !youtubeUrl ? <p className="text-xl font-semibold leading-8 text-slate-500">{copy.pastePrompt}</p> : null}
+            {!file && !youtubeUrl ? <p className="text-base font-medium leading-7 text-slate-500 md:text-lg">{copy.pastePrompt}</p> : null}
             <div className="mt-7">
               <p className="flex items-center justify-center gap-2 text-lg font-semibold text-slate-500">
                 <Link2 size={18} />
@@ -2115,7 +2414,7 @@ function TranscriptionLauncher({
               </p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 {supportedPlatformItems.map(([item, icon]) => (
-                  <span key={item} className="inline-flex min-h-10 items-center gap-3 rounded-full border border-violet/20 bg-white px-5 py-2 text-base font-black text-ink shadow-card">
+                  <span key={item} className="inline-flex min-h-10 items-center gap-3 rounded-full border border-violet/20 bg-white px-4 py-2 text-sm font-bold text-ink shadow-card md:text-base">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-violet/10 text-violet">{icon}</span>
                     {item}
                   </span>
@@ -2222,7 +2521,7 @@ function TranscriptionLauncher({
       {notice ? <p className="mt-3 animate-fade-in rounded-md border border-violet/30 bg-violet/10 px-3 py-2 text-sm text-violet">{notice}</p> : null}
       {error ? <p className="mt-3 animate-fade-in rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{error}</p> : null}
       {sourceLike ? (
-        <p className="mt-14 text-center text-base font-semibold leading-7 text-slate-500">
+        <p className="mt-8 text-center text-sm font-medium leading-6 text-slate-500">
           By using UniScribe, you agree to our{" "}
           <a href={`/${locale}/terms-of-service`} className="font-semibold text-violet underline underline-offset-2">
             Terms of Service
@@ -3132,6 +3431,7 @@ function TranscriptionTable({
   activeTaskId,
   selectedTaskIds,
   setSelectedTaskIds,
+  bulkMode,
   onSelectTask,
   moveTask
 }: {
@@ -3143,9 +3443,11 @@ function TranscriptionTable({
   activeTaskId?: string;
   selectedTaskIds: string[];
   setSelectedTaskIds: (value: string[] | ((current: string[]) => string[])) => void;
+  bulkMode: boolean;
   onSelectTask: (taskId: string) => void;
   moveTask: (taskId: string, folderId: string | null) => Promise<void>;
 }) {
+  const [openMenuTaskId, setOpenMenuTaskId] = useState<string | null>(null);
   const allVisibleSelected = tasks.length > 0 && tasks.every((item) => selectedTaskIds.includes(item.id));
 
   function toggleTask(taskId: string) {
@@ -3159,49 +3461,54 @@ function TranscriptionTable({
     });
   }
 
+  if (!tasks.length) {
+    return <DashboardEmptyState />;
+  }
+
   return (
     <div className="mt-4 overflow-x-auto rounded-lg border border-ink/10 bg-white">
       <div className="min-w-[720px]">
-      <div className="grid grid-cols-[32px_minmax(190px,1.4fr)_90px_135px_70px_100px] gap-3 border-b border-ink/10 bg-paper/60 px-4 py-3 text-xs font-black uppercase text-ink/45 max-lg:hidden">
-        <label className="flex items-center">
-          <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} className="h-4 w-4 rounded border-ink/20 text-violet" aria-label="Select all visible transcriptions" />
-        </label>
+      <div className={clsx("grid gap-3 border-b border-ink/10 bg-paper/60 px-4 py-3 text-xs font-black uppercase text-ink/45 max-lg:hidden", bulkMode ? "grid-cols-[32px_minmax(190px,1.4fr)_90px_135px_70px_100px_40px]" : "grid-cols-[minmax(190px,1.4fr)_90px_135px_70px_100px_40px]")}>
+        {bulkMode ? (
+          <label className="flex items-center">
+            <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} className="h-4 w-4 rounded border-ink/20 text-violet" aria-label="Select all visible transcriptions" />
+          </label>
+        ) : null}
         <span>{t("name")}</span>
         <span>{t("duration")}</span>
         <span>{t("created")}</span>
         <span>{t("type")}</span>
         <span>{t("folder")}</span>
+        <span />
       </div>
       <div className="max-h-[460px] overflow-auto">
         {tasks.length ? (
           tasks.map((item) => (
-            <a
+            <div
               key={item.id}
-              href={`/${locale}/transcriptions/${item.id}`}
-              onClick={() => onSelectTask(item.id)}
               className={clsx(
-                "grid w-full gap-3 border-b border-ink/10 px-4 py-3 text-left text-sm transition last:border-b-0 hover:bg-violet/5 lg:grid-cols-[32px_minmax(190px,1.4fr)_90px_135px_70px_100px]",
+                "grid w-full items-center gap-3 border-b border-ink/10 px-4 py-3 text-left text-sm transition last:border-b-0 hover:bg-violet/5",
+                bulkMode ? "lg:grid-cols-[32px_minmax(190px,1.4fr)_90px_135px_70px_100px_40px]" : "lg:grid-cols-[minmax(190px,1.4fr)_90px_135px_70px_100px_40px]",
                 activeTaskId === item.id && "bg-violet/10"
               )}
             >
-              <span className="flex items-center">
+              {bulkMode ? (
+              <span className="flex items-center" onClick={(event) => event.stopPropagation()}>
                 <input
                   type="checkbox"
                   checked={selectedTaskIds.includes(item.id)}
                   onClick={(event) => event.stopPropagation()}
-                  onChange={(event) => {
-                    event.preventDefault();
-                    toggleTask(item.id);
-                  }}
+                  onChange={() => toggleTask(item.id)}
                   className="h-4 w-4 rounded border-ink/20 text-violet"
                   aria-label={`Select ${taskDisplayName(item, copy)}`}
                 />
               </span>
+              ) : null}
               <span className="min-w-0">
-                <span className="flex items-center gap-2 font-black">
+                <a href={`/${locale}/transcriptions/${item.id}`} onClick={() => onSelectTask(item.id)} className="flex items-center gap-2 font-black text-ink transition hover:text-violet">
                   {item.status === "COMPLETED" ? <CheckCircle2 size={16} className="text-violet" /> : <FileAudio size={16} className="text-ink/45" />}
                   <span className="truncate">{taskDisplayName(item, copy)}</span>
-                </span>
+                </a>
                 <span className="mt-1 block text-xs font-bold text-ink/45 lg:hidden">{item.status}</span>
               </span>
               <span className="text-ink/65">{item.durationSeconds ? formatDuration(item.durationSeconds) : "--"}</span>
@@ -3209,39 +3516,46 @@ function TranscriptionTable({
               <span>
                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-violet/10 text-xs font-black text-violet">{item.sourceType === "YOUTUBE" ? "L" : "S"}</span>
               </span>
-              <span>
-                <select
-                  value={item.folderId ?? ""}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={(event) => {
-                    event.preventDefault();
-                    moveTask(item.id, event.target.value || null).catch(() => undefined);
-                  }}
-                  className="max-w-28 rounded-md border border-ink/10 bg-white px-2 py-1 text-xs font-bold text-ink/65 outline-none transition focus:border-violet"
-                  aria-label={`Move ${taskDisplayName(item, copy)}`}
+              <span className="truncate text-ink/65">{item.folder?.name ?? t("uncategorized")}</span>
+              <span className="relative flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setOpenMenuTaskId((current) => (current === item.id ? null : item.id))}
+                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-ink/45 transition hover:bg-violet/8 hover:text-violet"
+                  aria-label={`Actions for ${taskDisplayName(item, copy)}`}
+                  aria-expanded={openMenuTaskId === item.id}
                 >
-                  <option value="">{t("uncategorized")}</option>
-                  {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
+                  <MoreHorizontal size={17} />
+                </button>
+                {openMenuTaskId === item.id ? (
+                  <div className="absolute right-0 top-9 z-20 w-56 rounded-xl border border-ink/10 bg-white p-2 text-sm font-bold text-ink/70 shadow-card">
+                    <a href={`/${locale}/transcriptions/${item.id}`} className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-paper hover:text-ink">
+                      <ArrowRight size={15} />
+                      Open transcription
+                    </a>
+                    <label className="mt-1 block rounded-lg px-3 py-2 transition hover:bg-paper">
+                      <span className="mb-1 block text-xs font-black uppercase text-ink/40">Move to</span>
+                      <select
+                        value={item.folderId ?? ""}
+                        onChange={(event) => {
+                          moveTask(item.id, event.target.value || null).catch(() => undefined);
+                          setOpenMenuTaskId(null);
+                        }}
+                        className="field h-9 bg-white py-1.5 text-xs font-bold"
+                        aria-label={`Move ${taskDisplayName(item, copy)}`}
+                      >
+                        <option value="">{t("uncategorized")}</option>
+                        {folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>{folder.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
               </span>
-            </a>
+            </div>
           ))
-        ) : (
-          <div aria-label={copy.noTranscriptAssets}>
-            {Array.from({length: 9}).map((_, index) => (
-              <div key={index} className="grid h-12 grid-cols-[32px_minmax(190px,1.4fr)_90px_135px_70px_100px] gap-3 border-b border-ink/10 px-4 py-3 last:border-b-0">
-                <span className="h-4 rounded bg-paper" />
-                <span className="h-4 rounded bg-paper" />
-                <span className="h-4 rounded bg-paper" />
-                <span className="h-4 rounded bg-paper" />
-                <span className="h-4 rounded bg-paper" />
-                <span className="h-4 rounded bg-paper" />
-              </div>
-            ))}
-          </div>
-        )}
+        ) : null}
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-ink/10 px-4 py-3 text-sm font-bold text-ink/55">
         <span>Rows per page</span>
@@ -3249,6 +3563,32 @@ function TranscriptionTable({
       </div>
       </div>
     </div>
+  );
+}
+
+function DashboardEmptyState() {
+  return (
+    <section className="grid min-h-[360px] place-items-center text-center" aria-label="No transcription found">
+      <div className="relative h-64 w-64">
+        <div className="absolute bottom-8 left-10 h-20 w-28 rounded-[50%] bg-slate-100" />
+        <div className="absolute bottom-20 left-[105px] h-24 w-9 -rotate-6 rounded-full bg-ink" />
+        <div className="absolute bottom-16 left-[92px] h-24 w-8 rotate-[18deg] rounded-full bg-ink" />
+        <div className="absolute bottom-[118px] left-[93px] h-10 w-12 -rotate-[12deg] rounded-full bg-white ring-2 ring-slate-200" />
+        <div className="absolute bottom-[125px] left-[107px] h-3 w-3 rounded-full bg-ink" />
+        <div className="absolute bottom-[137px] left-[84px] h-9 w-9 rounded-full bg-white ring-2 ring-slate-200" />
+        <div className="absolute bottom-[164px] left-[83px] h-3 w-14 -rotate-[18deg] rounded-full bg-slate-300" />
+        <div className="absolute bottom-[132px] left-[128px] h-4 w-36 -rotate-[16deg] rounded-full bg-ink" />
+        <div className="absolute bottom-[141px] left-[163px] h-12 w-24 -rotate-[16deg] rounded-[8px] bg-primary shadow-card [clip-path:polygon(0_28%,100%_0,100%_100%,0_72%)]" />
+        <div className="absolute bottom-[133px] left-[154px] h-5 w-5 rounded-full border-4 border-white bg-primary" />
+        <div className="absolute bottom-[73px] left-[125px] h-14 w-2 rotate-[8deg] rounded-full bg-slate-300" />
+        <div className="absolute bottom-[74px] left-[143px] h-16 w-2 -rotate-[24deg] rounded-full bg-slate-300" />
+        <div className="absolute bottom-[62px] left-[157px] h-2 w-16 -rotate-[16deg] rounded-full bg-slate-300" />
+        <div className="absolute bottom-[58px] left-[91px] h-2 w-[5.5rem] rotate-[8deg] rounded-full bg-slate-300" />
+      </div>
+      <div className="-mt-8">
+        <h2 className="text-2xl font-semibold text-ink">No Transcriptions Here Yet!</h2>
+      </div>
+    </section>
   );
 }
 

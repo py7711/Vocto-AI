@@ -298,10 +298,12 @@ export function SiteHeader({primaryCta, showAuthPair = false}: {primaryCta?: {hr
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
-          <a href={`${base}/dashboard`} className="btn-outline hidden md:inline-flex">
-            <LayoutDashboard size={16} />
-            {text.dashboard}
-          </a>
+          {!showAuthPair ? (
+            <a href={`${base}/dashboard`} className="btn-outline hidden md:inline-flex">
+              <LayoutDashboard size={16} />
+              {text.dashboard}
+            </a>
+          ) : null}
           {showAuthPair ? (
             <a href={`${base}/auth/signin`} className="btn-outline hidden md:inline-flex">
               <LogIn size={16} />
