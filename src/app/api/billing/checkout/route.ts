@@ -1,14 +1,20 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
-import {createCheckoutSession, createStripeCustomer, type BillingPlan} from "@/lib/billing";
-import {env} from "@/lib/env";
+import {createCheckoutSession, createStripeCustomer, type AddonPack, type BillingPlan, type OneTimePack} from "@/lib/billing";
 import {prisma} from "@/lib/prisma";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const checkoutSchema = z.object({
-  plan: z.enum(["BASIC", "STANDARD", "PRO"]),
+  plan: z.enum(["BASIC", "STANDARD", "PRO"]).optional(),
+  pack: z.enum(["LITE", "PLUS"]).optional(),
+  addon: z.enum(["ADDON_BASIC", "ADDON_STANDARD", "ADDON_PRO"]).optional(),
+  mode: z.enum(["one-time", "monthly", "annual"]).optional(),
+  locale: z.string().min(2).max(16).optional(),
   successPath: z.string().max(240).optional(),
   cancelPath: z.string().max(240).optional()
+}).refine((value) => [value.plan, value.pack, value.addon].filter(Boolean).length === 1, {
+  message: "请选择一个订阅套餐或分钟包。"
 });
 
 function normalizeReturnPath(path: string | undefined, fallback: string) {
@@ -16,6 +22,21 @@ function normalizeReturnPath(path: string | undefined, fallback: string) {
   // 只允许站内路径，避免恶意前端把支付完成后的用户重定向到外部站点。
   if (!path.startsWith("/") || path.startsWith("//") || path.includes("://")) return fallback;
   return path;
+}
+
+function normalizeLocale(value?: string | null) {
+  const locale = value?.trim().toLowerCase();
+  return locale && /^[a-z]{2}(?:-[a-z]{2})?$/.test(locale) ? locale : "en";
+}
+
+function localeFromReferer(referer?: string | null) {
+  if (!referer) return null;
+  try {
+    const [, locale] = new URL(referer).pathname.split("/");
+    return normalizeLocale(locale);
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
@@ -27,6 +48,11 @@ export async function POST(request: Request) {
 
     const input = checkoutSchema.parse(await request.json());
     const subscription = user.subscriptions?.[0];
+    const hasPaidPlan = subscription?.plan && subscription.plan !== "FREE";
+    if (input.addon && !hasPaidPlan) {
+      return NextResponse.json({error: "加购分钟包仅适用于已订阅或 LTD 账户。"}, {status: 400});
+    }
+
     let stripeCustomerId = subscription?.stripeCustomerId ?? null;
 
     // 一个 UniScribe 用户对应一个 Stripe Customer，后续升级、降级、开票都复用该客户记录。
@@ -50,11 +76,24 @@ export async function POST(request: Request) {
       }
     }
 
-    const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-    const successPath = normalizeReturnPath(input.successPath, "/zh/dashboard?checkout=success");
-    const cancelPath = normalizeReturnPath(input.cancelPath, "/zh/pricing?checkout=cancel");
+    const appUrl = getRequestOrigin(request);
+    const locale = normalizeLocale(input.locale ?? localeFromReferer(request.headers.get("referer")) ?? user.locale);
+    const successPath = normalizeReturnPath(input.successPath, `/${locale}/dashboard?checkout=success`);
+    const cancelPath = normalizeReturnPath(input.cancelPath, input.pack || input.addon ? `/${locale}/dashboard?checkout=cancel` : `/${locale}/pricing?checkout=cancel`);
     // 支付会话只返回 URL，浏览器端负责跳转到 Stripe 托管支付页。
-    const session = await createCheckoutSession({
+    const session = input.addon ? await createCheckoutSession({
+      customerId: stripeCustomerId,
+      userId: user.id,
+      addon: input.addon as AddonPack,
+      successUrl: `${appUrl}${successPath}`,
+      cancelUrl: `${appUrl}${cancelPath}`
+    }) : input.pack ? await createCheckoutSession({
+      customerId: stripeCustomerId,
+      userId: user.id,
+      pack: input.pack as OneTimePack,
+      successUrl: `${appUrl}${successPath}`,
+      cancelUrl: `${appUrl}${cancelPath}`
+    }) : await createCheckoutSession({
       customerId: stripeCustomerId,
       userId: user.id,
       plan: input.plan as BillingPlan,

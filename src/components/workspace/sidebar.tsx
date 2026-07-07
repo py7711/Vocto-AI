@@ -1,8 +1,8 @@
 "use client";
 
-import {useState} from "react";
-import Image from "next/image";
-import {ChevronRight, ChevronUp, Clock, FileText, FolderOpen, HelpCircle, Home, LogOut, MessageCircle, Monitor, Moon, Pencil, Plus, Settings, Sun, Trash2} from "lucide-react";
+import {useEffect, useState} from "react";
+import {ChevronDown, ChevronUp, Clock, Copy, CreditCard, Crown, Edit3, FileText, FolderOpen, Home, LogOut, Mail, Monitor, Moon, MoreHorizontal, Plus, Settings, Sun, SunMoon, Trash2, X} from "lucide-react";
+import {BrandLogo} from "@/components/brand-logo";
 import type {WorkspaceCopy} from "./copy";
 import type {AssetView, CurrentUser, FolderItem, TaskListItem, UsageSnapshot} from "./types";
 
@@ -28,85 +28,265 @@ function QuotaRow({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 text-slate-500">
-          <span className="grid h-6 w-6 place-items-center">{icon}</span>
-          <span className="text-sm font-black uppercase tracking-wide">{label}</span>
+      <div className="flex items-center justify-between gap-3 text-[10px] font-bold uppercase leading-[15px] tracking-tight">
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <span className="grid h-[15px] w-[12px] place-items-center">{icon}</span>
+          <span>{label}</span>
         </div>
-        <p className="whitespace-nowrap text-sm font-black text-ink">
+        <p className="whitespace-nowrap text-[10px] font-bold leading-[15px] text-ink">
           {used}
-          <span className="text-slate-500">/{total}{suffix ? ` ${suffix}` : ""}</span>
+          <span className="text-slate-500">
+            /{total}
+            {suffix ? <span className="normal-case text-[11px] font-normal leading-[16.5px]">{suffix}</span> : null}
+          </span>
         </p>
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/65">
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/65">
         <div className={`h-full rounded-full ${barClassName}`} style={{width: `${clampPercent(used, total)}%`}} />
       </div>
     </div>
   );
 }
 
-function AccountMenu({locale}: {locale: string}) {
+function userInitials(user: CurrentUser | null) {
+  const display = (user?.name || user?.email?.split("@")[0] || "U").trim();
+  const digits = display.match(/\d/g);
+  if (digits && digits.length >= 2) return digits.slice(0, 2).join("");
+  const words = display.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  return display.slice(0, 2).toUpperCase();
+}
+
+type WorkspaceTheme = "Light" | "Dark" | "System";
+
+function resolveWorkspaceTheme(theme: WorkspaceTheme) {
+  if (theme === "Dark") return "dark";
+  if (theme === "Light") return "light";
+  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function applyWorkspaceTheme(theme: WorkspaceTheme) {
+  const resolved = resolveWorkspaceTheme(theme);
+  const root = document.documentElement;
+  root.classList.toggle("dark", resolved === "dark");
+  root.classList.toggle("light", resolved === "light");
+}
+
+function readStoredWorkspaceTheme(): WorkspaceTheme | null {
+  try {
+    const value = window.localStorage.getItem("uniscribe-theme");
+    return value === "Light" || value === "Dark" || value === "System" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeWorkspaceTheme(theme: WorkspaceTheme) {
+  try {
+    window.localStorage.setItem("uniscribe-theme", theme);
+  } catch {
+    // Best-effort preference persistence only.
+  }
+}
+
+function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | null; copy: WorkspaceCopy}) {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<"Light" | "Dark" | "System">("Light");
+  const [theme, setTheme] = useState<WorkspaceTheme>("System");
+  const [supportOpen, setSupportOpen] = useState(false);
+  const displayName = user?.name || copy.anonymousUser;
+  const email = user?.email || copy.loginSyncHint;
+  const avatarUrl = user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl || null;
+  const supportEmail = "hi@uniscribe.co";
+  const discordInviteUrl = "https://discord.com/invite/RJTaS28UWU";
 
   async function signOut() {
     await fetch("/api/auth/logout", {method: "POST"}).catch(() => undefined);
     window.location.href = `/${locale}/auth/signin`;
   }
 
+  async function openBilling() {
+    const subscription = user?.subscriptions?.[0];
+    const plan = subscription?.plan?.toUpperCase();
+    if (!subscription?.stripeSubscriptionId || !plan || plan === "FREE" || plan === "ANONYMOUS") return;
+
+    const response = await fetch("/api/billing/portal", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({returnPath: `/${locale}/dashboard?portal=returned`})
+    }).catch(() => null);
+    if (!response) return;
+    if (response.status === 401) {
+      window.location.href = `/${locale}/auth/signin`;
+      return;
+    }
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.url) window.location.href = data.url;
+  }
+
+  function openDiscord() {
+    window.open(discordInviteUrl, "_blank", "noopener,noreferrer");
+  }
+
+  useEffect(() => {
+    const storedTheme = readStoredWorkspaceTheme();
+    if (storedTheme) {
+      setTheme(storedTheme);
+      applyWorkspaceTheme(storedTheme);
+      return;
+    }
+    applyWorkspaceTheme("System");
+  }, []);
+
+  useEffect(() => {
+    applyWorkspaceTheme(theme);
+    if (theme !== "System") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncSystemTheme = () => applyWorkspaceTheme("System");
+    media.addEventListener("change", syncSystemTheme);
+    return () => media.removeEventListener("change", syncSystemTheme);
+  }, [theme]);
+
+  function chooseTheme(nextTheme: WorkspaceTheme) {
+    setTheme(nextTheme);
+    storeWorkspaceTheme(nextTheme);
+    applyWorkspaceTheme(nextTheme);
+  }
+
   return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-label="Account menu"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        className="focus-ring grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-violet/8 hover:text-violet"
-      >
-        <Settings size={17} />
-      </button>
+    <div className="relative z-40 mt-auto w-full transition-transform duration-200" style={open ? {transform: "translateY(-313px)"} : undefined}>
+      <div className="w-[267px] rounded-[12px] border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          {avatarUrl ? (
+            <span className="block h-10 w-10 shrink-0 overflow-hidden rounded-full bg-emerald-700">
+              {/* External avatar hosts vary, so avoid next/image remote domain constraints here. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarUrl} alt={copy.avatarAlt} className="h-full w-full object-cover" />
+            </span>
+          ) : (
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#5d962f] text-sm font-semibold text-white" aria-label={copy.avatarAlt}>
+              {userInitials(user)}
+            </span>
+          )}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold leading-5 text-ink">{displayName}</span>
+            <span className="block truncate text-xs font-normal leading-4 text-slate-500">{email}</span>
+          </span>
+          <button
+            type="button"
+            aria-label={copy.accountMenu}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+            className="focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink"
+          >
+            <ChevronDown size={16} className={`transition ${open ? "rotate-180" : ""}`} />
+          </button>
+        </div>
       {open ? (
-        <div className="absolute bottom-11 right-0 z-30 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-card">
-          <a href="mailto:support@uniscribe.co" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-ink/72 hover:bg-paper hover:text-ink">
-            <HelpCircle size={16} />
-            Email Support
-          </a>
-          <a href="https://discord.gg/uniscribe" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-ink/72 hover:bg-paper hover:text-ink">
-            <MessageCircle size={16} />
-            Discord
-          </a>
-          <a href={`/${locale}/settings`} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-ink/72 hover:bg-paper hover:text-ink">
+        <div className="absolute left-[17px] top-[73px] grid w-[233px] gap-2 animate-in slide-in-from-top-2 duration-200">
+          <button type="button" onClick={() => openBilling().catch(() => undefined)} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+            <CreditCard size={16} />
+            {copy.billing}
+          </button>
+          <button type="button" onClick={() => setSupportOpen(true)} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+            <Mail size={16} />
+            {copy.emailSupport}
+          </button>
+          <button type="button" onClick={openDiscord} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://cdn.uniscribe.co/badges/Discord-Symbol-Blurple.svg" alt={copy.discordAlt} className="h-auto w-4 brightness-0 opacity-60" />
+            {copy.discordAlt}
+          </button>
+          <button type="button" onClick={() => { window.location.href = `/${locale}/settings`; }} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <Settings size={16} />
-            Settings
-          </a>
-          <div className="mt-2 border-t border-slate-200 pt-2">
-            <p className="px-3 pb-2 text-xs font-black uppercase tracking-wide text-slate-500">Theme</p>
-            <div className="grid grid-cols-3 gap-1">
+            {copy.settings}
+          </button>
+          <div className="flex h-10 w-[233px] items-center justify-between rounded-[12px] border border-transparent bg-slate-100/20 px-4 transition hover:border-slate-200/60">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+              <SunMoon size={16} />
+              <span>{copy.theme}</span>
+            </div>
+            <div className="flex h-8 rounded-lg border border-slate-200/60 bg-slate-100/60 p-0.5">
               {[
-                ["Light", Sun],
-                ["Dark", Moon],
-                ["System", Monitor]
-              ].map(([label, Icon]) => {
-                const typedLabel = label as "Light" | "Dark" | "System";
+                ["Light", copy.themeLight, Sun],
+                ["Dark", copy.themeDark, Moon],
+                ["System", copy.themeSystem, Monitor]
+              ].map(([value, label, Icon]) => {
+                const typedLabel = value as WorkspaceTheme;
                 const ThemeIcon = Icon as typeof Sun;
                 return (
                   <button
                     key={typedLabel}
                     type="button"
-                    onClick={() => setTheme(typedLabel)}
-                    className={`grid min-w-0 justify-items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-black transition ${theme === typedLabel ? "bg-violet text-white" : "text-ink/60 hover:bg-paper hover:text-ink"}`}
+                    aria-label={label as string}
+                    onClick={() => chooseTheme(typedLabel)}
+                    className={`focus-ring grid h-[26px] w-[26px] place-items-center rounded-md transition ${theme === typedLabel ? "bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.1)] dark:bg-slate-900 dark:text-slate-50" : "text-slate-500 hover:bg-white/80 hover:text-ink"}`}
                   >
                     <ThemeIcon size={14} />
-                    <span className="truncate">{typedLabel}</span>
+                    <span className="sr-only">{label as string}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-          <button type="button" onClick={signOut} className="mt-2 flex w-full items-center gap-2 rounded-lg border-t border-slate-200 px-3 py-2 pt-3 text-left text-sm font-bold text-coral hover:bg-coral/10">
+          <div className="py-1">
+            <div className="h-px w-full bg-slate-200" />
+          </div>
+          <button type="button" onClick={signOut} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <LogOut size={16} />
-            Sign out
+            {copy.signOut}
           </button>
+        </div>
+      ) : null}
+      </div>
+      {supportOpen ? (
+        <div className="fixed inset-0 z-50 bg-black/40">
+          <div className="fixed left-1/2 top-1/2 grid h-[298px] w-full max-w-[448px] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-slate-200 bg-white p-6 text-[rgb(2,8,23)] shadow-none" role="dialog" aria-modal="true" aria-labelledby="email-support-title">
+            <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+              <h2 id="email-support-title" className="flex items-center gap-2 text-lg font-semibold leading-[18px] tracking-tight text-[rgb(2,8,23)]">
+                <Mail size={20} className="h-5 w-5 text-violet" />
+                {copy.emailSupport}
+              </h2>
+              <div className="text-sm font-normal leading-5 text-slate-500">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span>{copy.supportResponseSoon}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Crown size={16} className="h-4 w-4 shrink-0 text-amber-500" />
+                      <div>
+                        <div className="font-medium text-[rgb(2,8,23)]">{copy.supportPaidUsers}</div>
+                        <div className="text-slate-500">{copy.supportWithin24Hours}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock size={16} className="h-4 w-4 shrink-0 text-slate-500/60" />
+                      <div>
+                        <div className="font-medium text-[rgb(2,8,23)]">{copy.supportFreeUsers}</div>
+                        <div className="text-slate-500">{copy.supportWithin48Hours}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex h-[54px] items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
+                <span className="select-all text-sm font-normal leading-5 text-[rgb(2,8,23)]">{supportEmail}</span>
+                <button type="button" onClick={() => navigator.clipboard.writeText(supportEmail).catch(() => undefined)} className="inline-flex h-9 w-[89.16px] items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium leading-5 text-[rgb(2,8,23)] transition-colors hover:bg-slate-50">
+                  <Copy size={16} className="mr-1 h-4 w-4" />
+                  {copy.copyButton}
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button type="button" onClick={() => setSupportOpen(false)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-violet px-4 py-2 text-sm font-medium leading-5 text-white transition-colors hover:bg-violet/90">{copy.close}</button>
+            </div>
+            <button type="button" onClick={() => setSupportOpen(false)} className="absolute right-4 top-4 grid h-4 w-4 place-items-center rounded text-[rgb(2,8,23)] opacity-70 transition hover:opacity-100" aria-label={copy.close}>
+              <X size={16} />
+              <span className="sr-only">{copy.close}</span>
+            </button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -131,7 +311,8 @@ export function WorkspaceSidebar({
   assetSearch: _assetSearch,
   setAssetSearch: _setAssetSearch,
   activeTaskId: _activeTaskId,
-  onSelectTask: _onSelectTask
+  onSelectTask: _onSelectTask,
+  onOpenUpgradePrompt
 }: {
   t: (key: string) => string;
   copy: WorkspaceCopy;
@@ -151,10 +332,19 @@ export function WorkspaceSidebar({
   setAssetSearch: (value: string) => void;
   activeTaskId?: string;
   onSelectTask: (taskId: string) => void;
+  onOpenUpgradePrompt?: () => void;
 }) {
   const subscription = user?.subscriptions?.[0];
   const planName = usageSnapshot?.subscription.plan ?? subscription?.plan ?? "FREE";
-  const planLabel = planName === "ANONYMOUS" ? "FREE" : planName.toUpperCase();
+  const planLabels: Record<string, string> = {
+    ANONYMOUS: copy.planAnonymous,
+    BASIC: copy.planBasic,
+    FREE: copy.planFree,
+    PRO: copy.planPro,
+    STANDARD: copy.planStandard
+  };
+  const planLabel = planLabels[planName.toUpperCase()] ?? planName.charAt(0).toUpperCase() + planName.slice(1).toLowerCase();
+  const isPaidPlan = planName !== "FREE" && planName !== "ANONYMOUS";
   const quota = usageSnapshot?.subscription.monthlyMinuteQuota ?? subscription?.monthlyMinuteQuota ?? 120;
   const remaining = usageSnapshot?.subscription.remainingMinutes ?? subscription?.remainingMinutes ?? quota;
   const usedMinutes = usageSnapshot?.subscription.usedMinutes ?? Math.max(0, quota - remaining);
@@ -164,139 +354,224 @@ export function WorkspaceSidebar({
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [openFolderMenuId, setOpenFolderMenuId] = useState<string | null>(null);
+  const [deletingFolder, setDeletingFolder] = useState<FolderItem | null>(null);
+
+  const editingFolder = folders.find((folder) => folder.id === editingFolderId) ?? null;
 
   async function submitFolder() {
     const nextName = folderName.trim();
-    if (!nextName) {
-      setCreatingFolder((value) => !value);
-      return;
-    }
+    if (!nextName) return;
     await createFolder(nextName);
     setFolderName("");
     setCreatingFolder(false);
   }
 
+  async function submitFolderRename() {
+    if (!editingFolderId || !editingName.trim()) return;
+    await renameFolder(editingFolderId, editingName.trim());
+    setEditingFolderId(null);
+    setEditingName("");
+  }
+
+  function closeFolderDialog() {
+    setCreatingFolder(false);
+    setFolderName("");
+    setEditingFolderId(null);
+    setEditingName("");
+  }
+
+  async function confirmDeleteFolder() {
+    if (!deletingFolder) return;
+    const folderId = deletingFolder.id;
+    await deleteFolder(folderId);
+    setDeletingFolder(null);
+  }
+
   return (
-    <aside className="flex min-h-screen min-w-0 flex-col gap-9 bg-white px-2 py-10">
-      <a href={`/${locale}/dashboard`} className="ml-2 flex h-12 items-center">
-        <Image src="/uniscribe-logo.svg" alt="UniScribe" width={238} height={52} priority className="h-auto w-[236px]" />
+    <aside className="flex h-screen min-h-0 min-w-0 flex-col gap-5 overflow-y-auto bg-white px-4 py-4">
+      <a href={`/${locale}/dashboard`} className="flex h-[44px] items-center">
+        <BrandLogo alt="UniScribe" width={238} height={52} className="h-auto w-[154px]" />
       </a>
 
-      <section className="min-w-0 overflow-hidden rounded-[14px] border border-slate-200 bg-[#f7f7ff] px-6 py-6 shadow-card">
+      <section className="h-[204.5px] min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-[#f7f7ff] px-4 py-4 shadow-soft">
         <div className="flex min-w-0 items-center justify-between gap-3">
-          <h2 className="min-w-0 text-base font-black uppercase tracking-wide text-slate-500">Current Plan</h2>
-          <a href={`/${locale}/pricing`} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-100 px-4 py-2 text-sm font-black uppercase text-emerald-700 shadow-soft transition hover:border-emerald-300 hover:bg-emerald-50">
+          <h2 className="min-w-0 text-xs font-bold uppercase leading-4 tracking-wider text-slate-500">{copy.currentPlan}</h2>
+          <span className="inline-flex h-[25px] shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase leading-[15px] tracking-widest text-emerald-700 shadow-sm">
             {planLabel}
-            <ChevronRight size={16} />
-          </a>
+          </span>
         </div>
 
-        <div className="mt-8 grid gap-7">
-          <QuotaRow icon={<FileText size={18} />} label="Daily" used={dailyUsed} total={dailyLimit} barClassName="bg-violet" />
-          <QuotaRow icon={<Clock size={19} />} label="Minutes" used={usedMinutes} total={quota} suffix="min" barClassName="bg-emerald-500" />
+        <div className="mt-4 grid gap-4">
+          <QuotaRow icon={<FileText size={12} />} label={copy.dailyQuota} used={dailyUsed} total={dailyLimit} barClassName="bg-violet" />
+          <QuotaRow icon={<Clock size={12} />} label={copy.minutesQuota} used={usedMinutes} total={quota} suffix={copy.minuteSuffix} barClassName="bg-emerald-500" />
         </div>
 
-        <a href={`/${locale}/pricing`} className="focus-ring mt-8 inline-flex h-[52px] w-full items-center justify-center rounded-lg bg-violet px-4 text-lg font-black leading-none text-white shadow-glow transition hover:bg-violetDark">
+        <button
+          type="button"
+          onClick={isPaidPlan ? () => { window.location.href = `/${locale}/settings#usage-addon`; } : onOpenUpgradePrompt ?? (() => { window.location.href = `/${locale}/pricing`; })}
+          className="focus-ring mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-violet px-4 text-sm font-bold leading-none text-white shadow-soft transition hover:bg-violetDark"
+        >
           {t("upgradePlan")}
-        </a>
+        </button>
       </section>
 
-      <a href={`/${locale}/dashboard`} className="focus-ring flex min-h-16 min-w-0 items-center gap-5 rounded-xl bg-violet/10 px-5 text-xl font-semibold text-violet transition hover:bg-violet/15">
-        <Home size={25} strokeWidth={1.9} />
-        Dashboard
+      <a href={`/${locale}/dashboard`} className="focus-ring flex min-h-10 min-w-0 items-center gap-3 rounded-md bg-violet/10 px-3 text-sm font-medium text-violet transition hover:bg-violet/15">
+        <Home size={21} strokeWidth={1.9} />
+        {copy.dashboardNav}
       </a>
 
       <section className="min-w-0">
-        <div className="flex items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-5">
-            <FolderOpen size={28} strokeWidth={1.8} className="text-slate-500" />
-            <h2 className="text-xl font-semibold text-ink">{t("folders")}</h2>
+        <div className="flex items-center justify-between gap-4 pl-4 pr-[9px]">
+          <div className="flex items-center gap-3">
+            <FolderOpen size={22} strokeWidth={1.8} className="text-slate-500" />
+            <h2 className="text-base font-medium text-ink">{t("folders")}</h2>
           </div>
-          <div className="flex items-center gap-6 text-slate-500">
-            <button type="button" onClick={submitFolder} className="focus-ring grid h-9 w-9 place-items-center rounded-lg transition hover:bg-violet/8 hover:text-violet" aria-label="Create folder">
-              <Plus size={23} strokeWidth={1.8} />
+          <div className="flex items-center gap-1 text-slate-500">
+            <button type="button" onClick={() => setCreatingFolder(true)} className="focus-ring grid h-8 w-8 place-items-center rounded-lg transition hover:bg-violet/10 hover:text-violet" aria-label={copy.createFolderAria}>
+              <Plus size={18} strokeWidth={1.8} />
             </button>
-            <ChevronUp size={22} strokeWidth={1.8} />
+            <span className="grid h-8 w-8 place-items-center rounded-lg">
+              <ChevronUp size={18} strokeWidth={1.8} />
+            </span>
           </div>
         </div>
 
-        {creatingFolder ? (
-          <label className="mt-5 block px-4">
-            <span className="sr-only">New folder name</span>
-            <input
-              value={folderName}
-              onChange={(event) => setFolderName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") submitFolder().catch(() => undefined);
-                if (event.key === "Escape") {
-                  setFolderName("");
-                  setCreatingFolder(false);
-                }
-              }}
-              className="field h-12 rounded-lg text-base"
-              placeholder="New folder"
-              autoFocus
-            />
-          </label>
-        ) : null}
-
-        <div className="mt-9 grid gap-3">
+        <div className="mt-4 grid gap-1 pl-2 pr-[13px]">
           <button
             type="button"
             onClick={() => setSelectedFolderId(null)}
-            className={`mx-3 rounded-lg px-4 py-3 text-left text-lg font-semibold transition ${selectedFolderId === null ? "bg-violet text-white shadow-card" : "text-ink hover:bg-violet/8 hover:text-violet"}`}
+            className={`h-11 rounded-[12px] py-3 pl-7 pr-3 text-left text-sm font-medium leading-5 transition ${selectedFolderId === null ? "text-ink hover:bg-violet/10 hover:text-violet" : "text-ink hover:bg-violet/10 hover:text-violet"}`}
           >
             {t("uncategorized")}
           </button>
           {folders.map((folder) => (
-            <div key={folder.id} className={`mx-3 rounded-lg transition ${selectedFolderId === folder.id ? "bg-violet text-white shadow-card" : "text-ink hover:bg-violet/8"}`}>
-              {editingFolderId === folder.id ? (
-                <form
-                  className="flex items-center gap-2 p-2"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (!editingName.trim()) return;
-                    renameFolder(folder.id, editingName).then(() => {
-                      setEditingFolderId(null);
-                      setEditingName("");
-                    });
-                  }}
-                >
-                  <input value={editingName} onChange={(event) => setEditingName(event.target.value)} className="field h-10 min-w-0 flex-1 bg-white text-sm text-ink" autoFocus />
-                  <button type="submit" className="rounded-md px-2 text-xs font-black text-violet">保存</button>
-                </form>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => setSelectedFolderId(folder.id)} className="min-w-0 flex-1 px-4 py-3 text-left text-lg font-semibold">
-                    <span className="block truncate">{folder.name}</span>
-                    <span className={selectedFolderId === folder.id ? "text-xs text-white/65" : "text-xs text-slate-500"}>{folder._count?.mediaTasks ?? 0}</span>
+            <div key={folder.id} className={`group h-[52.5px] rounded-[12px] transition ${selectedFolderId === folder.id ? "bg-violet text-white shadow-card" : "text-ink hover:bg-violet/10"}`}>
+              <div className="flex h-full items-center justify-between py-3 pl-7 pr-3">
+                <button type="button" onClick={() => setSelectedFolderId(folder.id)} className="min-w-0 flex-1 text-left text-sm font-medium leading-5">
+                  <span className="block truncate">{folder.name}</span>
+                </button>
+                <div className="relative">
+                  <button type="button" onClick={() => setOpenFolderMenuId((current) => (current === folder.id ? null : folder.id))} className="grid h-7 w-7 place-items-center rounded-lg opacity-0 transition group-hover:opacity-100 hover:opacity-100 focus-visible:opacity-100" aria-label={copy.folderActions(folder.name)} aria-expanded={openFolderMenuId === folder.id}>
+                    <MoreHorizontal size={16} />
                   </button>
-                  <button type="button" onClick={() => { setEditingFolderId(folder.id); setEditingName(folder.name); }} className="grid h-9 w-9 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`重命名 ${folder.name}`}>
-                    <Pencil size={14} />
-                  </button>
-                  <button type="button" onClick={() => deleteFolder(folder.id)} className="grid h-9 w-9 place-items-center rounded-md opacity-70 transition hover:opacity-100" aria-label={`删除 ${folder.name}`}>
-                    <Trash2 size={14} />
-                  </button>
+                  {openFolderMenuId === folder.id ? (
+                    <div className="absolute left-0 top-8 z-50 w-36 rounded-[12px] border border-slate-200 bg-white p-1.5 text-sm font-normal text-[rgb(2,8,23)] shadow-none" role="menu">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingFolderId(folder.id);
+                          setEditingName(folder.name);
+                          setOpenFolderMenuId(null);
+                        }}
+                        className="flex h-8 w-full items-center rounded-md px-2 py-1.5 text-left transition hover:bg-slate-100"
+                        role="menuitem"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Edit3 size={16} className="text-slate-500" />
+                          {copy.rename}
+                        </span>
+                      </button>
+                      <div className="-mx-1 my-1 h-px bg-slate-100" role="separator" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenFolderMenuId(null);
+                          setDeletingFolder(folder);
+                        }}
+                        className="flex h-8 w-full items-center rounded-md px-2 py-1.5 text-left text-red-600 transition hover:bg-red-50"
+                        role="menuitem"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 size={16} />
+                          {copy.delete}
+                        </span>
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mt-auto rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
-        <p className="text-xs font-black uppercase tracking-wide text-slate-500">{copy.account}</p>
-        <div className="mt-3 flex items-center gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-violet text-sm font-black uppercase text-white">
-            {(user?.name || user?.email || "U").slice(0, 1)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-black text-ink">{user?.name || copy.anonymousUser}</p>
-            <p className="truncate text-xs font-bold text-slate-500">{user?.email || copy.loginSyncHint}</p>
-          </div>
-          <AccountMenu locale={locale} />
+      {creatingFolder || editingFolder ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
+          <form
+            className="relative grid w-full max-w-[425px] gap-4 rounded-lg border border-slate-200 bg-white p-6 text-ink shadow-none"
+            role="dialog"
+            aria-modal="true"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (editingFolder) {
+                submitFolderRename().catch(() => undefined);
+              } else {
+                submitFolder().catch(() => undefined);
+              }
+            }}
+          >
+            <h2 className="pr-8 text-lg font-semibold leading-none tracking-tight text-ink">{editingFolder ? copy.renameFolderTitle : copy.createFolderTitle}</h2>
+            <button type="button" onClick={closeFolderDialog} className="absolute right-4 top-4 grid h-4 w-4 place-items-center rounded-sm text-ink opacity-70 transition hover:opacity-100" aria-label={copy.close}>
+              <X size={16} />
+            </button>
+            <div>
+              <div className="grid gap-2 py-4">
+                <div className="grid gap-2">
+                  <label className="block text-sm font-medium leading-none text-ink">{copy.folderName}</label>
+                  <input
+                    value={editingFolder ? editingName : folderName}
+                    onChange={(event) => {
+                      const value = event.target.value.slice(0, 40);
+                      if (editingFolder) setEditingName(value);
+                      else setFolderName(value);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-violet bg-white px-3 py-2 text-sm font-normal leading-5 text-ink outline-none ring-[3px] ring-violet/10 transition placeholder:text-slate-500 focus-visible:border-violet"
+                    placeholder={copy.folderNamePlaceholder}
+                    maxLength={40}
+                    autoFocus
+                  />
+                </div>
+                <p className="text-xs leading-4 text-slate-500">
+                  {copy.folderCharacterCount((editingFolder ? editingName : folderName).length)}
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={closeFolderDialog} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium leading-5 text-ink transition hover:bg-slate-50">{copy.cancel}</button>
+                <button type="submit" disabled={!(editingFolder ? editingName : folderName).trim()} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-violet px-4 py-2 text-sm font-medium leading-5 text-white transition hover:bg-violetDark disabled:pointer-events-none disabled:opacity-50">
+                  {editingFolder ? copy.save : copy.create}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-      </section>
+      ) : null}
+
+      {deletingFolder ? (
+        <div className="fixed inset-0 z-50 bg-black/80">
+          <section className="fixed left-1/2 top-1/2 z-50 grid h-[350px] w-full max-w-[420px] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-lg border border-violet/5 bg-white p-6 text-[rgb(2,8,23)] shadow-none" role="alertdialog" aria-modal="true" aria-labelledby="delete-folder-title" aria-describedby="delete-folder-description">
+            <div className="flex flex-col space-y-2 text-center sm:text-left">
+              <h2 id="delete-folder-title" className="text-lg font-semibold leading-7 tracking-tight text-[rgb(2,8,23)]">{copy.deleteFolderTitle}</h2>
+              <div id="delete-folder-description" className="space-y-2">
+                <p className="text-sm leading-5 text-slate-500">
+                  {copy.deleteFolderIntro(deletingFolder.name)}
+                </p>
+                <p className="text-sm leading-5 text-slate-500">
+                  {copy.deleteFolderWarning}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button type="button" onClick={() => setDeletingFolder(null)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium leading-5 text-[rgb(2,8,23)] transition hover:bg-slate-50">{copy.cancel}</button>
+              <button type="button" onClick={() => confirmDeleteFolder().catch(() => undefined)} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-500 px-4 py-2 text-sm font-medium leading-5 text-slate-50 transition hover:bg-red-500/90">
+                {copy.delete}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      <AccountMenu locale={locale} user={user} copy={copy} />
     </aside>
   );
 }

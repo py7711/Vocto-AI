@@ -2,8 +2,8 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {createPasswordResetToken} from "@/lib/auth";
 import {sendPasswordResetEmail} from "@/lib/email";
-import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(),
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const token = await createPasswordResetToken(user.id);
-    const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    const appUrl = getRequestOrigin(request);
     const resetUrl = `${appUrl}/${input.locale}/auth/reset-password?token=${encodeURIComponent(token)}`;
     const emailResult = await sendPasswordResetEmail({
       to: user.email,

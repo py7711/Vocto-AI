@@ -9,7 +9,14 @@ export function formatTime(seconds: number) {
 
 export function formatDateTime(value: string | null | undefined, copy: WorkspaceCopy) {
   if (!value) return copy.periodUnset;
-  return new Intl.DateTimeFormat(dateLocale(copy), {month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"}).format(new Date(value));
+  return new Intl.DateTimeFormat(dateLocale(copy), {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(new Date(value));
 }
 
 function dateLocale(copy: WorkspaceCopy) {

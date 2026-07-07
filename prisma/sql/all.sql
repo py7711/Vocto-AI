@@ -530,8 +530,20 @@ SET @test_user_id = 'user_uniscribe_qa';
 SET @seed_password_hash = 'scrypt:uniscribe_seed_salt:77JAoUhIrsHWYj5Ky3sPzgZWxm5oQjsvpfSjNk0wIhslHeg_cIxeGpSf0UfNSvBVkpAtv2Ybifyn6Kq3iTtvWw';
 
 INSERT INTO `User` (`id`, `email`, `password_hash`, `name`, `image`, `locale`, `dailyFreeCount`, `dailyResetAt`, `createdAt`, `updatedAt`)
-VALUES (@test_user_id, 'qa@uniscribe.local', @seed_password_hash, 'UniScribe QA', NULL, 'zh', 2, DATE_ADD(NOW(), INTERVAL 1 DAY), NOW(), NOW())
-ON DUPLICATE KEY UPDATE `password_hash` = VALUES(`password_hash`), `dailyFreeCount` = VALUES(`dailyFreeCount`), `updatedAt` = NOW();
+VALUES (@test_user_id, 'gxx961208@gmail.com', @seed_password_hash, 'alx to', NULL, 'zh', 0, DATE_ADD(NOW(), INTERVAL 1 DAY), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `email` = VALUES(`email`),
+  `password_hash` = VALUES(`password_hash`),
+  `name` = VALUES(`name`),
+  `dailyFreeCount` = VALUES(`dailyFreeCount`),
+  `updatedAt` = NOW();
+
+INSERT INTO `OAuthAccount` (`id`, `userId`, `provider`, `provider_account_id`, `email`, `avatar_url`, `createdAt`, `updatedAt`)
+VALUES ('oauth_uniscribe_qa_google', @test_user_id, 'google', 'gxx961208', 'gxx961208@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocIqsiuzBf8BkPA-quJlus__fzdP0B6b4dBjSfEtJv740VFCYw=s96-c', NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `email` = VALUES(`email`),
+  `avatar_url` = VALUES(`avatar_url`),
+  `updatedAt` = NOW();
 
 INSERT INTO `Subscription` (
   `id`, `userId`, `plan`, `status`, `stripeCustomerId`, `stripeSubscriptionId`,
@@ -539,8 +551,28 @@ INSERT INTO `Subscription` (
   `currentPeriodStart`, `currentPeriodEnd`, `createdAt`, `updatedAt`
 )
 VALUES
-  ('sub_uniscribe_qa_basic', @test_user_id, 'PRO', 'ACTIVE', 'cus_test_uniscribe', 'sub_test_uniscribe', 1200, 875, 600, 5368709120, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), NOW())
-ON DUPLICATE KEY UPDATE `remainingMinutes` = VALUES(`remainingMinutes`), `updatedAt` = NOW();
+  ('sub_uniscribe_qa_basic', @test_user_id, 'FREE', 'ACTIVE', NULL, NULL, 120, 78, 30, 2147483648, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `plan` = VALUES(`plan`),
+  `stripeCustomerId` = VALUES(`stripeCustomerId`),
+  `stripeSubscriptionId` = VALUES(`stripeSubscriptionId`),
+  `monthlyMinuteQuota` = VALUES(`monthlyMinuteQuota`),
+  `remainingMinutes` = VALUES(`remainingMinutes`),
+  `maxSingleFileMinutes` = VALUES(`maxSingleFileMinutes`),
+  `maxUploadBytes` = VALUES(`maxUploadBytes`),
+  `updatedAt` = NOW();
+
+DELETE FROM `Folder`
+WHERE `userId` = @test_user_id
+  AND `id` NOT IN ('folder_uniscribe_qa_123');
+
+INSERT INTO `Folder` (`id`, `userId`, `name`, `position`, `createdAt`, `updatedAt`)
+VALUES
+  ('folder_uniscribe_qa_123', @test_user_id, '123', 0, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `name` = VALUES(`name`),
+  `position` = VALUES(`position`),
+  `updatedAt` = NOW();
 
 INSERT INTO `MediaTask` (
   `id`, `userId`, `sourceType`, `originalName`, `sourceUrl`, `normalizedUrl`, `objectKey`,
@@ -548,14 +580,96 @@ INSERT INTO `MediaTask` (
   `provider`, `speakerCount`, `progress`, `quotaMinutes`, `errorCode`, `createdAt`, `updatedAt`, `completedAt`
 )
 VALUES
-  ('task_uniscribe_qa_queued', @test_user_id, 'UPLOAD', '排队中的通话.wav', 'https://assets.uniscribe.local/qa/queued-call.wav', NULL, 'uploads/qa/queued-call.wav', 'QUEUED', '任务已进入队列。', 'auto', NULL, NULL, 3200000, NULL, NULL, 5, 0, NULL, NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_processing', @test_user_id, 'UPLOAD', '处理中会议.mp4', 'https://assets.uniscribe.local/qa/processing-meeting.mp4', NULL, 'uploads/qa/processing-meeting.mp4', 'TRANSCRIBING', '正在使用服务商降级策略转写。', 'zh', NULL, NULL, 48000000, 'deepgram', NULL, 45, 0, NULL, NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_failed', @test_user_id, 'YOUTUBE', '私有视频', 'https://www.youtube.com/watch?v=private', NULL, NULL, 'FAILED', 'yt-dlp 无法解析音频地址。', 'auto', NULL, NULL, NULL, NULL, NULL, 100, 0, 'TRANSCRIPTION_FAILED', NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_youtube_done', @test_user_id, 'YOUTUBE', '发布演示', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://cdn.uniscribe.local/audio/launch-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 214, NULL, 'assemblyai', 1, 100, 4, NULL, NOW(), NOW(), NOW())
+  ('cmqyzscrp00021lvpt08gi2oo', @test_user_id, 'YOUTUBE', 'Learn How to Talk About Yourself in English | Easy Introductions for Beginners | English Podcast', 'https://www.youtube.com/watch?v=hCon8Uq_Bas', NULL, NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'en', 1129, NULL, 'assemblyai', 1, 100, 19, NULL, TIMESTAMP('2026-06-29 07:28:00'), NOW(), NOW()),
+  ('task_uniscribe_qa_queued', NULL, 'UPLOAD', '排队中的通话.wav', 'https://assets.uniscribe.local/qa/queued-call.wav', NULL, 'uploads/qa/queued-call.wav', 'QUEUED', '任务已进入队列。', 'auto', NULL, NULL, 3200000, NULL, NULL, 5, 0, NULL, NOW(), NOW(), NULL),
+  ('task_uniscribe_qa_processing', NULL, 'UPLOAD', '处理中会议.mp4', 'https://assets.uniscribe.local/qa/processing-meeting.mp4', NULL, 'uploads/qa/processing-meeting.mp4', 'TRANSCRIBING', '正在使用服务商降级策略转写。', 'zh', NULL, NULL, 48000000, 'deepgram', NULL, 45, 0, NULL, NOW(), NOW(), NULL),
+  ('task_uniscribe_qa_failed', NULL, 'YOUTUBE', '私有视频', 'https://www.youtube.com/watch?v=private', NULL, NULL, 'FAILED', 'yt-dlp 无法解析音频地址。', 'auto', NULL, NULL, NULL, NULL, NULL, 100, 0, 'TRANSCRIPTION_FAILED', NOW(), NOW(), NULL),
+  ('task_uniscribe_qa_youtube_done', @test_user_id, 'YOUTUBE', '我用 Codex 幫我剪片：AI Agent 工作流公開', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://cdn.uniscribe.local/audio/launch-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 405, NULL, 'assemblyai', 1, 100, 7, NULL, TIMESTAMP('2026-06-28 17:58:00'), NOW(), NOW()),
+  ('task_uniscribe_qa_creator_done', @test_user_id, 'YOUTUBE', '做自媒体6年了，我想说…', 'https://www.youtube.com/watch?v=creator-demo', 'https://cdn.uniscribe.local/audio/creator-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 926, NULL, 'assemblyai', 1, 100, 16, NULL, TIMESTAMP('2026-06-26 07:39:00'), NOW(), NOW())
 ON DUPLICATE KEY UPDATE
+  `userId` = VALUES(`userId`),
+  `originalName` = VALUES(`originalName`),
+  `sourceUrl` = VALUES(`sourceUrl`),
+  `durationSeconds` = VALUES(`durationSeconds`),
+  `quotaMinutes` = VALUES(`quotaMinutes`),
+  `createdAt` = VALUES(`createdAt`),
   `status` = VALUES(`status`),
   `statusMessage` = VALUES(`statusMessage`),
   `progress` = VALUES(`progress`),
+  `updatedAt` = NOW();
+
+-- The captured target account opens the canonical detail task with sharing disabled.
+-- Reset historical local QA share-flow tests so first-open detail parity uses the same branch.
+UPDATE `ShareLink`
+SET `enabled` = 0
+WHERE `mediaTaskId` = 'cmqyzscrp00021lvpt08gi2oo'
+  AND `enabled` = 1;
+
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+VALUES (
+  'tr_uniscribe_qa_intro_target',
+  'cmqyzscrp00021lvpt08gi2oo',
+  CONCAT(
+    'Hello everyone and welcome back to Mr. English channel where learning English is easy and fun. I''m Emily. Hello Emily. Hello everyone. It''s great to be here. Hi Paul. How are you today? I''m doing great, thank you. And you? You look very happy today. I am very happy. I''m excited for our topic today. Oh, yes. It''s a very good topic. Very important. Yes, exactly. But before we start, everyone please remember to subscribe to our channel. ',
+    'Yes. And click the like button and please share our podcast with your friends and family. It helps us a lot. It really does. Okay. So, Paul, are you ready? I am ready. So, what is our topic today? Today, our topic is tell me about yourself. Ah, a very common question. People ask this all the time. They do in a new class, at a new job, when you meet new people. It''s true. And sometimes it''s hard to know what to say. Yes. So today we will talk about it. We will make it easy and fun. ',
+    'That sounds perfect. So who starts? You or me? H how about you start? Paul, tell me about yourself. Okay. Okay. My turn first. Where do I start? Let''s start with the easy one. What is your name? Okay. My name is Paul. P A U L. Nice to meet you, Paul. My name is Emily. Nice to meet you, too, Emily. So, next question. Where are you from? Ooh, good one. I am from Canada. Canada. Wow. I am from the United States. ',
+    'The United States. Very cool. Do you live in a big city? I live in a small town. I like it. It''s quiet. What about you, Emily? I live in a big city. It''s very busy, very noisy, but I love it. That''s great. A small town and a big city. Very different. Yes. And do you live in a house or an apartment? I live in a house. It''s a small house. It has a garden. A garden. I love gardens. I live in an apartment. Is it a big apartment? ',
+    'No, it''s a small apartment, but it''s very nice. I like it. Good. Good. Okay, so we have name, where you are from, and where you live. What''s next? H how about how old are you, Paul? If you want to say of course it''s okay. I am 28 years old. 28. Okay. And you, Emily, how old are you? I am 25 years old. 25. A very good age. Thank you. I think so, too. Okay. So, now for a big question. I''m ready. What do you do, Paul? I am a teacher. A teacher, of course. You are a teacher on Mr. English channel. ',
+    'Yes, exactly. I am an English teacher. I love my job. That''s wonderful. It''s a great job. Thank you. What about you, Emily? What do you do? I am a student. A student. What do you study? I study art. I love to draw and paint. Wow. Art. That is so cool. Do you like your studies? Yes, I love it. It''s very fun and creative. I can see that. An art student and an English teacher. A perfect team for a podcast. Love it. Okay, let''s see. We have name, place, age, and job. What else can we talk about? ',
+    'Let''s talk about family. Okay, family is a great topic. Do you have any brothers or sisters, Emily? Yes, I do. I have one brother. His name is Tom. Tom. Is he older or younger than you? He is older. He is 29. Oh, so he is one year older than me. Yes. What about you, Paul? Do you have brothers or sisters? I have one sister. Her name is Sarah. Sarah? That''s a beautiful name. Is she older or younger? She is younger than me. She is a student like you. ',
+    'Oh, really? What does she study? She studies music. She plays the piano. Wow. A music student and an art student. That''s so creative. Yes. My family is very creative. My mother is a writer. A writer. That is amazing. And your father? My father is a doctor. A doctor. Wow. A very nice family. Paul, thank you. Emily, tell me about your parents. What do they do? My mother is a teacher too. She teaches little children. ',
+    'Oh, that is a very important job. Wonderful. Yes. And my father is a chef. He works in a restaurant. A chef. Does he cook for you at home? Yes. The food is always delicious. I am jealous. That is so cool. So, we have family. Now, how about pets? Pets? Yes, I love pets. Do you have a pet Paul? Yes, I do. I have a dog. A dog. I love dogs. What is his name? His name is Max. He is very friendly and very funny. Oh, Max. What color is he? He is brown. A small brown happy dog. ',
+    'That sounds so cute. I want to meet Max. Love it. Maybe one day. Do you have a pet Emily? Yes, I have a cat. A cat? See, we are different. A dog person and a cat person. It''s true. Her name is Luna. Luna. That''s a lovely name. What does she look like? She is black and white. She is very quiet and very sleepy. A sleepy cat. That sounds normal. Yes, she sleeps all day. It''s a good life. It is for a cat. Okay, so we know a lot now. name, age, job, family, pets. ',
+    'Now, let''s talk about things we like, our favorite things. Good idea. This is the fun part. Let''s start with food. Yes. Okay, Paul. What is your favorite food? H, this is a difficult question. I like many foods. Just choose one. Okay. I think my favorite food is pizza. Pizza. M. A great choice. I love pizza, too. What kind of pizza do you like? I like vegetable pizza with tomatoes and peppers and onions. ',
+    'That sounds healthy and delicious. I like pepperoni pizza. A classic. Good choice. So, is pizza your favorite food, too? It''s one of my favorites, but my number one favorite food is pasta. Ah, pasta is a good choice, too. Very yummy. Yes, I love it. Okay, next favorite thing. What is your favorite color? My favorite color is blue. Like the sky. Blue is a very nice calm color. I like it. Thank you. What is your favorite color? ',
+    'My favorite color is green. Green. Like the trees and the grass in a garden. Exactly. I love the color of nature. That''s beautiful. Blue sky and green grass. Perfect. It is. Okay. What''s next? Favorite animal. Oh, this is easy for me. My favorite animal is a dog. Of course. I know. Because of Max. Yes, dogs are loyal and friendly. I love them. What about you? Is your favorite animal a cat? Yes, I love cats. They are so elegant and independent. ',
+    'Elegant. That is a good word for cats. They are. Okay, let''s move on to hobbies. Hobbies. The things we do for fun. Great topic. What are your hobbies, Emily? Well, I am an art student, so my hobby is painting, of course. Do you paint a lot? Yes, every weekend. It helps me relax. I also like to read books. Reading is a fantastic hobby. What kind of books do you read? I like story books. Adventure stories are my favorite. ',
+    'Adventure stories. How exciting. It is. What about you, Paul? What are your hobbies? I have a few hobbies. I love listening to music. music. What kind of music do you listen to? I like rock music. Old rock music. Ah, very cool. And what else? I also like to play sports. I play soccer with my friends on Saturdays. Soccer. You are very active. I try to be. It''s fun to run and play with friends. ',
+    'That''s great. So, you like sports. Do you like to watch movies? Yes, I love watching movies, especially comedy movies. I love to laugh. Me too. Laughing is the best. I like comedy movies and also animated movies. Animated movies are great. So much imagination. Yes, they are beautiful to watch too. This is great. We are learning so much about each other. I know. It''s like we are answering tell me about yourself right now. Yes, we are. We are giving a very long answer. A very very long answer. ',
+    'Let''s think what else. H we can talk about things we don''t like. Oh, that''s interesting. Okay. What is a food you don''t like, Paul? A food I don''t like? Let me think. I do not like olives. Olives? Really? I like olives. See, we''re different again. I don''t like the taste. What about you? Is there a food you don''t like? Yes, I don''t like spicy food. Very hot food. ',
+    'An activity I don''t like. I don''t like to wait in long lines. Does anyone like that? I don''t think so. It''s so boring. I agree. I don''t like that either. I also don''t like to wake up very early. Are you not a morning person? No, not at all. I like my sleep. I understand completely. Sleeping is very important. So, this is a good way to describe yourself. ',
+    'For example, hello, my name is Paul. I am a teacher. I like dogs and pizza, but I don''t like olives. That''s a great introduction. Hi, I''m Emily. I''m a student. I love cats and pasta, but I don''t like to wake up early. Perfect. It''s simple. It''s clear. And it''s friendly. I think we have covered a lot. Name from live age job family pets hobbies likes dislikes. ',
+    'Oh, no. That''s a good tip. You can choose. Maybe you say your name and your job. Yes. Or your name and your hobby. It depends on the situation. If you are in a class, maybe you say your name and why you are learning English. Exactly. You can say, "My name is Paul. I''m from the United States. I like to learn new things." And if you are at a party, you can say, "Hi, I''m Emily. I love to paint and listen to music." ',
+    'It is. The person can then ask, "Oh, what do you paint?" or "What music do you like?" And a new friendship begins. It all starts with, "Tell me about yourself." It really does. It''s not a scary question. It''s an invitation. An invitation to share a little bit about you. That''s a beautiful way to think about it. I think it''s been very nice to learn more about you, Paul. ',
+    'And I learned you are a teacher who loves pizza and blue and you have a friendly dog named Max. It was a very successful conversation. Yes. And I hope it was helpful for all our listeners. I hope so too. Remember, you can use these simple sentences to talk about yourself. Yes. Don''t be afraid. Keep it simple and be friendly. That''s the most important part. That is the perfect advice. A smile is very important, too. Always. ',
+    'Well, I think our time is almost up for today. Wow. Time goes faster when you''re having fun. It really does. This was a great chat. It was. So, before we go, we want to ask our amazing listeners for a little favor. That''s right. If you enjoyed this episode, please subscribe to our channel, Mr. English Channel, and give this episode a big thumbs up, a like. It really helps people find our podcast. ',
+    'Thank you all for listening today. Thank you all. It was a pleasure. Stay safe and keep practicing. We will be back soon with another fun episode. Goodbye for now. Bye everyone. Bye Emily.'
+  ),
+  JSON_ARRAY(
+    JSON_OBJECT('start', 0, 'end', 49, 'speaker', NULL, 'text', 'Hello everyone and welcome back to Mr. English channel where learning English is easy and fun. I''m Emily. Hello Emily. Hello everyone. It''s great to be here. Hi Paul. How are you today? I''m doing great, thank you. And you? You look very happy today. I am very happy. I''m excited for our topic today. Oh, yes. It''s a very good topic. Very important. Yes, exactly. But before we start, everyone please remember to subscribe to our channel.'),
+    JSON_OBJECT('start', 49, 'end', 92, 'speaker', NULL, 'text', 'Yes. And click the like button and please share our podcast with your friends and family. It helps us a lot. It really does. Okay. So, Paul, are you ready? I am ready. So, what is our topic today? Today, our topic is tell me about yourself. Ah, a very common question. People ask this all the time. They do in a new class, at a new job, when you meet new people. It''s true. And sometimes it''s hard to know what to say. Yes. So today we will talk about it. We will make it easy and fun.'),
+    JSON_OBJECT('start', 92, 'end', 134, 'speaker', NULL, 'text', 'That sounds perfect. So who starts? You or me? H how about you start? Paul, tell me about yourself. Okay. Okay. My turn first. Where do I start? Let''s start with the easy one. What is your name? Okay. My name is Paul. P A U L. Nice to meet you, Paul. My name is Emily. Nice to meet you, too, Emily. So, next question. Where are you from? Ooh, good one. I am from Canada. Canada. Wow. I am from the United States.'),
+    JSON_OBJECT('start', 134, 'end', 174, 'speaker', NULL, 'text', 'The United States. Very cool. Do you live in a big city? I live in a small town. I like it. It''s quiet. What about you, Emily? I live in a big city. It''s very busy, very noisy, but I love it. That''s great. A small town and a big city. Very different. Yes. And do you live in a house or an apartment? I live in a house. It''s a small house. It has a garden. A garden. I love gardens. I live in an apartment. Is it a big apartment?'),
+    JSON_OBJECT('start', 174, 'end', 234, 'speaker', NULL, 'text', 'No, it''s a small apartment, but it''s very nice. I like it. Good. Good. Okay, so we have name, where you are from, and where you live. What''s next? H how about how old are you, Paul? If you want to say of course it''s okay. I am 28 years old. 28. Okay. And you, Emily, how old are you? I am 25 years old. 25. A very good age. Thank you. I think so, too. Okay. So, now for a big question. I''m ready. What do you do, Paul? I am a teacher. A teacher, of course. You are a teacher on Mr. English channel.'),
+    JSON_OBJECT('start', 233, 'end', 285, 'speaker', NULL, 'text', 'Yes, exactly. I am an English teacher. I love my job. That''s wonderful. It''s a great job. Thank you. What about you, Emily? What do you do? I am a student. A student. What do you study? I study art. I love to draw and paint. Wow. Art. That is so cool. Do you like your studies? Yes, I love it. It''s very fun and creative. I can see that. An art student and an English teacher. A perfect team for a podcast. Love it. Okay, let''s see. We have name, place, age, and job. What else can we talk about?'),
+    JSON_OBJECT('start', 285, 'end', 335, 'speaker', NULL, 'text', 'Let''s talk about family. Okay, family is a great topic. Do you have any brothers or sisters, Emily? Yes, I do. I have one brother. His name is Tom. Tom. Is he older or younger than you? He is older. He is 29. Oh, so he is one year older than me. Yes. What about you, Paul? Do you have brothers or sisters? I have one sister. Her name is Sarah. Sarah? That''s a beautiful name. Is she older or younger? She is younger than me. She is a student like you.'),
+    JSON_OBJECT('start', 335, 'end', 376, 'speaker', NULL, 'text', 'Oh, really? What does she study? She studies music. She plays the piano. Wow. A music student and an art student. That''s so creative. Yes. My family is very creative. My mother is a writer. A writer. That is amazing. And your father? My father is a doctor. A doctor. Wow. A very nice family. Paul, thank you. Emily, tell me about your parents. What do they do? My mother is a teacher too. She teaches little children.'),
+    JSON_OBJECT('start', 376, 'end', 433, 'speaker', NULL, 'text', 'Oh, that is a very important job. Wonderful. Yes. And my father is a chef. He works in a restaurant. A chef. Does he cook for you at home? Yes. The food is always delicious. I am jealous. That is so cool. So, we have family. Now, how about pets? Pets? Yes, I love pets. Do you have a pet Paul? Yes, I do. I have a dog. A dog. I love dogs. What is his name? His name is Max. He is very friendly and very funny. Oh, Max. What color is he? He is brown. A small brown happy dog.'),
+    JSON_OBJECT('start', 433, 'end', 480, 'speaker', NULL, 'text', 'That sounds so cute. I want to meet Max. Love it. Maybe one day. Do you have a pet Emily? Yes, I have a cat. A cat? See, we are different. A dog person and a cat person. It''s true. Her name is Luna. Luna. That''s a lovely name. What does she look like? She is black and white. She is very quiet and very sleepy. A sleepy cat. That sounds normal. Yes, she sleeps all day. It''s a good life. It is for a cat. Okay, so we know a lot now. name, age, job, family, pets.'),
+    JSON_OBJECT('start', 480, 'end', 534, 'speaker', NULL, 'text', 'Now, let''s talk about things we like, our favorite things. Good idea. This is the fun part. Let''s start with food. Yes. Okay, Paul. What is your favorite food? H, this is a difficult question. I like many foods. Just choose one. Okay. I think my favorite food is pizza. Pizza. M. A great choice. I love pizza, too. What kind of pizza do you like? I like vegetable pizza with tomatoes and peppers and onions.'),
+    JSON_OBJECT('start', 534, 'end', 580, 'speaker', NULL, 'text', 'That sounds healthy and delicious. I like pepperoni pizza. A classic. Good choice. So, is pizza your favorite food, too? It''s one of my favorites, but my number one favorite food is pasta. Ah, pasta is a good choice, too. Very yummy. Yes, I love it. Okay, next favorite thing. What is your favorite color? My favorite color is blue. Like the sky. Blue is a very nice calm color. I like it. Thank you. What is your favorite color?'),
+    JSON_OBJECT('start', 580, 'end', 624, 'speaker', NULL, 'text', 'My favorite color is green. Green. Like the trees and the grass in a garden. Exactly. I love the color of nature. That''s beautiful. Blue sky and green grass. Perfect. It is. Okay. What''s next? Favorite animal. Oh, this is easy for me. My favorite animal is a dog. Of course. I know. Because of Max. Yes, dogs are loyal and friendly. I love them. What about you? Is your favorite animal a cat? Yes, I love cats. They are so elegant and independent.'),
+    JSON_OBJECT('start', 624, 'end', 665, 'speaker', NULL, 'text', 'Elegant. That is a good word for cats. They are. Okay, let''s move on to hobbies. Hobbies. The things we do for fun. Great topic. What are your hobbies, Emily? Well, I am an art student, so my hobby is painting, of course. Do you paint a lot? Yes, every weekend. It helps me relax. I also like to read books. Reading is a fantastic hobby. What kind of books do you read? I like story books. Adventure stories are my favorite.'),
+    JSON_OBJECT('start', 665, 'end', 710, 'speaker', NULL, 'text', 'Adventure stories. How exciting. It is. What about you, Paul? What are your hobbies? I have a few hobbies. I love listening to music. music. What kind of music do you listen to? I like rock music. Old rock music. Ah, very cool. And what else? I also like to play sports. I play soccer with my friends on Saturdays. Soccer. You are very active. I try to be. It''s fun to run and play with friends.'),
+    JSON_OBJECT('start', 710, 'end', 753, 'speaker', NULL, 'text', 'That''s great. So, you like sports. Do you like to watch movies? Yes, I love watching movies, especially comedy movies. I love to laugh. Me too. Laughing is the best. I like comedy movies and also animated movies. Animated movies are great. So much imagination. Yes, they are beautiful to watch too. This is great. We are learning so much about each other. I know. It''s like we are answering tell me about yourself right now. Yes, we are. We are giving a very long answer. A very very long answer.'),
+    JSON_OBJECT('start', 753, 'end', 811, 'speaker', NULL, 'text', 'Let''s think what else. H we can talk about things we don''t like. Oh, that''s interesting. Okay. What is a food you don''t like, Paul? A food I don''t like? Let me think. I do not like olives. Olives? Really? I like olives. See, we''re different again. I don''t like the taste. What about you? Is there a food you don''t like? Yes, I don''t like spicy food. Very hot food.'),
+    JSON_OBJECT('start', 811, 'end', 859, 'speaker', NULL, 'text', 'An activity I don''t like. I don''t like to wait in long lines. Does anyone like that? I don''t think so. It''s so boring. I agree. I don''t like that either. I also don''t like to wake up very early. Are you not a morning person? No, not at all. I like my sleep. I understand completely. Sleeping is very important. So, this is a good way to describe yourself.'),
+    JSON_OBJECT('start', 859, 'end', 911, 'speaker', NULL, 'text', 'For example, hello, my name is Paul. I am a teacher. I like dogs and pizza, but I don''t like olives. That''s a great introduction. Hi, I''m Emily. I''m a student. I love cats and pasta, but I don''t like to wake up early. Perfect. It''s simple. It''s clear. And it''s friendly. I think we have covered a lot. Name from live age job family pets hobbies likes dislikes.'),
+    JSON_OBJECT('start', 911, 'end', 951, 'speaker', NULL, 'text', 'Oh, no. That''s a good tip. You can choose. Maybe you say your name and your job. Yes. Or your name and your hobby. It depends on the situation. If you are in a class, maybe you say your name and why you are learning English. Exactly. You can say, "My name is Paul. I''m from the United States. I like to learn new things." And if you are at a party, you can say, "Hi, I''m Emily. I love to paint and listen to music."'),
+    JSON_OBJECT('start', 951, 'end', 993, 'speaker', NULL, 'text', 'It is. The person can then ask, "Oh, what do you paint?" or "What music do you like?" And a new friendship begins. It all starts with, "Tell me about yourself." It really does. It''s not a scary question. It''s an invitation. An invitation to share a little bit about you. That''s a beautiful way to think about it. I think it''s been very nice to learn more about you, Paul.'),
+    JSON_OBJECT('start', 993, 'end', 1030, 'speaker', NULL, 'text', 'And I learned you are a teacher who loves pizza and blue and you have a friendly dog named Max. It was a very successful conversation. Yes. And I hope it was helpful for all our listeners. I hope so too. Remember, you can use these simple sentences to talk about yourself. Yes. Don''t be afraid. Keep it simple and be friendly. That''s the most important part. That is the perfect advice. A smile is very important, too. Always.'),
+    JSON_OBJECT('start', 1030, 'end', 1108, 'speaker', NULL, 'text', 'Well, I think our time is almost up for today. Wow. Time goes faster when you''re having fun. It really does. This was a great chat. It was. So, before we go, we want to ask our amazing listeners for a little favor. That''s right. If you enjoyed this episode, please subscribe to our channel, Mr. English Channel, and give this episode a big thumbs up, a like. It really helps people find our podcast.'),
+    JSON_OBJECT('start', 1108, 'end', 1129, 'speaker', NULL, 'text', 'Thank you all for listening today. Thank you all. It was a pleasure. Stay safe and keep practicing. We will be back soon with another fun episode. Goodbye for now. Bye everyone. Bye Emily.')
+  ),
+  JSON_ARRAY(),
+  NULL,
+  NOW(),
+  NOW()
+)
+ON DUPLICATE KEY UPDATE
+  `plainText` = VALUES(`plainText`),
+  `segments` = VALUES(`segments`),
+  `editedText` = VALUES(`editedText`),
   `updatedAt` = NOW();
 
 INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
@@ -578,12 +692,36 @@ ON DUPLICATE KEY UPDATE
   `editedText` = VALUES(`editedText`),
   `updatedAt` = NOW();
 
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+VALUES (
+  'tr_uniscribe_qa_creator_done',
+  'task_uniscribe_qa_creator_done',
+  '做自媒体六年之后，我更相信持续输出、复盘和真实表达比追热点更重要。',
+  JSON_ARRAY(
+    JSON_OBJECT('start', 0, 'end', 12.4, 'speaker', '发言人 1', 'text', '做自媒体六年之后，我更相信持续输出比追热点更重要。'),
+    JSON_OBJECT('start', 12.5, 'end', 30.2, 'speaker', '发言人 1', 'text', '每一次复盘都会让下一条内容更清楚，也更接近真实表达。')
+  ),
+  JSON_ARRAY(),
+  '做自媒体六年之后，我更相信持续输出、复盘和真实表达比追热点更重要。',
+  NOW(),
+  NOW()
+)
+ON DUPLICATE KEY UPDATE
+  `plainText` = VALUES(`plainText`),
+  `segments` = VALUES(`segments`),
+  `editedText` = VALUES(`editedText`),
+  `updatedAt` = NOW();
+
 INSERT INTO `AIInsight` (`id`, `mediaTaskId`, `type`, `locale`, `title`, `content`, `model`, `createdAt`, `updatedAt`)
 VALUES
+  ('ai_uniscribe_qa_intro_summary', 'cmqyzscrp00021lvpt08gi2oo', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '本期节目围绕“请介绍一下你自己”这一常见问题展开，旨在帮助听众轻松有趣地掌握回答技巧。通过两位主持人保罗（教师）和艾米丽（学生）的对话，展示了如何分享个人信息，并强调这是一个友好的交流开端。', 'bullets', JSON_ARRAY(JSON_OBJECT('text', '“请介绍一下你自己”是人们在新环境（如新班级、新工作、认识新朋友时）常遇到的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 1030, 'end', 1130))), JSON_OBJECT('text', '主持人保罗（28岁，来自加拿大，教师，喜欢狗、披萨和蓝色）和艾米丽（25岁，来自美国，学生，喜欢猫、意面、绿色、艺术和绘画）通过对话分享了个人信息。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 174, 'end', 237))), JSON_OBJECT('text', '分享内容涵盖姓名、籍贯、居住地、年龄、职业、家庭、宠物、喜好（食物、颜色、动物、爱好）及不喜好（食物、活动）。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138), JSON_OBJECT('start', 580, 'end', 665))), JSON_OBJECT('text', '建议回答时保持简洁、清晰、友好，并根据具体情境选择分享内容，例如只说姓名和职业，或姓名和爱好。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '“介绍你自己”被视为一个分享个人信息、开启对话的邀请，而非令人畏惧的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 380)))), 'insights', JSON_ARRAY(JSON_OBJECT('text', '回答“请介绍一下你自己”是建立联系的机会，而非考试。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 336), JSON_OBJECT('start', 335, 'end', 583))), JSON_OBJECT('text', '可以通过涵盖姓名、职业、爱好、喜好/不喜好等关键方面来构建回答。', 'timestamps', JSON_ARRAY()), JSON_OBJECT('text', '根据所处情境调整回答的内容和侧重点。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '保持友好和简洁是关键，微笑也很重要。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 438), JSON_OBJECT('start', 665, 'end', 862))), JSON_OBJECT('text', '这是一个友好的邀请，让你有机会分享自己，并开启新的对话和友谊。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 380))))), 'seed', NOW(), NOW()),
+  ('ai_uniscribe_qa_intro_mindmap', 'cmqyzscrp00021lvpt08gi2oo', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', 'Tell me about yourself', 'children', JSON_ARRAY(JSON_OBJECT('label', 'Basic info', 'children', JSON_ARRAY(JSON_OBJECT('label', 'name', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'where from', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'age', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Life details', 'children', JSON_ARRAY(JSON_OBJECT('label', 'job or studies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'family', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'pets', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Personality', 'children', JSON_ARRAY(JSON_OBJECT('label', 'favorite food and color', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'hobbies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'likes and dislikes', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Advice', 'children', JSON_ARRAY(JSON_OBJECT('label', 'keep it simple', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'be friendly', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'adapt to the situation', 'children', JSON_ARRAY()))))), 'seed', NOW(), NOW()),
   ('ai_uniscribe_qa_summary', 'task_uniscribe_qa_youtube_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '演示说明了 UniScribe 的链接转写流程。', 'bullets', JSON_ARRAY('粘贴链接', '队列处理', '导出字幕')), 'seed', NOW(), NOW()),
   ('ai_uniscribe_qa_mindmap', 'task_uniscribe_qa_youtube_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '链接转写', 'children', JSON_ARRAY(JSON_OBJECT('label', '输入', 'children', JSON_ARRAY()), JSON_OBJECT('label', '处理', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW()),
   ('ai_uniscribe_qa_qa', 'task_uniscribe_qa_youtube_done', 'QA', 'zh', '问答', JSON_ARRAY(JSON_OBJECT('question', '这个演示说明了什么？', 'answer', '说明 UniScribe 如何从链接生成转写和字幕。')), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_translation', 'task_uniscribe_qa_youtube_done', 'TRANSLATION', 'zh', '翻译', JSON_OBJECT('target', 'zh', 'text', '该演示说明 UniScribe 接收链接、排队转写、显示进度并导出字幕。'), 'seed', NOW(), NOW())
+  ('ai_uniscribe_qa_translation', 'task_uniscribe_qa_youtube_done', 'TRANSLATION', 'zh', '翻译', JSON_OBJECT('target', 'zh', 'text', '该演示说明 UniScribe 接收链接、排队转写、显示进度并导出字幕。'), 'seed', NOW(), NOW()),
+  ('ai_uniscribe_qa_creator_summary', 'task_uniscribe_qa_creator_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '作者回顾了长期做自媒体的经验，强调持续输出和真实表达。', 'bullets', JSON_ARRAY('不要只追热点', '坚持复盘内容', '保持真实表达')), 'seed', NOW(), NOW()),
+  ('ai_uniscribe_qa_creator_mindmap', 'task_uniscribe_qa_creator_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '自媒体经验', 'children', JSON_ARRAY(JSON_OBJECT('label', '持续输出', 'children', JSON_ARRAY()), JSON_OBJECT('label', '复盘', 'children', JSON_ARRAY()), JSON_OBJECT('label', '真实表达', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `content` = VALUES(`content`),
   `updatedAt` = NOW();

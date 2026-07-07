@@ -32,8 +32,22 @@ const envSchema = z.object({
   STRIPE_PRICE_BASIC: z.string().optional(),
   STRIPE_PRICE_STANDARD: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
+  STRIPE_PRICE_LITE: z.string().optional(),
+  STRIPE_PRICE_PLUS: z.string().optional(),
+  STRIPE_PRICE_ADDON_BASIC: z.string().optional(),
+  STRIPE_PRICE_ADDON_STANDARD: z.string().optional(),
+  STRIPE_PRICE_ADDON_PRO: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+  // SMTP 邮件发送（如 Spacemail）：配置 SMTP_HOST 后优先于 Resend 使用。
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_SECURE: z
+    .string()
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value === "true")),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
@@ -42,7 +56,13 @@ const envSchema = z.object({
   FFPROBE_PATH: z.string().optional(),
   AUDIO_CHUNK_TARGET_SECONDS: z.coerce.number().int().positive().default(900),
   AUDIO_CHUNK_MIN_SECONDS: z.coerce.number().int().positive().default(420),
-  AUDIO_CHUNK_MAX_SECONDS: z.coerce.number().int().positive().default(1200)
+  AUDIO_CHUNK_MAX_SECONDS: z.coerce.number().int().positive().default(1200),
+  // 服务商 webhook 回调的公网基础地址，为空时回退到 NEXT_PUBLIC_APP_URL。
+  TRANSCRIPTION_CALLBACK_BASE_URL: z.string().url().optional(),
+  // 提交异步任务后等待回调的最长秒数，超时自动查询服务商 API 兜底。
+  TRANSCRIPTION_CALLBACK_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(1200),
+  // 未收到回调时轮询服务商结果的间隔秒数。
+  TRANSCRIPTION_POLL_INTERVAL_SECONDS: z.coerce.number().int().positive().default(6)
 });
 
 const parsed = envSchema.parse(process.env);
@@ -63,5 +83,7 @@ function resolveRedisUrl() {
 
 export const env = {
   ...parsed,
-  REDIS_URL: resolveRedisUrl()
+  REDIS_URL: resolveRedisUrl(),
+  // 465 端口通常使用隐式 TLS（SMTPS），587/25 通常使用 STARTTLS。
+  SMTP_SECURE: parsed.SMTP_SECURE ?? parsed.SMTP_PORT === 465
 };

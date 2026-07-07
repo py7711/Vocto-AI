@@ -1,11 +1,16 @@
-import {LegalPage} from "@/components/legal-pages";
+import {getLegalPageCopy, LegalPage} from "@/components/legal-pages";
 
-export const metadata = {
-  title: {
-    absolute: "Privacy Policy | UniScribe - AI Audio & Video Transcription"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  const copy = getLegalPageCopy(params.locale, "privacy");
 
-export default function PrivacyPolicyRoute() {
-  return <LegalPage type="privacy" />;
+  return {
+    title: {
+      absolute: `${copy.title} | UniScribe`
+    },
+    description: copy.description
+  };
+}
+
+export default function PrivacyPolicyRoute({params}: {params: {locale: string}}) {
+  return <LegalPage type="privacy" locale={params.locale} />;
 }

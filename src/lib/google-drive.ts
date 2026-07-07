@@ -4,9 +4,8 @@ import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 
 const driveScopes = [
-  // 只申请只读 Drive 权限；导入时会把媒体复制到自己的对象存储，不修改用户云盘文件。
-  "https://www.googleapis.com/auth/drive.readonly",
-  "https://www.googleapis.com/auth/userinfo.email"
+  // Match the target OAuth flow: ask only for Drive file access and copy selected media into object storage.
+  "https://www.googleapis.com/auth/drive.file"
 ];
 
 type GoogleTokenResponse = {
@@ -25,7 +24,7 @@ export function googleDriveScopes() {
 }
 
 export function googleDriveRedirectUri() {
-  return `${env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/api/google-drive/callback`;
+  return `${env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/auth/google-drive/callback`;
 }
 
 export async function exchangeDriveCode(code: string) {
@@ -73,8 +72,8 @@ async function refreshDriveConnection(connection: DriveConnection) {
     throw new Error(data.error_description ?? data.error ?? "无法刷新 Google Drive 访问凭据。");
   }
 
-  // Google 有时只在首次授权返回 refresh_token，刷新时通常只返回新的 access_token。
-    // 因此这里保留原刷新令牌，只更新短期访问令牌、过期时间和可能变化的授权范围。
+  // Google often returns a refresh_token only on the first consent.
+  // Keep the existing refresh token while rotating short-lived access credentials.
   return prisma.googleDriveConnection.update({
     where: {id: connection.id},
     data: {

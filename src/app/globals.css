@@ -128,6 +128,33 @@ select {
     @apply w-full rounded-md border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink/40 hover:border-ink/25 focus-visible:border-violet focus-visible:ring-2 focus-visible:ring-violet/30;
   }
 
+  .field.media-link-input {
+    height: 38px;
+    min-height: 38px;
+    font-size: 16px;
+    line-height: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .field.media-link-input {
+      height: 40px;
+      min-height: 40px;
+      font-size: 14px;
+    }
+  }
+
+  .pricing-hero-subtitle {
+    word-spacing: 6px;
+  }
+
+  @media (min-width: 640px) {
+    .pricing-hero-subtitle {
+      word-spacing: normal;
+    }
+  }
+
   /* 区块标题前缀 */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-violet ring-1 ring-violet/15;

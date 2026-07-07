@@ -1,8 +1,9 @@
 import {useState} from "react";
-import {Copy, Download, FileText, Save, Share2} from "lucide-react";
+import {Copy, Download, FileText, Loader2, Save, Share2, Trash2, X} from "lucide-react";
 import clsx from "clsx";
+import {CompactCheckbox, CompactSelect} from "@/components/target-controls";
 import type {WorkspaceCopy} from "./copy";
-import {exportFormats, languageChoices, outlineFormats} from "./copy";
+import {exportFormats, localeLanguageOptions, outlineFormats} from "./copy";
 import type {Task} from "./types";
 import type {TranscriptSegment} from "./types";
 import {PanelTitle} from "./primitives";
@@ -16,6 +17,8 @@ export type ExportUiOptions = {
   subtitleMaxChars: number;
   subtitleMaxDurationSeconds: number;
 };
+
+export type ActiveShareLink = NonNullable<Task["shareLinks"]>[number] | null | undefined;
 
 export function buildExportQuery(options: ExportUiOptions) {
   const params = new URLSearchParams();
@@ -31,44 +34,155 @@ export function buildExportQuery(options: ExportUiOptions) {
   return query ? `?${query}` : "";
 }
 
+export function ShareTranscriptionDialog({
+  activeShare,
+  busy,
+  canShare,
+  copy,
+  shareUrl,
+  onClose,
+  onCopy,
+  onDisable,
+  onEnable
+}: {
+  activeShare?: ActiveShareLink;
+  busy: boolean;
+  canShare: boolean;
+  copy: WorkspaceCopy;
+  shareUrl: string | null;
+  onClose: () => void;
+  onCopy: () => void;
+  onDisable: () => void;
+  onEnable: () => void;
+}) {
+  const sharingEnabled = Boolean(activeShare || shareUrl);
+  const publicUrl = shareUrl ?? activeShare?.url ?? null;
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
+      <section className="relative grid w-full max-w-[448px] gap-4 rounded-lg border border-slate-200 bg-white p-0 text-[rgb(2,8,23)] shadow-none" role="dialog" aria-modal="true" aria-labelledby="share-transcription-title">
+        <button type="button" onClick={onClose} className="absolute right-4 top-4 grid h-4 w-4 place-items-center rounded text-ink transition hover:text-slate-500" aria-label={copy.close}>
+          <X size={16} />
+          <span className="sr-only">{copy.close}</span>
+        </button>
+        <div className="flex flex-col p-6 pb-4 text-center sm:text-left">
+          <h2 id="share-transcription-title" className="text-xl font-semibold leading-7 tracking-[-0.5px] text-[rgb(2,8,23)]">{copy.shareDialogTitle}</h2>
+          <p className="mt-1.5 text-sm leading-5 text-slate-500">{copy.shareDialogDescription}</p>
+        </div>
+
+        {sharingEnabled ? (
+          <div className="flex flex-col gap-4 px-6 pb-6">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium leading-6 text-slate-600">
+              {copy.sharingEnabled(activeShare?.accessCount ?? 0)}
+            </div>
+            {publicUrl ? (
+              <button type="button" onClick={onCopy} className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-xs font-medium leading-5 text-slate-600 transition hover:border-primary/30 hover:text-primary">
+                {publicUrl}
+              </button>
+            ) : (
+              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium leading-5 text-slate-500">{copy.publicLinkGenerated}</p>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setDisableConfirmOpen(true)} disabled={busy} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-4 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-45">
+                {busy ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+                {copy.disableSharing}
+              </button>
+              <button type="button" onClick={onClose} className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary/90">{copy.close}</button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 px-6 pb-6">
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-normal leading-5 text-slate-500">{copy.sharingDisabledDescription}</p>
+              <button type="button" onClick={onEnable} disabled={!canShare || busy} className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:opacity-45">
+                {busy ? <Loader2 className="animate-spin" size={16} /> : null}
+                {copy.enableSharing}
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+      {disableConfirmOpen ? (
+        <DisableSharingConfirmDialog
+          busy={busy}
+          copy={copy}
+          onCancel={() => setDisableConfirmOpen(false)}
+          onConfirm={() => {
+            setDisableConfirmOpen(false);
+            onDisable();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function DisableSharingConfirmDialog({busy, copy, onCancel, onConfirm}: {busy: boolean; copy: WorkspaceCopy; onCancel: () => void; onConfirm: () => void}) {
+  return (
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/40 px-4">
+      <section className="relative grid h-[216px] w-full max-w-[448px] gap-4 rounded-lg border border-slate-200 bg-white p-0 text-[rgb(2,8,23)] shadow-none" role="dialog" aria-modal="true" aria-labelledby="disable-sharing-title">
+        <div className="flex flex-col px-6 pb-4 pt-6 text-center sm:text-left">
+          <h2 id="disable-sharing-title" className="text-xl font-semibold leading-7 text-[rgb(2,8,23)]">{copy.disableSharingTitle}</h2>
+          <p className="mt-1.5 text-sm font-normal leading-5 text-slate-500">
+            {copy.disableSharingConfirm}
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-3 px-6 pb-6">
+          <button type="button" onClick={onCancel} className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium leading-5 text-[rgb(2,8,23)] transition hover:bg-slate-50">{copy.cancel}</button>
+          <button type="button" onClick={onConfirm} disabled={busy} className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-500 px-4 py-2 text-sm font-medium leading-5 text-slate-50 transition hover:bg-red-500/90 disabled:pointer-events-none disabled:opacity-50">
+            {busy ? <Loader2 className="animate-spin" size={16} /> : null}
+            {copy.disable}
+          </button>
+        </div>
+        <button type="button" onClick={onCancel} className="absolute right-4 top-4 grid h-4 w-4 place-items-center rounded-sm text-[rgb(2,8,23)] opacity-70 transition hover:opacity-100" aria-label={copy.close}>
+          <X size={16} />
+          <span className="sr-only">{copy.close}</span>
+        </button>
+      </section>
+    </div>
+  );
+}
+
 function ExportOptionsControls({
+  copy,
   options,
   setOptions
 }: {
+  copy: WorkspaceCopy;
   options: ExportUiOptions;
   setOptions: (patch: Partial<ExportUiOptions>) => void;
 }) {
+  const exportContentOptions = [
+    ["original", copy.exportOriginal],
+    ["translation", copy.exportTranslation],
+    ["bilingual", copy.exportBilingual]
+  ] as const;
+  const exportTargetOptions = localeLanguageOptions;
+
   return (
     <div className="mt-3 grid gap-3">
       <div className="flex flex-wrap gap-2">
-        <select value={options.exportContent} onChange={(event) => setOptions({exportContent: event.target.value as ExportUiOptions["exportContent"]})} className="field h-9 max-w-44 bg-white text-sm font-bold">
-          <option value="original">Original</option>
-          <option value="translation">Translation</option>
-          <option value="bilingual">Bilingual</option>
-        </select>
+        <CompactSelect value={options.exportContent} onChange={(value) => setOptions({exportContent: value as ExportUiOptions["exportContent"]})} options={exportContentOptions} ariaLabel={copy.exportContentLabel} className="w-44" />
         {options.exportContent !== "original" ? (
-          <select value={options.exportTarget} onChange={(event) => setOptions({exportTarget: event.target.value})} className="field h-9 max-w-36 bg-white text-sm font-bold">
-            {languageChoices.filter((item) => item !== "auto").map((item) => (
-              <option key={item} value={item}>{item.toUpperCase()}</option>
-            ))}
-          </select>
+          <CompactSelect value={options.exportTarget} onChange={(value) => setOptions({exportTarget: value})} options={exportTargetOptions} ariaLabel={copy.exportTargetLabel} className="w-36" />
         ) : null}
       </div>
       <div className="grid gap-2 rounded-xl border border-ink/10 bg-white/60 p-3 text-xs font-bold text-ink/65">
-        <label className="flex items-center justify-between gap-3">
-          <span>Speaker names</span>
-          <input type="checkbox" checked={options.showSpeaker} onChange={(event) => setOptions({showSpeaker: event.target.checked})} className="h-4 w-4 accent-violet" />
-        </label>
-        <label className="flex items-center justify-between gap-3">
-          <span>Timestamps</span>
-          <input type="checkbox" checked={options.showTimestamp} onChange={(event) => setOptions({showTimestamp: event.target.checked})} className="h-4 w-4 accent-violet" />
-        </label>
+        <div className="flex items-center justify-between gap-3">
+          <span>{copy.speakerNames}</span>
+          <CompactCheckbox checked={options.showSpeaker} onChange={(checked) => setOptions({showSpeaker: checked})} label={copy.speakerNames} />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span>{copy.timestamps}</span>
+          <CompactCheckbox checked={options.showTimestamp} onChange={(checked) => setOptions({showTimestamp: checked})} label={copy.timestamps} />
+        </div>
         <label className="grid gap-1">
-          <span>Subtitle max chars</span>
+          <span>{copy.subtitleMaxChars}</span>
           <input type="number" min={1} max={2000} value={options.subtitleMaxChars} onChange={(event) => setOptions({subtitleMaxChars: Number(event.target.value) || 84})} className="field h-9 bg-white text-sm" />
         </label>
         <label className="grid gap-1">
-          <span>Subtitle max seconds</span>
+          <span>{copy.subtitleMaxSeconds}</span>
           <input type="number" min={0.1} max={60} step={0.1} value={options.subtitleMaxDurationSeconds} onChange={(event) => setOptions({subtitleMaxDurationSeconds: Number(event.target.value) || 6})} className="field h-9 bg-white text-sm" />
         </label>
       </div>
@@ -89,6 +203,7 @@ export function TranscriptPanel({
   saveTranscript,
   saveSegments,
   copyTranscript,
+  copy,
   t
 }: {
   task: Task;
@@ -103,6 +218,7 @@ export function TranscriptPanel({
   saveTranscript: () => void;
   saveSegments: () => void;
   copyTranscript: () => void;
+  copy: WorkspaceCopy;
   t: (key: string) => string;
 }) {
   return (
@@ -120,11 +236,11 @@ export function TranscriptPanel({
           </button>
           <button onClick={saveSegments} disabled={!segmentDrafts.length} className="btn-outline px-3 py-2">
             <Save size={16} />
-            Segments
+            {copy.segments}
           </button>
           <button onClick={saveSpeakerNames} disabled={!uniqueSpeakers.some((speaker) => (speakerDrafts[speaker] ?? speaker).trim() !== speaker)} className="btn-outline px-3 py-2">
             <Save size={16} />
-            Speakers
+            {copy.speakersLabel}
           </button>
         </div>
       </div>
@@ -147,7 +263,7 @@ export function TranscriptPanel({
                   <article key={`${segment.start}-${index}`} className="mb-3 border-b border-ink/10 pb-3 last:border-b-0">
                     <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase text-tide">
                       <span>{formatTime(segment.start)}</span>
-                      <input value={segment.speaker || ""} onChange={(event) => updateSegmentDraft(index, {speaker: event.target.value})} className="min-w-0 flex-1 rounded-md border border-ink/10 bg-white px-2 py-1 text-xs font-bold normal-case text-ink/65 outline-none focus:border-tide" placeholder="发言人 1" />
+                      <input value={segment.speaker || ""} onChange={(event) => updateSegmentDraft(index, {speaker: event.target.value})} className="min-w-0 flex-1 rounded-md border border-ink/10 bg-white px-2 py-1 text-xs font-bold normal-case text-ink/65 outline-none focus:border-tide" placeholder={`${copy.speakersLabel} 1`} />
                     </div>
                     <textarea value={segment.text} onChange={(event) => updateSegmentDraft(index, {text: event.target.value})} className="focus-ring min-h-16 w-full resize-y rounded-lg border border-ink/10 bg-white p-2 text-sm leading-6 text-ink/75 outline-none focus-visible:border-tide" />
                   </article>
@@ -195,26 +311,24 @@ export function ExportPanel({
     subtitleMaxChars: 84,
     subtitleMaxDurationSeconds: 6
   });
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const query = buildExportQuery(exportOptions);
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-paper/50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PanelTitle icon={<Download size={18} />} label={t("exports")} />
-        <button onClick={createShareLink} disabled={!task.transcript || busy} className="btn-outline px-3 py-2">
+        <button onClick={() => setShareDialogOpen(true)} disabled={!task.transcript || busy} className="btn-outline px-3 py-2">
           <Share2 size={16} />
           {copy.share}
-        </button>
-        <button onClick={disableShareLink} disabled={busy || (!shareUrl && !activeShare)} className="btn-outline border-coral/25 px-3 py-2 text-coral disabled:opacity-45">
-          关闭分享
         </button>
       </div>
       {activeShare ? (
         <p className="mt-3 rounded-md border border-tide/15 bg-tide/5 px-3 py-2 text-xs font-bold leading-5 text-tide">
-          分享已启用 · {activeShare.accessCount ?? 0} 次查看{activeShare.expiresAt ? ` · ${new Date(activeShare.expiresAt).toLocaleDateString()} 到期` : ""}
+          {copy.sharingEnabled(activeShare.accessCount ?? 0)}{activeShare.expiresAt ? ` · ${copy.shareExpires(new Date(activeShare.expiresAt).toLocaleDateString(copy.intlLocale))}` : ""}
         </p>
       ) : null}
-      <ExportOptionsControls options={exportOptions} setOptions={(patch) => setExportOptions((current) => ({...current, ...patch}))} />
+      <ExportOptionsControls copy={copy} options={exportOptions} setOptions={(patch) => setExportOptions((current) => ({...current, ...patch}))} />
       <div className="mt-3 flex flex-wrap gap-2">
         {exportFormats.map((format) => (
           <a
@@ -230,7 +344,7 @@ export function ExportPanel({
         ))}
       </div>
       <div className="mt-4 border-t border-ink/10 pt-3">
-        <p className="text-xs font-black uppercase text-ink/35">Outline</p>
+        <p className="text-xs font-black uppercase text-ink/35">{copy.outline}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {outlineFormats.map((format) => (
             <a
@@ -253,6 +367,21 @@ export function ExportPanel({
         >
           {shareUrl}
         </button>
+      ) : null}
+      {shareDialogOpen ? (
+        <ShareTranscriptionDialog
+          activeShare={activeShare}
+          busy={busy}
+          canShare={Boolean(task.transcript)}
+          copy={copy}
+          shareUrl={shareUrl}
+          onClose={() => setShareDialogOpen(false)}
+          onCopy={() => {
+            if (shareUrl) navigator.clipboard.writeText(shareUrl).catch(() => undefined);
+          }}
+          onDisable={disableShareLink}
+          onEnable={createShareLink}
+        />
       ) : null}
     </div>
   );

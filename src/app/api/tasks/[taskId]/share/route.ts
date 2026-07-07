@@ -1,8 +1,8 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
-import {buildShareUrl, createShareToken} from "@/lib/share-links";
+import {getRequestOrigin} from "@/lib/request-origin";
+import {createShareToken, serializeShareLinkForOwner} from "@/lib/share-links";
 import {hashToken} from "@/lib/auth";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 
@@ -15,6 +15,8 @@ const createShareSchema = z.object({
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
+    const url = new URL(request.url);
+    const locale = url.searchParams.get("locale") || "zh";
     const now = new Date();
     const shareLink = await prisma.shareLink.findFirst({
       where: {
@@ -25,6 +27,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       orderBy: {createdAt: "desc"},
       select: {
         id: true,
+        tokenHash: true,
         title: true,
         enabled: true,
         expiresAt: true,
@@ -34,7 +37,9 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       }
     });
 
-    return NextResponse.json({shareLink});
+    return NextResponse.json({
+      shareLink: shareLink ? serializeShareLinkForOwner(shareLink, {appUrl: getRequestOrigin(request), locale}) : null
+    });
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
@@ -60,6 +65,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     const expiresAt = input.expiresInDays ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000) : null;
     const shareLink = await prisma.shareLink.create({
       data: {
+        id: rawToken,
         teamId: task.teamId,
         mediaTaskId: task.id,
         createdById: access.user?.id,
@@ -69,19 +75,8 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       }
     });
 
-    const responseShareLink = {
-        id: shareLink.id,
-        url: buildShareUrl({appUrl: env.NEXT_PUBLIC_APP_URL, locale: input.locale, token: rawToken}),
-        title: shareLink.title,
-        enabled: shareLink.enabled,
-        expiresAt: shareLink.expiresAt,
-        accessCount: shareLink.accessCount,
-        lastAccessAt: shareLink.lastAccessAt,
-        createdAt: shareLink.createdAt
-      };
-
     return NextResponse.json({
-      shareLink: responseShareLink
+      shareLink: serializeShareLinkForOwner(shareLink, {appUrl: getRequestOrigin(request), locale: input.locale})
     });
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);

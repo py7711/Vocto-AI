@@ -63,10 +63,8 @@ export async function POST(request: Request) {
         thumbnailUrl = metadata.thumbnailUrl;
         resolvedUrl = metadata.sourceUrl || sourceUrl;
         contentType = metadata.extension ? `video/${metadata.extension}` : undefined;
-      } catch (error) {
-        warnings.push(error instanceof Error && (error.message.includes("yt-dlp is not installed") || error.message.includes("yt-dlp 未安装"))
-          ? "服务器未安装 yt-dlp，暂时无法读取详细媒体元数据。"
-          : "暂时无法读取详细媒体元数据，转写开始后 Worker 会重试。");
+      } catch {
+        return NextResponse.json({error: "Failed to access media metadata. Please try again later."}, {status: 400});
       }
     }
 

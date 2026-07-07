@@ -142,9 +142,9 @@ API 目录按调用方分组：
 
 ## 7. 静态资源规则
 
-`public/blog` 的图片由 `src/lib/blog.ts` 的 `coverImage` 字段引用，删除或改名时必须同步检查博客列表和详情页。`public/uniscribe-assets` 只保留页面真实引用的产品截图和流程箭头等素材；未被源码、文档或配置引用的设计稿导出物应删除，不作为“备用素材”长期放在仓库里。品牌 Logo 使用根级 `public/uniscribe-logo.svg`，不要在资产目录里再保留未引用的重复 Logo。
+`public/blog` 的图片由 `src/lib/blog.ts` 的 `coverImage` 字段引用，删除或改名时必须同步检查博客列表和详情页。`public/uniscribe-assets` 只保留页面真实引用的产品截图和流程箭头等素材；未被源码、文档或配置引用的设计稿导出物应删除，不作为“备用素材”长期放在仓库里。品牌 Logo 使用根级 `public/uniscribe-logo.svg` 和 `public/uniscribe-logo-dark.svg`，通过 `src/components/brand-logo.tsx` 统一渲染，不要在资产目录里再保留未引用的重复 Logo。
 
-`public/favicon.svg` 和 `public/uniscribe-logo.svg` 属于约定入口资源，分别被 App metadata 和页面 Logo 使用。它们不能仅因文件名没有出现在普通链接列表里就删除。
+`public/favicon.svg`、`public/uniscribe-logo.svg` 和 `public/uniscribe-logo-dark.svg` 属于约定入口资源，分别被 App metadata 和页面 Logo 使用。它们不能仅因文件名没有出现在普通链接列表里就删除。
 
 清理静态资源后需要运行 `pnpm run assets:check`。该脚本会扫描 `public` 中的文件是否被源码、消息包或项目文档引用，并对白名单中的约定入口资源做保留处理。
 

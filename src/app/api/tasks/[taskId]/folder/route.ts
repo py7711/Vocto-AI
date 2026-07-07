@@ -2,6 +2,8 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {getRequestOrigin} from "@/lib/request-origin";
+import {serializeShareLinkForOwner} from "@/lib/share-links";
 
 const moveTaskSchema = z.object({
   folderId: z.string().nullable()
@@ -11,6 +13,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
   try {
     const access = await assertTaskAccess(params.taskId, "write", request.headers);
     if (!access.user) return NextResponse.json({error: "请先登录后再移动转写。"}, {status: 401});
+    const user = access.user;
 
     const input = moveTaskSchema.parse(await request.json());
     if (input.folderId) {
@@ -30,14 +33,28 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
         insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         shareLinks: {
           where: {enabled: true},
-          select: {id: true, createdAt: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
           orderBy: {createdAt: "desc"},
           take: 1
         }
       }
     });
 
-    return NextResponse.json(task);
+    return NextResponse.json({
+      ...task,
+      shareLinks: task.shareLinks.map((shareLink) =>
+        serializeShareLinkForOwner(shareLink, {appUrl: getRequestOrigin(request), locale: user.locale})
+      )
+    });
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});

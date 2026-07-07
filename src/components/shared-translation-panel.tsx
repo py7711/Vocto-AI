@@ -2,6 +2,7 @@
 
 import {useMemo, useState} from "react";
 import {Languages, Loader2} from "lucide-react";
+import {CompactSelect} from "@/components/target-controls";
 
 type SharedTranslation = {
   id: string;
@@ -17,6 +18,9 @@ type SharedTranslationPanelProps = {
   token: string;
   title: string;
   emptyText: string;
+  languageLabel: string;
+  loadingText: string;
+  readError: string;
   translations: SharedTranslation[];
 };
 
@@ -31,7 +35,7 @@ function readTranslationText(content: any) {
   return "";
 }
 
-export function SharedTranslationPanel({token, title, emptyText, translations}: SharedTranslationPanelProps) {
+export function SharedTranslationPanel({token, title, emptyText, languageLabel, loadingText, readError, translations}: SharedTranslationPanelProps) {
   const [selectedLocale, setSelectedLocale] = useState(translations[0]?.locale ?? "");
   const [active, setActive] = useState<SharedTranslation | null>(translations[0] ?? null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +52,7 @@ export function SharedTranslationPanel({token, title, emptyText, translations}: 
     try {
       const response = await fetch(`/api/share/${encodeURIComponent(token)}/translations/${encodeURIComponent(locale)}`, {cache: "no-store"});
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "无法读取翻译。");
+      if (!response.ok) throw new Error(body.error ?? readError);
       setActive(body as SharedTranslation);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -65,17 +69,19 @@ export function SharedTranslationPanel({token, title, emptyText, translations}: 
           {title}
         </h2>
         {translations.length > 1 ? (
-          <select value={selectedLocale} onChange={(event) => chooseTranslation(event.target.value)} className="field h-8 max-w-32 bg-white text-xs font-black uppercase">
-            {translations.map((translation) => (
-              <option key={translation.id} value={translation.locale}>{translation.locale}</option>
-            ))}
-          </select>
+          <CompactSelect
+            value={selectedLocale}
+            onChange={chooseTranslation}
+            options={translations.map((translation) => [translation.locale, translation.locale.toUpperCase()] as const)}
+            ariaLabel={languageLabel}
+            className="w-32"
+          />
         ) : null}
       </div>
       {loading ? (
         <p className="mt-3 flex items-center gap-2 text-sm font-bold text-ink/55">
           <Loader2 className="animate-spin" size={15} />
-          Loading translation...
+          {loadingText}
         </p>
       ) : error ? (
         <p className="mt-3 text-sm font-bold leading-6 text-coral">{error}</p>

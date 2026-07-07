@@ -4,6 +4,8 @@ import {createHmac, timingSafeEqual} from "crypto";
 import {env} from "@/lib/env";
 
 export type BillingPlan = "BASIC" | "STANDARD" | "PRO";
+export type OneTimePack = "LITE" | "PLUS";
+export type AddonPack = "ADDON_BASIC" | "ADDON_STANDARD" | "ADDON_PRO";
 
 const stripeApiBase = "https://api.stripe.com/v1";
 
@@ -11,6 +13,17 @@ export const billingPlans: Record<BillingPlan, {priceEnv?: string; appPlan: Bill
   BASIC: {priceEnv: env.STRIPE_PRICE_BASIC, appPlan: "BASIC", minutes: 1200, maxSingleFileMinutes: 600},
   STANDARD: {priceEnv: env.STRIPE_PRICE_STANDARD, appPlan: "STANDARD", minutes: 3000, maxSingleFileMinutes: 900},
   PRO: {priceEnv: env.STRIPE_PRICE_PRO, appPlan: "PRO", minutes: 6000, maxSingleFileMinutes: 1200}
+};
+
+export const oneTimePacks: Record<OneTimePack, {priceEnv?: string; planId: string; label: string; minutes: number; validityDays: number; amountUsd: number}> = {
+  LITE: {priceEnv: env.STRIPE_PRICE_LITE, planId: "lite_20260124", label: "Lite", minutes: 300, validityDays: 90, amountUsd: 12.9},
+  PLUS: {priceEnv: env.STRIPE_PRICE_PLUS, planId: "plus_20260124", label: "Plus", minutes: 600, validityDays: 90, amountUsd: 19.9}
+};
+
+export const addonPacks: Record<AddonPack, {priceEnv?: string; planId: string; label: string; minutes: number; amountUsd: number}> = {
+  ADDON_BASIC: {priceEnv: env.STRIPE_PRICE_ADDON_BASIC, planId: "addon_basic", label: "Basic", minutes: 500, amountUsd: 10},
+  ADDON_STANDARD: {priceEnv: env.STRIPE_PRICE_ADDON_STANDARD, planId: "addon_standard", label: "Standard", minutes: 1000, amountUsd: 15},
+  ADDON_PRO: {priceEnv: env.STRIPE_PRICE_ADDON_PRO, planId: "addon_pro", label: "Pro", minutes: 3000, amountUsd: 20}
 };
 
 // Stripe SDK 安装失败时使用 REST API，保持服务端依赖更轻，后续可无缝替换为官方 SDK。
@@ -52,7 +65,66 @@ export async function createCheckoutSession(input: {
   plan: BillingPlan;
   successUrl: string;
   cancelUrl: string;
+} | {
+  customerId: string;
+  userId: string;
+  pack: OneTimePack;
+  successUrl: string;
+  cancelUrl: string;
+} | {
+  customerId: string;
+  userId: string;
+  addon: AddonPack;
+  successUrl: string;
+  cancelUrl: string;
 }) {
+  if ("addon" in input) {
+    const addon = addonPacks[input.addon];
+    if (!addon.priceEnv) {
+      throw new Error(`Stripe 加购分钟包价格 ID 未配置：${input.addon}`);
+    }
+
+    const body = new URLSearchParams();
+    body.set("mode", "payment");
+    body.set("customer", input.customerId);
+    body.set("line_items[0][price]", addon.priceEnv);
+    body.set("line_items[0][quantity]", "1");
+    body.set("success_url", input.successUrl);
+    body.set("cancel_url", input.cancelUrl);
+    body.set("metadata[userId]", input.userId);
+    body.set("metadata[addon]", input.addon);
+    body.set("metadata[planId]", addon.planId);
+    body.set("metadata[minutes]", String(addon.minutes));
+    body.set("payment_intent_data[metadata][userId]", input.userId);
+    body.set("payment_intent_data[metadata][addon]", input.addon);
+    body.set("payment_intent_data[metadata][planId]", addon.planId);
+    return stripeRequest<{id: string; url: string}>("/checkout/sessions", body);
+  }
+
+  if ("pack" in input) {
+    const pack = oneTimePacks[input.pack];
+    if (!pack.priceEnv) {
+      throw new Error(`Stripe 一次性套餐价格 ID 未配置：${input.pack}`);
+    }
+
+    const body = new URLSearchParams();
+    body.set("mode", "payment");
+    body.set("customer", input.customerId);
+    body.set("line_items[0][price]", pack.priceEnv);
+    body.set("line_items[0][quantity]", "1");
+    body.set("success_url", input.successUrl);
+    body.set("cancel_url", input.cancelUrl);
+    body.set("metadata[userId]", input.userId);
+    body.set("metadata[pack]", input.pack);
+    body.set("metadata[planId]", pack.planId);
+    body.set("metadata[minutes]", String(pack.minutes));
+    body.set("metadata[validityDays]", String(pack.validityDays));
+    body.set("payment_intent_data[metadata][userId]", input.userId);
+    body.set("payment_intent_data[metadata][pack]", input.pack);
+    body.set("payment_intent_data[metadata][planId]", pack.planId);
+    return stripeRequest<{id: string; url: string}>("/checkout/sessions", body);
+  }
+
   const plan = billingPlans[input.plan];
   if (!plan.priceEnv) {
     throw new Error(`Stripe 价格 ID 未配置：${input.plan}`);

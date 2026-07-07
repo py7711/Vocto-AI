@@ -12,18 +12,43 @@ function startOfCurrentDay() {
   return now;
 }
 
-function resolvePeriodStart(subscription: {currentPeriodStart: Date | null; createdAt: Date}) {
-  // Stripe 订阅会写入真实账期；本地免费订阅则回退到自然月。
-  if (subscription.currentPeriodStart) return subscription.currentPeriodStart;
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), 1);
+function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
 }
 
-function resolvePeriodEnd(subscription: {currentPeriodEnd: Date | null}) {
-  // 没有 Stripe 账期时，按下个自然月一号作为统计结束时间。
-  if (subscription.currentPeriodEnd) return subscription.currentPeriodEnd;
+function rollForwardMonthly(date: Date, now = new Date()) {
+  let next = new Date(date);
+  while (next <= now) {
+    next = addMonths(next, 1);
+  }
+  return next;
+}
+
+function isLocalFreeSubscription(subscription: {plan: string; stripeSubscriptionId: string | null}) {
+  return subscription.plan === "FREE" || !subscription.stripeSubscriptionId;
+}
+
+function resolvePeriodEnd(subscription: {currentPeriodEnd: Date | null; plan: string; stripeSubscriptionId: string | null}) {
+  // Stripe 订阅会写入真实账期；本地免费订阅如果种子账期过期，则按月滚到未来，避免设置页显示已过期的 reset date。
+  if (subscription.currentPeriodEnd) {
+    return isLocalFreeSubscription(subscription) ? rollForwardMonthly(subscription.currentPeriodEnd) : subscription.currentPeriodEnd;
+  }
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+}
+
+function resolvePeriodStart(subscription: {currentPeriodStart: Date | null; currentPeriodEnd: Date | null; createdAt: Date; plan: string; stripeSubscriptionId: string | null}) {
+  // Stripe 订阅会写入真实账期；本地免费订阅则回退到自然月。
+  if (subscription.currentPeriodStart) {
+    if (isLocalFreeSubscription(subscription) && subscription.currentPeriodEnd && subscription.currentPeriodEnd <= new Date()) {
+      return addMonths(resolvePeriodEnd(subscription), -1);
+    }
+    return subscription.currentPeriodStart;
+  }
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
 export async function GET() {

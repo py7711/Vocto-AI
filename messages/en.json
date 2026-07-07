@@ -79,13 +79,13 @@
     "folder": "Folder",
     "folders": "Folders",
     "uncategorized": "Uncategorized",
-    "bulkActions": "Bulk actions",
+    "bulkActions": "Bulk Actions",
     "copied": "Copied to clipboard",
     "recordHint": "Recording creates a WebM audio file in the browser, then uses the same upload and transcription queue.",
     "startRecord": "Start recording",
     "stopRecord": "Stop recording",
     "noTranscript": "Live progress and transcript output will appear here after a task is created.",
-    "upgradePlan": "Upgrade plan",
+    "upgradePlan": "Upgrade Plan",
     "copy": "Copy",
     "blog": "Blog"
   }

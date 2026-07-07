@@ -1,10 +1,9 @@
 import {AuthPage} from "@/components/auth-pages";
+import {authMetadata} from "@/lib/auth-metadata";
 
-export const metadata = {
-  title: {
-    absolute: "Sign In | UniScribe - AI Audio & Video Transcription"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  return authMetadata(params.locale, "signin");
+}
 
 export default function SignInPage() {
   return <AuthPage mode="signin" />;

@@ -4,7 +4,31 @@ import {createDownloadUrl, deleteObject} from "@/lib/storage";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl, resolveYoutubeAudioUrl} from "@/server/media/prepare";
 
-async function resolvePlayableUrl(task: {objectKey: string | null; normalizedUrl: string | null; sourceUrl: string; sourceType: string}) {
+type PlayableAsset = {
+  kind: string;
+  url: string;
+  objectKey: string | null;
+  fileName: string | null;
+};
+
+async function resolveAssetUrl(asset: PlayableAsset | null | undefined) {
+  if (!asset) return null;
+  if (asset.objectKey) return createDownloadUrl(asset.objectKey);
+  return asset.url;
+}
+
+async function resolvePlayableUrl(task: {
+  objectKey: string | null;
+  normalizedUrl: string | null;
+  sourceUrl: string;
+  sourceType: string;
+  mediaAssets?: PlayableAsset[];
+}) {
+  const normalizedAsset = task.mediaAssets?.find((asset) => asset.kind === "NORMALIZED_AUDIO");
+  const sourceAsset = task.mediaAssets?.find((asset) => asset.kind === "SOURCE_MEDIA");
+  const chunkAsset = task.mediaAssets?.find((asset) => asset.kind === "AUDIO_CHUNK");
+  const assetUrl = await resolveAssetUrl(normalizedAsset ?? sourceAsset ?? chunkAsset);
+  if (assetUrl) return assetUrl;
   if (task.objectKey) return createDownloadUrl(task.objectKey);
   if (task.normalizedUrl) return task.normalizedUrl;
   if (task.sourceType === "YOUTUBE") return resolveYoutubeAudioUrl(task.sourceUrl);
@@ -17,7 +41,17 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
     await assertTaskAccess(params.taskId, "read", request.headers);
     const task = await prisma.mediaTask.findUnique({
       where: {id: params.taskId},
-      select: {objectKey: true, normalizedUrl: true, sourceUrl: true, originalName: true, sourceType: true}
+      select: {
+        objectKey: true,
+        normalizedUrl: true,
+        sourceUrl: true,
+        originalName: true,
+        sourceType: true,
+        mediaAssets: {
+          select: {kind: true, url: true, objectKey: true, fileName: true},
+          orderBy: [{kind: "asc"}, {chunkIndex: "asc"}]
+        }
+      }
     });
 
     if (!task) return NextResponse.json({error: "转写任务不存在。"}, {status: 404});

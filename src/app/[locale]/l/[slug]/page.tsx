@@ -4,12 +4,12 @@ import {ToolPage} from "@/components/tool-page";
 import {getToolPageTitle} from "@/lib/tool-pages";
 import {isCanonicalLandingSlug} from "@/lib/canonical-slugs";
 
-export function generateMetadata({params}: {params: {slug: string}}): Metadata {
+export function generateMetadata({params}: {params: {locale: string; slug: string}}): Metadata {
   if (!isCanonicalLandingSlug(params.slug)) {
     return {};
   }
   return {
-    title: getToolPageTitle(params.slug)
+    title: getToolPageTitle(params.slug, params.locale)
   };
 }
 

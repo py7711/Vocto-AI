@@ -5,17 +5,24 @@ import {normalizeSummaryTemplate} from "@/lib/summary-template";
 import {generateJsonWithFallback} from "@/server/ai/providers";
 import {translateWithFallback} from "@/server/translation";
 
+const summaryResponseSchema = {
+  overview: "string",
+  bullets: [{text: "string", timestamps: [{start: "number", end: "number"}]}],
+  takeaways: [{text: "string", timestamps: [{start: "number", end: "number"}]}]
+};
+
 const summaryTemplateInstructions: Record<SummaryTemplate, string> = {
-  none: "Do not create a prose summary. Return an empty summary overview and no summary bullets, but still create mindMap and qa.",
-  standard: "Create a concise general-purpose summary with the most important points.",
-  meeting: "Create meeting notes focused on decisions, action items, owners, risks, and follow-ups.",
-  study: "Create study notes focused on concepts, definitions, examples, and review questions.",
-  interview: "Create an interview brief focused on themes, quotes-as-paraphrases, candidate signals, and follow-up questions."
+  none: "Do not create a prose summary. Return an empty overview, bullets, and takeaways, but still create mindMap and qa.",
+  standard: "Create a general-purpose summary with overview (2-4 sentence synopsis), bullets (5-8 key points with transcript timestamps), and takeaways (3-5 actionable conclusions or lessons).",
+  meeting: "Create meeting notes with overview (purpose and context), bullets (decisions, action items, owners, risks, and follow-ups with timestamps), and takeaways (next steps and open questions).",
+  study: "Create study notes with overview (topic introduction), bullets (concepts, definitions, and examples with timestamps), and takeaways (review questions and key learnings).",
+  interview: "Create an interview brief with overview (interview context), bullets (themes, candidate signals, and paraphrased quotes with timestamps), and takeaways (follow-up questions and hiring signals)."
 };
 
 function fallbackInsights(text: string, locale: string, summaryTemplate: SummaryTemplate) {
   const sentences = text.split(/(?<=[.!?。！？])\s+/).filter(Boolean);
   const summary = sentences.slice(0, 5).join(" ");
+  const fallbackTimestamp = {start: 0, end: 0};
   const summaryPrefixes: Record<Exclude<SummaryTemplate, "none">, string> = {
     standard: locale.startsWith("zh") ? "摘要" : "Summary",
     meeting: locale.startsWith("zh") ? "会议纪要" : "Meeting notes",
@@ -31,7 +38,8 @@ function fallbackInsights(text: string, locale: string, summaryTemplate: Summary
   return {
     summary: {
       overview: summaryTemplate === "none" ? "" : `${summaryPrefixes[summaryTemplate]}: ${summary || text.slice(0, 800)}`,
-      bullets: summaryTemplate === "none" ? [] : sentences.slice(0, 8).map((sentence) => sentence.slice(0, 180))
+      bullets: summaryTemplate === "none" ? [] : sentences.slice(0, 8).map((sentence) => ({text: sentence.slice(0, 180), timestamps: [fallbackTimestamp]})),
+      takeaways: summaryTemplate === "none" ? [] : sentences.slice(8, 12).map((sentence) => ({text: sentence.slice(0, 180), timestamps: [fallbackTimestamp]}))
     },
     mindMap: {
       label: locale.startsWith("zh") ? "核心内容" : "Core ideas",
@@ -60,14 +68,14 @@ export async function generateInsights(
   const fallbackPayload = fallbackInsights(text, locale, summaryTemplate);
   const {payload, model} = await generateJsonWithFallback(
     {
-      system: "你是 UniScribe 音视频转文字产品的 AI 洞察引擎，帮助用户整理摘要、思维导图和问答。只返回严格 JSON，字段必须包含 summary、mindMap、qa。",
+      system: "你是 UniScribe 音视频转文字产品的 AI 洞察引擎，帮助用户整理摘要、思维导图和问答。只返回严格 JSON，字段必须包含 summary、mindMap、qa。摘要 bullet 应尽量附带原文时间范围。",
       user: {
         locale,
         summaryTemplate,
         summaryInstruction: summaryTemplateInstructions[summaryTemplate],
         transcript: text.slice(0, 24000),
         schema: {
-          summary: {overview: "string", bullets: ["string"]},
+          summary: summaryResponseSchema,
           mindMap: {label: "string", children: [{label: "string", children: []}]},
           qa: [{question: "string", answer: "string"}]
         }

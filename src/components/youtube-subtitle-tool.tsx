@@ -1,7 +1,10 @@
 "use client";
 
 import {useState} from "react";
+import {useLocale} from "next-intl";
 import {Download, Loader2, Search, ShieldCheck} from "lucide-react";
+import {CompactSelect} from "@/components/target-controls";
+import {getYoutubeToolCopy} from "@/components/youtube-tool-copy";
 
 type VideoInfo = {
   sourceUrl: string;
@@ -26,6 +29,7 @@ function formatDuration(seconds?: number) {
 }
 
 export function YoutubeSubtitleTool() {
+  const text = getYoutubeToolCopy(useLocale());
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState<"srt" | "vtt">("srt");
   const [info, setInfo] = useState<VideoInfo | null>(null);
@@ -56,13 +60,13 @@ export function YoutubeSubtitleTool() {
       ]);
       const infoBody = await infoResponse.json().catch(() => ({}));
       const subtitlesBody = await subtitlesResponse.json().catch(() => ({}));
-      if (!infoResponse.ok) throw new Error(infoBody.error ?? "无法读取视频信息。");
-      if (!subtitlesResponse.ok) throw new Error(subtitlesBody.error ?? "无法读取字幕列表。");
+      if (!infoResponse.ok) throw new Error(infoBody.error ?? text.infoError);
+      if (!subtitlesResponse.ok) throw new Error(subtitlesBody.error ?? text.subtitlesError);
       const nextSubtitles = (subtitlesBody.subtitles ?? []) as SubtitleItem[];
       setInfo(infoBody as VideoInfo);
       setSubtitles(nextSubtitles);
       setSelectedLanguage(nextSubtitles[0]?.languageCode ?? "");
-      if (!nextSubtitles.length) setError("该视频没有可下载的字幕。");
+      if (!nextSubtitles.length) setError(text.noSubtitles);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -82,7 +86,7 @@ export function YoutubeSubtitleTool() {
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.error ?? "无法下载字幕。");
+        throw new Error(body.error ?? text.downloadError);
       }
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
@@ -105,11 +109,11 @@ export function YoutubeSubtitleTool() {
       <div className="grid gap-3 md:grid-cols-[1fr_auto]">
         <label className="field flex h-12 items-center gap-2 bg-white">
           <Search size={18} className="text-ink/40" />
-          <input value={url} onChange={(event) => setUrl(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" placeholder="Paste a YouTube video URL" />
+          <input value={url} onChange={(event) => setUrl(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" placeholder={text.placeholder} />
         </label>
         <button type="button" onClick={inspectVideo} disabled={!url.trim() || busy} className="btn-primary h-12">
           {busy ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-          Check subtitles
+          {text.checkSubtitles}
         </button>
       </div>
 
@@ -129,20 +133,27 @@ export function YoutubeSubtitleTool() {
 
       {subtitles.length ? (
         <div className="mt-4 grid gap-3 rounded-lg border border-ink/10 bg-white p-3 md:grid-cols-[1fr_120px_auto]">
-          <select value={selectedLanguage} onChange={(event) => setSelectedLanguage(event.target.value)} className="field h-10 bg-white text-sm font-bold">
-            {subtitles.map((subtitle) => (
-              <option key={`${subtitle.languageCode}-${subtitle.automatic ? "auto" : "manual"}`} value={subtitle.languageCode}>
-                {subtitle.languageName} ({subtitle.languageCode}){subtitle.automatic ? " auto" : ""}
-              </option>
-            ))}
-          </select>
-          <select value={format} onChange={(event) => setFormat(event.target.value as "srt" | "vtt")} className="field h-10 bg-white text-sm font-bold">
-            <option value="srt">SRT</option>
-            <option value="vtt">VTT</option>
-          </select>
+          <CompactSelect
+            value={selectedLanguage}
+            onChange={setSelectedLanguage}
+            options={subtitles.map((subtitle) => [
+              subtitle.languageCode,
+              `${subtitle.languageName} (${subtitle.languageCode})${subtitle.automatic ? ` ${text.automaticSuffix}` : ""}`
+            ] as const)}
+            ariaLabel={text.subtitleLanguageAria}
+          />
+          <CompactSelect
+            value={format}
+            onChange={(value) => setFormat(value as "srt" | "vtt")}
+            options={[
+              ["srt", "SRT"],
+              ["vtt", "VTT"]
+            ]}
+            ariaLabel={text.subtitleFormatAria}
+          />
           <button type="button" onClick={downloadSubtitle} disabled={downloading || !selectedLanguage} className="btn-outline h-10">
             {downloading ? <Loader2 className="animate-spin" size={17} /> : <Download size={17} />}
-            Download
+            {text.download}
           </button>
         </div>
       ) : null}
@@ -150,7 +161,7 @@ export function YoutubeSubtitleTool() {
       {error ? <p className="mt-4 rounded-lg border border-coral/25 bg-coral/10 px-3 py-2 text-sm font-bold text-coral">{error}</p> : null}
       <p className="mt-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wide text-ink/45">
         <ShieldCheck size={15} />
-        Downloads public captions only
+        {text.captionsOnly}
       </p>
     </div>
   );

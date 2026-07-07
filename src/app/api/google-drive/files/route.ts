@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {getCurrentUser} from "@/lib/auth";
+import {normalizeDurationSeconds} from "@/lib/duration";
 import {fetchDriveJson, getFreshDriveConnection} from "@/lib/google-drive";
 
 type DriveFilesResponse = {
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
       sizeBytes: file.size ? Number(file.size) : undefined,
       webViewLink: file.webViewLink,
       thumbnailUrl: file.thumbnailLink,
-      durationSeconds: file.videoMediaMetadata?.durationMillis ? Math.round(Number(file.videoMediaMetadata.durationMillis) / 1000) : undefined
+      durationSeconds: normalizeDurationSeconds(file.videoMediaMetadata?.durationMillis ? Number(file.videoMediaMetadata.durationMillis) / 1000 : undefined)
     }))
   });
 }

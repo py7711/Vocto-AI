@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {getTranscribeQueue} from "@/lib/queue";
+import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       where: {id: task.id},
       data: {status: "QUEUED", progress: 5, statusMessage: "YouTube 降级转写已进入队列。", errorCode: null, completedAt: null}
     });
-    await getTranscribeQueue().add("transcribe" as never, {
+    await enqueueTranscribeJob({
       taskId: task.id,
       sourceType: "YOUTUBE",
       sourceUrl: task.sourceUrl,

@@ -3,8 +3,8 @@ import {z} from "zod";
 import {createEmailVerificationToken, hashPasswordCredential, isPasswordCredential, setSessionCookie} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {sendVerificationEmail} from "@/lib/email";
-import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     });
 
     const token = await createEmailVerificationToken(user.id);
-    const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    const appUrl = getRequestOrigin(request);
     const verificationUrl = `${appUrl}/${input.locale}/auth/verify-email?token=${encodeURIComponent(token)}`;
     const emailResult = await sendVerificationEmail({
       to: user.email,

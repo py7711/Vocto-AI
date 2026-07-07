@@ -1,11 +1,16 @@
-import {LegalPage} from "@/components/legal-pages";
+import {getLegalPageCopy, LegalPage} from "@/components/legal-pages";
 
-export const metadata = {
-  title: {
-    absolute: "Terms of Service | UniScribe - AI Audio & Video Transcription"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  const copy = getLegalPageCopy(params.locale, "terms");
 
-export default function TermsOfServiceRoute() {
-  return <LegalPage type="terms" />;
+  return {
+    title: {
+      absolute: `${copy.title} | UniScribe`
+    },
+    description: copy.description
+  };
+}
+
+export default function TermsOfServiceRoute({params}: {params: {locale: string}}) {
+  return <LegalPage type="terms" locale={params.locale} />;
 }

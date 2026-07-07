@@ -1,10 +1,9 @@
 import {ForgotPasswordPage} from "@/components/auth-pages";
+import {authMetadata} from "@/lib/auth-metadata";
 
-export const metadata = {
-  title: {
-    absolute: "Forgot Password | UniScribe - AI Audio & Video Transcription"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  return authMetadata(params.locale, "forgot");
+}
 
 export default function ForgotPasswordRoute() {
   return <ForgotPasswordPage />;

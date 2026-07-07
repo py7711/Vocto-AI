@@ -35,12 +35,23 @@ export async function DELETE(_request: Request, {params}: {params: {folderId: st
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({error: "请先登录后再删除文件夹。"}, {status: 401});
 
-    const result = await prisma.folder.deleteMany({
-      where: {id: params.folderId, userId: user.id}
+    const folder = await prisma.folder.findFirst({
+      where: {id: params.folderId, userId: user.id},
+      select: {id: true}
     });
-    if (!result.count) return NextResponse.json({error: "文件夹不存在。"}, {status: 404});
+    if (!folder) return NextResponse.json({error: "文件夹不存在。"}, {status: 404});
 
-    return NextResponse.json({ok: true});
+    const result = await prisma.$transaction(async (tx) => {
+      const deletedTasks = await tx.mediaTask.deleteMany({
+        where: {folderId: folder.id, userId: user.id}
+      });
+      await tx.folder.delete({
+        where: {id: folder.id}
+      });
+      return deletedTasks;
+    });
+
+    return NextResponse.json({ok: true, deletedTaskCount: result.count});
   } catch (error) {
     const message = error instanceof Error ? error.message : "无法删除文件夹。";
     return NextResponse.json({error: message}, {status: 400});

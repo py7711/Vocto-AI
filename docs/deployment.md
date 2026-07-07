@@ -109,8 +109,17 @@ https://你的域名/api/billing/webhook
 ### 2.7 认证与邮件变量
 
 ```bash
-RESEND_API_KEY=""
 EMAIL_FROM="UniScribe <no-reply@example.com>"
+
+# SMTP 发信（如 Spacemail），优先于 Resend 使用
+SMTP_HOST="mail.spacemail.com"
+SMTP_PORT="465"
+SMTP_USER="admin@example.com"
+SMTP_PASSWORD=""
+
+# 备用：Resend REST API（未配置 SMTP_HOST 时生效）
+RESEND_API_KEY=""
+
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 ```
@@ -124,10 +133,10 @@ https://你的域名/api/auth/google/callback
 如果启用 Google Drive 导入，还需要在同一个 OAuth 客户端中加入：
 
 ```bash
-https://你的域名/api/google-drive/callback
+https://你的域名/auth/google-drive/callback
 ```
 
-邮箱验证使用 Resend REST API。未配置 `RESEND_API_KEY` 时，注册接口仍会生成验证链接并返回给前端，方便本地和测试环境完成验证流程。
+邮箱验证优先使用 SMTP 发信（配置 `SMTP_HOST` 后生效，例如 Spacemail：`mail.spacemail.com`，465 端口隐式 TLS）；未配置 `SMTP_HOST` 时回退到 Resend REST API；两者都未配置时，注册接口仍会生成验证链接并返回给前端，方便本地和测试环境完成验证流程。
 
 ### 2.8 媒体解析依赖
 

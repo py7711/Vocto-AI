@@ -2,10 +2,11 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {driveDownloadUrl, fetchDriveJson, getFreshDriveConnection} from "@/lib/google-drive";
-import {getTranscribeQueue} from "@/lib/queue";
+import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {putObject} from "@/lib/storage";
-import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeDurationSeconds} from "@/lib/duration";
+import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
 const importSchema = z.object({
@@ -25,6 +26,9 @@ type DriveFile = {
   mimeType?: string;
   size?: string;
   webViewLink?: string;
+  videoMediaMetadata?: {
+    durationMillis?: string;
+  };
 };
 
 function cleanDriveFileName(name: string) {
@@ -66,7 +70,7 @@ export async function POST(request: Request) {
     if (!connection) return NextResponse.json({error: "尚未连接 Google Drive。"}, {status: 404});
 
     const fileUrl = new URL(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(input.fileId)}`);
-    fileUrl.searchParams.set("fields", "id,name,mimeType,size,webViewLink");
+    fileUrl.searchParams.set("fields", "id,name,mimeType,size,webViewLink,videoMediaMetadata(durationMillis)");
     const file = await fetchDriveJson<DriveFile>(connection, fileUrl.toString());
     if (!file.mimeType?.startsWith("audio/") && !file.mimeType?.startsWith("video/")) {
       return NextResponse.json({error: "只能导入音频或视频文件。"}, {status: 400});
@@ -75,11 +79,16 @@ export async function POST(request: Request) {
       file,
       accessToken: connection.accessToken
     });
+    const durationSeconds = normalizeDurationSeconds(file.videoMediaMetadata?.durationMillis ? Number(file.videoMediaMetadata.durationMillis) / 1000 : undefined);
 
     const task = await prisma.$transaction(async (tx) => {
       // 创建任务、免费次数校验和额度预留必须在同一个事务内完成。
       // 如果其中任一步失败，数据库里不会留下已排队但没有额度记录的 Drive 导入任务。
+      await assertFreeMinutesCanCoverDuration({userId: user.id, durationSeconds, tx});
       await assertAndUpdateFreeDailyQuota({userId: user.id, tx});
+      if (input.enableSpeakerLabels) {
+        await assertFreeSpeakerIdentificationQuota({userId: user.id, tx});
+      }
       if (input.folderId) {
         const folder = await tx.folder.findFirst({where: {id: input.folderId, userId: user.id}, select: {id: true}});
         if (!folder) throw new Error("文件夹不存在或无权访问。");
@@ -93,6 +102,7 @@ export async function POST(request: Request) {
           sourceUrl: stored.publicUrl,
           objectKey: stored.key,
           originalName: file.name,
+          durationSeconds,
           fileSizeBytes: file.size ? BigInt(file.size) : BigInt(stored.sizeBytes),
           status: "QUEUED",
           statusMessage: "Google Drive 文件已进入队列。",
@@ -100,17 +110,32 @@ export async function POST(request: Request) {
         }
       });
 
+      await tx.mediaAsset.create({
+        data: {
+          mediaTaskId: created.id,
+          kind: "SOURCE_MEDIA",
+          chunkIndex: -1,
+          url: stored.publicUrl,
+          objectKey: stored.key,
+          fileName: file.name,
+          contentType: file.mimeType,
+          sizeBytes: file.size ? BigInt(file.size) : BigInt(stored.sizeBytes),
+          durationSeconds,
+          metadata: {sourceType: "GOOGLE_DRIVE", speakerLabelsRequested: input.enableSpeakerLabels}
+        }
+      });
+
       await reserveQuotaForTask({
         userId: user.id,
         mediaTaskId: created.id,
-        estimatedMinutes: estimatedMinutesFromFileSize(file.size ? Number(file.size) : undefined),
+        estimatedMinutes: billableMinutesFromDurationSeconds(durationSeconds) ?? estimatedMinutesFromFileSize(file.size ? Number(file.size) : undefined),
         tx
       });
       return created;
     });
 
     try {
-      await getTranscribeQueue().add("transcribe" as never, {
+      await enqueueTranscribeJob({
         taskId: task.id,
         sourceType: "UPLOAD",
         sourceUrl: task.sourceUrl,

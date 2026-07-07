@@ -2,7 +2,7 @@ import "server-only";
 
 import {createHash, createHmac, timingSafeEqual, randomBytes, scrypt as scryptCallback} from "crypto";
 import {promisify} from "util";
-import {cookies} from "next/headers";
+import {cookies, headers} from "next/headers";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 
@@ -21,6 +21,17 @@ function sign(value: string) {
 function encodeSession(userId: string) {
   const payload = Buffer.from(JSON.stringify({userId, issuedAt: Date.now()})).toString("base64url");
   return `${payload}.${sign(payload)}`;
+}
+
+function shouldUseSecureCookie() {
+  const requestHeaders = headers();
+  const host = requestHeaders.get("host")?.split(":")[0]?.toLowerCase();
+  if (host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "::1") return false;
+
+  const forwardedProto = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  if (forwardedProto) return forwardedProto === "https";
+
+  return env.NEXT_PUBLIC_APP_URL.startsWith("https://");
 }
 
 function decodeSession(token: string | undefined) {
@@ -92,7 +103,7 @@ export async function setSessionCookie(userId: string) {
   cookies().set(sessionCookieName, encodeSession(userId), {
     httpOnly: true,
     sameSite: "lax",
-    secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
+    secure: shouldUseSecureCookie(),
     maxAge: sessionMaxAgeSeconds,
     path: "/"
   });
@@ -106,7 +117,7 @@ export function setSignedStateCookie(name: string, state: string, maxAge = 10 * 
   cookies().set(name, `${state}.${sign(state)}`, {
     httpOnly: true,
     sameSite: "lax",
-    secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
+    secure: shouldUseSecureCookie(),
     maxAge,
     path: "/"
   });
@@ -121,7 +132,7 @@ export function consumeSignedStateCookie(name: string, expectedState: string) {
   cookies().set(name, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
+    secure: shouldUseSecureCookie(),
     maxAge: 0,
     path: "/"
   });
@@ -139,7 +150,7 @@ export function clearSessionCookie() {
   cookies().set(sessionCookieName, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: env.NEXT_PUBLIC_APP_URL.startsWith("https://"),
+    secure: shouldUseSecureCookie(),
     maxAge: 0,
     path: "/"
   });
@@ -219,10 +230,18 @@ export async function getCurrentUser() {
       image: true,
       role: true,
       locale: true,
+      passwordHash: true,
       emailVerifiedAt: true,
       lastLoginAt: true,
       dailyFreeCount: true,
       dailyResetAt: true,
+      oauthAccounts: {
+        select: {
+          provider: true,
+          email: true,
+          avatarUrl: true
+        }
+      },
       subscriptions: {
         orderBy: {createdAt: "desc"},
         take: 1,
@@ -240,5 +259,5 @@ export async function getCurrentUser() {
         }
       }
     }
-  });
+  }).then((user) => user ? {...user, passwordSet: Boolean(user.passwordHash), passwordHash: undefined} : null);
 }

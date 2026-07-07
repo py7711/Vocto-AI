@@ -1,7 +1,10 @@
 "use client";
 
 import {useMemo, useState} from "react";
+import {useLocale} from "next-intl";
 import {Download} from "lucide-react";
+import {CompactCheckbox} from "@/components/target-controls";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
 
 const formats = ["txt", "srt", "vtt", "json", "md", "csv", "docx", "pdf"];
 
@@ -21,6 +24,8 @@ function buildQuery(input: {
 }
 
 export function ShareExportLinks({token}: {token: string}) {
+  const locale = useLocale();
+  const copy = getWorkspaceCopy(locale);
   const [showSpeaker, setShowSpeaker] = useState(true);
   const [showTimestamp, setShowTimestamp] = useState(true);
   const [subtitleMaxChars, setSubtitleMaxChars] = useState(84);
@@ -33,20 +38,20 @@ export function ShareExportLinks({token}: {token: string}) {
   return (
     <div>
       <div className="grid gap-2 rounded-md border border-ink/10 bg-paper/45 p-3 text-xs font-bold text-ink/60">
-        <label className="flex items-center justify-between gap-2">
-          Speaker names
-          <input type="checkbox" checked={showSpeaker} onChange={(event) => setShowSpeaker(event.target.checked)} className="h-4 w-4 accent-violet" />
-        </label>
-        <label className="flex items-center justify-between gap-2">
-          Timestamps
-          <input type="checkbox" checked={showTimestamp} onChange={(event) => setShowTimestamp(event.target.checked)} className="h-4 w-4 accent-violet" />
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <span>{copy.speakerNames}</span>
+          <CompactCheckbox checked={showSpeaker} onChange={setShowSpeaker} label={copy.speakerNames} />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span>{copy.timestamps}</span>
+          <CompactCheckbox checked={showTimestamp} onChange={setShowTimestamp} label={copy.timestamps} />
+        </div>
         <label className="grid gap-1">
-          Subtitle max chars
+          {copy.subtitleMaxChars}
           <input type="number" min={1} max={2000} value={subtitleMaxChars} onChange={(event) => setSubtitleMaxChars(Number(event.target.value) || 84)} className="field h-9 bg-white text-sm" />
         </label>
         <label className="grid gap-1">
-          Subtitle max seconds
+          {copy.subtitleMaxSeconds}
           <input type="number" min={0.1} max={60} step={0.1} value={subtitleMaxDurationSeconds} onChange={(event) => setSubtitleMaxDurationSeconds(Number(event.target.value) || 6)} className="field h-9 bg-white text-sm" />
         </label>
       </div>

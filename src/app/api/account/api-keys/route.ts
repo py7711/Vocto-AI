@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
-import {createDeveloperSecret, ensurePersonalTeam} from "@/lib/developer-settings";
+import {apiAccessRequiredMessage, createDeveloperSecret, ensurePersonalTeam, hasDeveloperApiAccess} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
 
 const createSchema = z.object({
@@ -13,6 +13,9 @@ const createSchema = z.object({
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
+  if (!(await hasDeveloperApiAccess(user.id))) {
+    return NextResponse.json({error: apiAccessRequiredMessage}, {status: 403});
+  }
   const team = await ensurePersonalTeam(user.id);
   const apiKeys = await prisma.apiKey.findMany({
     where: {teamId: team.id},
@@ -26,6 +29,9 @@ export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
+    if (!(await hasDeveloperApiAccess(user.id))) {
+      return NextResponse.json({error: apiAccessRequiredMessage}, {status: 403});
+    }
     const input = createSchema.parse(await request.json());
     const team = await ensurePersonalTeam(user.id);
     const secret = createDeveloperSecret("usk");

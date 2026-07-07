@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
-import {createDeveloperSecret, ensurePersonalTeam} from "@/lib/developer-settings";
+import {apiAccessRequiredMessage, createDeveloperSecret, ensurePersonalTeam, hasDeveloperApiAccess} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
 
 const updateSchema = z.object({
@@ -13,6 +13,9 @@ export async function PATCH(request: Request, {params}: {params: {apiKeyId: stri
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
+    if (!(await hasDeveloperApiAccess(user.id))) {
+      return NextResponse.json({error: apiAccessRequiredMessage}, {status: 403});
+    }
     const input = updateSchema.parse(await request.json());
     const team = await ensurePersonalTeam(user.id);
     const updated = await prisma.apiKey.updateMany({
@@ -30,6 +33,9 @@ export async function PATCH(request: Request, {params}: {params: {apiKeyId: stri
 export async function POST(_request: Request, {params}: {params: {apiKeyId: string}}) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
+  if (!(await hasDeveloperApiAccess(user.id))) {
+    return NextResponse.json({error: apiAccessRequiredMessage}, {status: 403});
+  }
   const team = await ensurePersonalTeam(user.id);
   const secret = createDeveloperSecret("usk");
   const updated = await prisma.apiKey.updateMany({
@@ -43,10 +49,14 @@ export async function POST(_request: Request, {params}: {params: {apiKeyId: stri
 export async function DELETE(_request: Request, {params}: {params: {apiKeyId: string}}) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
+  if (!(await hasDeveloperApiAccess(user.id))) {
+    return NextResponse.json({error: apiAccessRequiredMessage}, {status: 403});
+  }
   const team = await ensurePersonalTeam(user.id);
-  await prisma.apiKey.updateMany({
+  const updated = await prisma.apiKey.updateMany({
     where: {id: params.apiKeyId, teamId: team.id},
     data: {status: "REVOKED", revokedAt: new Date()}
   });
+  if (!updated.count) return NextResponse.json({error: "API Key 不存在。"}, {status: 404});
   return NextResponse.json({ok: true});
 }

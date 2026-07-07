@@ -1,10 +1,14 @@
 import {Prisma} from "@prisma/client";
+import {subscriptionGrantsMembership} from "@/lib/membership-shared";
 import {prisma, prismaTransactionOptions} from "@/lib/prisma";
 
 // 用量结算既会被 Next.js API 路由调用，也会被转写 worker 在任务完成/失败后调用。
 // 因此本模块不能使用 `server-only`：worker 是普通 Node 进程，没有 Next 的 Server Component
 // 编译上下文，导入 `server-only` 会在启动时直接抛错。
 export const freeDailyFileLimit = 3;
+export const freeSpeakerIdentificationLimit = 3;
+export const freeSpeakerIdentificationLimitMessage = "Speaker identification is limited to 3 free uses. Upgrade to continue.";
+export const insufficientFreeMinutesMessage = "Insufficient free minutes, please upgrade your plan.";
 
 function secondsToBillableMinutes(seconds: number | null | undefined) {
   if (!seconds || seconds <= 0) return 1;
@@ -87,6 +91,10 @@ export async function settleQuotaForCompletedTask(input: {
     });
     if (!subscription) return null;
 
+    if (subscription.plan === "FREE" && actualMinutes > subscription.remainingMinutes + task.quotaMinutes) {
+      throw new Error(insufficientFreeMinutesMessage);
+    }
+
     // 结算只调整“预留分钟”和“实际分钟”的差额：
     // delta > 0 表示退回多预留的分钟，delta < 0 表示任务比预估更长，需要补扣。
     const delta = task.quotaMinutes - actualMinutes;
@@ -114,6 +122,42 @@ export async function settleQuotaForCompletedTask(input: {
 
     return {actualMinutes, delta};
   }, prismaTransactionOptions);
+}
+
+export async function assertFreeMinutesCanCoverDuration(input: {
+  userId: string;
+  durationSeconds?: number | null;
+  mediaTaskId?: string;
+  tx?: PrismaClientLike;
+}) {
+  if (!input.durationSeconds || input.durationSeconds <= 0) return;
+  const requiredMinutes = secondsToBillableMinutes(input.durationSeconds);
+
+  async function run(tx: PrismaClientLike) {
+    const subscriptions = await tx.subscription.findMany({
+      where: {userId: input.userId, status: {in: ["TRIALING", "ACTIVE"]}},
+      orderBy: {createdAt: "desc"},
+      select: {id: true, plan: true, status: true, remainingMinutes: true}
+    });
+
+    if (subscriptions.some(subscriptionGrantsMembership)) return;
+    const freeSubscription = subscriptions.find((subscription) => subscription.plan === "FREE");
+    if (!freeSubscription) return;
+
+    const task = input.mediaTaskId
+      ? await tx.mediaTask.findFirst({
+          where: {id: input.mediaTaskId, userId: input.userId},
+          select: {quotaMinutes: true}
+        })
+      : null;
+    const availableMinutes = freeSubscription.remainingMinutes + (task?.quotaMinutes ?? 0);
+    if (requiredMinutes > availableMinutes) {
+      throw new Error(insufficientFreeMinutesMessage);
+    }
+  }
+
+  if (input.tx) return run(input.tx);
+  return prisma.$transaction((tx) => run(tx), prismaTransactionOptions);
 }
 
 export async function releaseQuotaForFailedTask(mediaTaskId: string) {
@@ -187,12 +231,53 @@ export async function assertAndUpdateFreeDailyQuota(input: {userId: string; tx?:
   return prisma.$transaction((tx) => run(tx), prismaTransactionOptions);
 }
 
+export async function assertFreeSpeakerIdentificationQuota(input: {userId: string; tx?: PrismaClientLike}) {
+  async function run(tx: PrismaClientLike) {
+    const subscriptions = await tx.subscription.findMany({
+      where: {userId: input.userId, status: {in: ["TRIALING", "ACTIVE"]}},
+      orderBy: {createdAt: "desc"},
+      select: {plan: true, status: true}
+    });
+
+    if (subscriptions.some(subscriptionGrantsMembership) || !subscriptions.some((subscription) => subscription.plan === "FREE")) return;
+
+    const usedCount = await tx.mediaTask.count({
+      where: {
+        userId: input.userId,
+        OR: [
+          {
+            mediaAssets: {
+              some: {
+                kind: "SOURCE_MEDIA",
+                metadata: {path: "$.speakerLabelsRequested", equals: true}
+              }
+            }
+          },
+          {speakerCount: {not: null}}
+        ]
+      }
+    });
+
+    if (usedCount >= freeSpeakerIdentificationLimit) {
+      throw new Error(freeSpeakerIdentificationLimitMessage);
+    }
+  }
+
+  if (input.tx) return run(input.tx);
+  return prisma.$transaction((tx) => run(tx), prismaTransactionOptions);
+}
+
 export function estimatedMinutesFromFileSize(fileSizeBytes: number | undefined) {
   if (!fileSizeBytes) return 1;
   // 粗略估算：按压缩音视频常见 12MB/分钟保守预留，避免大文件瞬间超用量。
   return Math.max(1, Math.ceil(fileSizeBytes / (12 * 1024 * 1024)));
 }
 
+export function billableMinutesFromDurationSeconds(durationSeconds: number | null | undefined) {
+  if (!durationSeconds || durationSeconds <= 0) return undefined;
+  return secondsToBillableMinutes(durationSeconds);
+}
+
 export function quotaErrorStatus(message: string) {
-  return message.includes("额度") || message.includes("订阅") ? 402 : 400;
+  return message.includes("额度") || message.includes("订阅") || message.includes("Speaker identification") || message === insufficientFreeMinutesMessage ? 402 : 400;
 }

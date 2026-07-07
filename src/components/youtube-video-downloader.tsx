@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {useLocale} from "next-intl";
 import {Download, ExternalLink, Loader2, Search, ShieldCheck} from "lucide-react";
+import {getYoutubeToolCopy} from "@/components/youtube-tool-copy";
 
 type VideoInfo = {
   sourceUrl: string;
@@ -21,6 +22,7 @@ function formatDuration(seconds?: number) {
 
 export function YoutubeVideoDownloader() {
   const locale = useLocale();
+  const text = getYoutubeToolCopy(locale);
   const [url, setUrl] = useState("");
   const [info, setInfo] = useState<VideoInfo | null>(null);
   const [downloadUrl, setDownloadUrl] = useState("");
@@ -47,7 +49,7 @@ export function YoutubeVideoDownloader() {
         body: JSON.stringify({url: target})
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "无法读取视频信息。");
+      if (!response.ok) throw new Error(body.error ?? text.infoError);
       setInfo(body as VideoInfo);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -68,7 +70,7 @@ export function YoutubeVideoDownloader() {
         body: JSON.stringify({url: target})
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "无法准备视频下载地址。");
+      if (!response.ok) throw new Error(body.error ?? text.prepareError);
       setDownloadUrl(String(body.downloadUrl ?? ""));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -82,11 +84,11 @@ export function YoutubeVideoDownloader() {
       <div className="grid gap-3 md:grid-cols-[1fr_auto]">
         <label className="field flex h-12 items-center gap-2 bg-white">
           <Search size={18} className="text-ink/40" />
-          <input value={url} onChange={(event) => setUrl(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" placeholder="Paste a YouTube video URL" />
+          <input value={url} onChange={(event) => setUrl(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" placeholder={text.placeholder} />
         </label>
         <button type="button" onClick={inspectVideo} disabled={!url.trim() || busy} className="btn-primary h-12">
           {busy ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-          Check video
+          {text.checkVideo}
         </button>
       </div>
 
@@ -103,10 +105,10 @@ export function YoutubeVideoDownloader() {
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" onClick={prepareDownload} disabled={downloading} className="btn-outline h-10">
                 {downloading ? <Loader2 className="animate-spin" size={17} /> : <Download size={17} />}
-                Prepare download
+                {text.prepareDownload}
               </button>
               <a href={`/${locale}/upload?mode=link&url=${encodeURIComponent(info.sourceUrl || url)}`} className="btn-ghost h-10">
-                Transcribe instead
+                {text.transcribeInstead}
               </a>
             </div>
           </div>
@@ -115,11 +117,11 @@ export function YoutubeVideoDownloader() {
 
       {downloadUrl ? (
         <div className="mt-4 rounded-lg border border-sage/20 bg-sage/10 p-4 text-left">
-          <p className="font-black text-ink">Download link ready</p>
-          <p className="mt-1 break-all text-sm font-bold text-ink/55">The link is generated from the public YouTube media source and can expire.</p>
+          <p className="font-black text-ink">{text.readyTitle}</p>
+          <p className="mt-1 break-all text-sm font-bold text-ink/55">{text.readyText}</p>
           <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="btn-primary mt-3">
             <ExternalLink size={17} />
-            Open download
+            {text.openDownload}
           </a>
         </div>
       ) : null}
@@ -127,7 +129,7 @@ export function YoutubeVideoDownloader() {
       {error ? <p className="mt-4 rounded-lg border border-coral/25 bg-coral/10 px-3 py-2 text-sm font-bold text-coral">{error}</p> : null}
       <p className="mt-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wide text-ink/45">
         <ShieldCheck size={15} />
-        Public videos only - respect creator rights and platform terms
+        {text.videosOnly}
       </p>
     </div>
   );

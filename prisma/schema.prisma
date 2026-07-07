@@ -678,6 +678,8 @@ model AIInsight {
   content     Json
   /// 生成洞察使用的模型
   model       String?     @db.VarChar(128)
+  /// 洞察累计生成次数（用于免费套餐摘要重新生成限额）
+  generationCount Int     @default(1)
   /// 洞察创建时间
   createdAt   DateTime    @default(now())
   /// 洞察更新时间

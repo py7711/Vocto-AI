@@ -1,11 +1,16 @@
-import {InfoPage} from "@/components/info-pages";
+import {getInfoPageCopy, InfoPage} from "@/components/info-pages";
 
-export const metadata = {
-  title: {
-    absolute: "UniScribe Affiliate Program | Earn 30% Commission"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  const copy = getInfoPageCopy(params.locale, "affiliate");
 
-export default function AffiliateRoute() {
-  return <InfoPage type="affiliate" />;
+  return {
+    title: {
+      absolute: `${copy.title} | UniScribe`
+    },
+    description: copy.description
+  };
+}
+
+export default function AffiliateRoute({params}: {params: {locale: string}}) {
+  return <InfoPage type="affiliate" locale={params.locale} />;
 }

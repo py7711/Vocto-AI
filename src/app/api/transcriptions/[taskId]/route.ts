@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
+import {getRequestOrigin} from "@/lib/request-origin";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {serializeCompatTask} from "@/lib/transcription-compat";
 import {releaseQuotaForFailedTask} from "@/lib/usage";
@@ -22,6 +23,7 @@ const updateSchema = z.object({
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
+    const locale = new URL(request.url).searchParams.get("locale") ?? undefined;
     // 兼容详情接口需要一次性带出 transcript、insights、folder 和最新分享链接，
     // serializeCompatTask 会在当前任务模型外补回旧字段名。
     const task = await prisma.mediaTask.findUnique({
@@ -30,11 +32,25 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
         transcript: true,
         insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
-        shareLinks: {where: {enabled: true}, orderBy: {createdAt: "desc"}, take: 1}
+        shareLinks: {
+          where: {enabled: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
+          orderBy: {createdAt: "desc"},
+          take: 1
+        }
       }
     });
     if (!task) return NextResponse.json({error: "转写任务不存在。"}, {status: 404});
-    return NextResponse.json(serializeCompatTask(task));
+    return NextResponse.json(serializeCompatTask(task, {locale, appUrl: getRequestOrigin(request)}));
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
@@ -45,6 +61,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
 export async function PATCH(request: Request, {params}: {params: {taskId: string}}) {
   try {
     await assertTaskAccess(params.taskId, "write", request.headers);
+    const locale = new URL(request.url).searchParams.get("locale") ?? undefined;
     const input = updateSchema.parse(await request.json().catch(() => ({})));
     const data: {originalName?: string; language?: string; speakerCount?: number | null; statusMessage?: string} = {};
     const filename = input.filename ?? input.originalName;
@@ -66,11 +83,25 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
         transcript: true,
         insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
-        shareLinks: {where: {enabled: true}, orderBy: {createdAt: "desc"}, take: 1}
+        shareLinks: {
+          where: {enabled: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
+          orderBy: {createdAt: "desc"},
+          take: 1
+        }
       }
     });
     await publishTaskUpdate(params.taskId);
-    return NextResponse.json(serializeCompatTask(task));
+    return NextResponse.json(serializeCompatTask(task, {locale, appUrl: getRequestOrigin(request)}));
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});

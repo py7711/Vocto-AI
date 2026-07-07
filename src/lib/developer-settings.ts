@@ -1,6 +1,8 @@
 import {createHash, randomBytes} from "crypto";
 import {prisma} from "@/lib/prisma";
 
+export const apiAccessRequiredMessage = "API access requires an active subscription or LTD plan";
+
 function hashDeveloperSecret(value: string) {
   // API Key 和 webhook secret 只保存 SHA-256 摘要；创建后明文 token 不再入库。
   return createHash("sha256").update(value).digest("hex");
@@ -53,6 +55,7 @@ export async function authenticateApiKey(request: Request) {
   });
 
   if (!apiKey) return null;
+  if (!(await hasDeveloperApiAccess(apiKey.team.ownerId))) return null;
 
   await prisma.apiKey.update({
     where: {id: apiKey.id},
@@ -109,4 +112,17 @@ export async function ensurePersonalTeam(userId: string) {
     },
     select: {id: true}
   });
+}
+
+export async function hasDeveloperApiAccess(userId: string) {
+  const subscription = await prisma.subscription.findFirst({
+    where: {
+      userId,
+      plan: {not: "FREE"},
+      status: {in: ["TRIALING", "ACTIVE", "PAST_DUE", "INCOMPLETE"]}
+    },
+    select: {id: true}
+  });
+
+  return Boolean(subscription);
 }

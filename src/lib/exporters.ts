@@ -92,8 +92,70 @@ function displaySegmentText(segment: Segment, options: ExportOptions = {}) {
   return `${speaker}${segment.text}`;
 }
 
+type Word = {
+  start: number;
+  end: number;
+  word: string;
+  speaker?: string;
+};
+
+function words(transcript: Transcript): Word[] {
+  return Array.isArray(transcript.words) ? (transcript.words as Word[]) : [];
+}
+
+// 基于词级时间戳生成字幕 cue：按发言人切换、最大字符数、最大时长切分，时间对齐真实词边界。
+// 相比按整段均分估算，字幕起止更精确，是「Generate Subtitle」的核心优化。
+function wordCues(list: Word[], options: ExportOptions = {}): Segment[] {
+  const maxChars = options.subtitleMaxChars && options.subtitleMaxChars > 0 ? Math.floor(options.subtitleMaxChars) : 84;
+  const maxDuration =
+    options.subtitleMaxDurationSeconds && options.subtitleMaxDurationSeconds > 0 ? options.subtitleMaxDurationSeconds : 6;
+
+  const cues: Segment[] = [];
+  let current: Word[] = [];
+  let currentSpeaker: string | undefined;
+
+  const flush = () => {
+    if (!current.length) return;
+    cues.push({
+      start: current[0].start,
+      end: current[current.length - 1].end,
+      text: current.map((w) => w.word).join(" ").replace(/\s+([,.!?;:])/g, "$1").trim(),
+      speaker: currentSpeaker
+    });
+    current = [];
+  };
+
+  for (const word of list) {
+    if (!word || typeof word.word !== "string") continue;
+    const speaker = word.speaker;
+    const nextText = [...current.map((w) => w.word), word.word].join(" ");
+    const nextDuration = current.length ? word.end - current[0].start : 0;
+    const speakerChanged = current.length > 0 && speaker !== currentSpeaker;
+    const overflow = current.length > 0 && (nextText.length > maxChars || nextDuration > maxDuration);
+
+    if (speakerChanged || overflow) {
+      flush();
+    }
+    if (!current.length) {
+      currentSpeaker = speaker;
+    }
+    current.push(word);
+  }
+  flush();
+  return cues;
+}
+
+// 有词级时间戳时优先按词切分，否则回退到按段落均分估算。
+function subtitleCues(transcript: Transcript, options: ExportOptions = {}): Segment[] {
+  const wordList = words(transcript);
+  if (wordList.length > 0) {
+    return wordCues(wordList, options);
+  }
+  return cueSegments(segments(transcript), options);
+}
+
 export function renderSrt(transcript: Transcript, options: ExportOptions = {}) {
-  return cueSegments(segments(transcript), options)
+  return subtitleCues(transcript, options)
     .map((segment, index) => {
       return `${index + 1}\n${stamp(segment.start, ",")} --> ${stamp(segment.end, ",")}\n${displaySegmentText(segment, options)}`;
     })
@@ -101,7 +163,7 @@ export function renderSrt(transcript: Transcript, options: ExportOptions = {}) {
 }
 
 export function renderVtt(transcript: Transcript, options: ExportOptions = {}) {
-  return `WEBVTT\n\n${cueSegments(segments(transcript), options)
+  return `WEBVTT\n\n${subtitleCues(transcript, options)
     .map((segment) => {
       const speaker = options.showSpeakerName !== false && segment.speaker ? `<v ${segment.speaker}>` : "";
       return `${stamp(segment.start, ".")} --> ${stamp(segment.end, ".")}\n${speaker}${segment.text}`;

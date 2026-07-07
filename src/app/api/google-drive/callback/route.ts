@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const token = await exchangeDriveCode(code);
-    const email = await fetchDriveEmail(token.access_token!);
+    const email = (await fetchDriveEmail(token.access_token!)) ?? user.email.toLowerCase();
     const existing = await prisma.googleDriveConnection.findUnique({where: {userId: user.id}});
     await prisma.googleDriveConnection.upsert({
       where: {userId: user.id},

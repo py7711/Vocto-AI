@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
-import {billingPlans, type BillingPlan, verifyStripeWebhookSignature} from "@/lib/billing";
-import {prisma} from "@/lib/prisma";
+import {addonPacks, billingPlans, oneTimePacks, type AddonPack, type BillingPlan, type OneTimePack, verifyStripeWebhookSignature} from "@/lib/billing";
+import {prisma, prismaTransactionOptions} from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +79,122 @@ async function updateSubscriptionFromCheckoutSession(session: any) {
   });
 }
 
+async function creditOneTimePackFromCheckoutSession(session: any) {
+  const userId = session.metadata?.userId;
+  const packKey = session.metadata?.pack as OneTimePack | undefined;
+  const stripeCustomerId = session.customer ? String(session.customer) : null;
+  const sessionId = session.id ? String(session.id) : null;
+  if (!userId || !packKey || !oneTimePacks[packKey] || !stripeCustomerId || !sessionId) return;
+
+  const pack = oneTimePacks[packKey];
+  const reason = `Stripe one-time pack ${pack.planId} session ${sessionId}`;
+
+  await prisma.$transaction(async (tx) => {
+    const existingLedger = await tx.usageLedger.findFirst({
+      where: {userId, reason},
+      select: {id: true}
+    });
+    if (existingLedger) return;
+
+    let subscription = await tx.subscription.findFirst({
+      where: {userId, stripeCustomerId},
+      orderBy: {createdAt: "desc"}
+    });
+
+    subscription ??= await tx.subscription.findFirst({
+      where: {userId, status: {in: ["TRIALING", "ACTIVE"]}},
+      orderBy: {createdAt: "desc"}
+    });
+
+    if (!subscription) {
+      subscription = await tx.subscription.create({
+        data: {
+          userId,
+          stripeCustomerId,
+          plan: "FREE",
+          status: "ACTIVE",
+          monthlyMinuteQuota: 120 + pack.minutes,
+          remainingMinutes: 120 + pack.minutes,
+          maxSingleFileMinutes: 600,
+          currentPeriodEnd: new Date(Date.now() + pack.validityDays * 24 * 60 * 60 * 1000)
+        }
+      });
+    } else {
+      const canAttachCustomerId = !subscription.stripeCustomerId;
+      await tx.subscription.update({
+        where: {id: subscription.id},
+        data: {
+          ...(canAttachCustomerId ? {stripeCustomerId} : {}),
+          status: subscription.status === "CANCELED" || subscription.status === "INCOMPLETE" ? "ACTIVE" : subscription.status,
+          monthlyMinuteQuota: {increment: pack.minutes},
+          remainingMinutes: {increment: pack.minutes},
+          maxSingleFileMinutes: Math.max(subscription.maxSingleFileMinutes, 600),
+          currentPeriodEnd: subscription.currentPeriodEnd ?? new Date(Date.now() + pack.validityDays * 24 * 60 * 60 * 1000)
+        }
+      });
+    }
+
+    await tx.usageLedger.create({
+      data: {
+        userId,
+        subscriptionId: subscription.id,
+        type: "ADJUST",
+        minutesDelta: pack.minutes,
+        reason
+      }
+    });
+  }, prismaTransactionOptions);
+}
+
+async function creditAddonPackFromCheckoutSession(session: any) {
+  const userId = session.metadata?.userId;
+  const addonKey = session.metadata?.addon as AddonPack | undefined;
+  const stripeCustomerId = session.customer ? String(session.customer) : null;
+  const sessionId = session.id ? String(session.id) : null;
+  if (!userId || !addonKey || !addonPacks[addonKey] || !stripeCustomerId || !sessionId) return;
+
+  const addon = addonPacks[addonKey];
+  const reason = `Stripe add-on pack ${addon.planId} session ${sessionId}`;
+
+  await prisma.$transaction(async (tx) => {
+    const existingLedger = await tx.usageLedger.findFirst({
+      where: {userId, reason},
+      select: {id: true}
+    });
+    if (existingLedger) return;
+
+    const subscription = await tx.subscription.findFirst({
+      where: {
+        userId,
+        status: {in: ["TRIALING", "ACTIVE"]},
+        plan: {not: "FREE"}
+      },
+      orderBy: {createdAt: "desc"}
+    });
+    if (!subscription) return;
+
+    const canAttachCustomerId = !subscription.stripeCustomerId;
+    await tx.subscription.update({
+      where: {id: subscription.id},
+      data: {
+        ...(canAttachCustomerId ? {stripeCustomerId} : {}),
+        monthlyMinuteQuota: {increment: addon.minutes},
+        remainingMinutes: {increment: addon.minutes}
+      }
+    });
+
+    await tx.usageLedger.create({
+      data: {
+        userId,
+        subscriptionId: subscription.id,
+        type: "ADJUST",
+        minutesDelta: addon.minutes,
+        reason
+      }
+    });
+  }, prismaTransactionOptions);
+}
+
 export async function POST(request: Request) {
   const payload = await request.text();
   try {
@@ -87,6 +203,8 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.completed") {
       await updateSubscriptionFromCheckoutSession(event.data.object);
+      await creditOneTimePackFromCheckoutSession(event.data.object);
+      await creditAddonPackFromCheckoutSession(event.data.object);
     }
 
     if (

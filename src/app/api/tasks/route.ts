@@ -1,12 +1,16 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
-import {getTranscribeQueue} from "@/lib/queue";
+import {enqueueTranscribeJob} from "@/lib/queue";
 import {anonymousUserId} from "@/lib/tasks";
 import {assertRateLimit} from "@/lib/rate-limit";
 import {getCurrentUser} from "@/lib/auth";
-import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeDurationSeconds} from "@/lib/duration";
+import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {jsonSafe} from "@/lib/json";
+import {getRequestOrigin} from "@/lib/request-origin";
+import {serializeShareLinkForOwner} from "@/lib/share-links";
 
 const createTaskSchema = z.object({
   sourceType: z.enum(["UPLOAD", "YOUTUBE", "GOOGLE_DRIVE"]),
@@ -20,7 +24,8 @@ const createTaskSchema = z.object({
   premiumModel: z.boolean().default(false),
   summaryTemplate: z.enum(summaryTemplateInputValues).default("standard"),
   summaryLanguage: z.string().default("en"),
-  fileSizeBytes: z.number().int().positive().optional()
+  fileSizeBytes: z.number().int().positive().optional(),
+  durationSeconds: z.number().positive().optional()
 });
 
 export async function GET(request: Request) {
@@ -31,6 +36,8 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
+    const locale = url.searchParams.get("locale") || user.locale;
+    const appUrl = getRequestOrigin(request);
     const take = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") || 30)));
     const folderId = url.searchParams.get("folderId");
     const tasks = await prisma.mediaTask.findMany({
@@ -63,7 +70,16 @@ export async function GET(request: Request) {
         },
         shareLinks: {
           where: {enabled: true},
-          select: {id: true, createdAt: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
           orderBy: {createdAt: "desc"},
           take: 1
         },
@@ -87,7 +103,14 @@ export async function GET(request: Request) {
       }
     });
 
-    return NextResponse.json({tasks});
+    return NextResponse.json({
+      tasks: jsonSafe(tasks.map((task) => ({
+        ...task,
+        shareLinks: task.shareLinks.map((shareLink) =>
+          serializeShareLinkForOwner(shareLink, {appUrl, locale})
+        )
+      })))
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "无法读取转写任务列表。";
     return NextResponse.json({error: message}, {status: 400});
@@ -105,7 +128,11 @@ export async function POST(request: Request) {
     // 任务创建和额度预留必须处于同一事务，避免额度不足时产生孤儿排队任务。
     const task = await prisma.$transaction(async (tx) => {
       if (quotaUserId) {
+        await assertFreeMinutesCanCoverDuration({userId: quotaUserId, durationSeconds: input.durationSeconds, tx});
         await assertAndUpdateFreeDailyQuota({userId: quotaUserId, tx});
+        if (input.enableSpeakerLabels) {
+          await assertFreeSpeakerIdentificationQuota({userId: quotaUserId, tx});
+        }
       }
 
       if (quotaUserId && input.folderId) {
@@ -125,6 +152,7 @@ export async function POST(request: Request) {
           objectKey: input.objectKey,
           originalName: input.originalName,
           language: input.language,
+          durationSeconds: normalizeDurationSeconds(input.durationSeconds),
           fileSizeBytes: input.fileSizeBytes,
           status: "QUEUED",
           statusMessage: "任务已进入队列。",
@@ -141,7 +169,8 @@ export async function POST(request: Request) {
           objectKey: input.objectKey,
           fileName: input.originalName,
           sizeBytes: input.fileSizeBytes,
-          metadata: {sourceType: input.sourceType}
+          durationSeconds: normalizeDurationSeconds(input.durationSeconds),
+          metadata: {sourceType: input.sourceType, speakerLabelsRequested: input.enableSpeakerLabels}
         }
       });
 
@@ -149,7 +178,7 @@ export async function POST(request: Request) {
         await reserveQuotaForTask({
           userId: quotaUserId,
           mediaTaskId: createdTask.id,
-          estimatedMinutes: estimatedMinutesFromFileSize(input.fileSizeBytes),
+          estimatedMinutes: billableMinutesFromDurationSeconds(input.durationSeconds) ?? estimatedMinutesFromFileSize(input.fileSizeBytes),
           tx
         });
       }
@@ -159,7 +188,7 @@ export async function POST(request: Request) {
 
     // 转写属于长耗时任务，交给 BullMQ Worker 执行，Web 请求只负责排队。
     try {
-      await getTranscribeQueue().add("transcribe" as never, {
+      await enqueueTranscribeJob({
         taskId: task.id,
         sourceType: input.sourceType,
         sourceUrl: input.sourceUrl,

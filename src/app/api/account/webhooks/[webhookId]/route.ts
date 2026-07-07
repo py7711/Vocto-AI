@@ -8,9 +8,10 @@ export async function DELETE(_request: Request, {params}: {params: {webhookId: s
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({error: "请先登录。"}, {status: 401});
   const team = await ensurePersonalTeam(user.id);
-  await prisma.webhookEndpoint.updateMany({
+  const updated = await prisma.webhookEndpoint.updateMany({
     where: {id: params.webhookId, teamId: team.id},
     data: {status: "DISABLED"}
   });
+  if (!updated.count) return NextResponse.json({error: "Webhook 不存在。"}, {status: 404});
   return NextResponse.json({ok: true});
 }

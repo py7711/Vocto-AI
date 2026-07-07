@@ -5,11 +5,36 @@ import {hashToken} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
 
 export function createShareToken() {
-  return randomBytes(32).toString("base64url");
+  return randomBytes(24).toString("base64url");
 }
 
 export function buildShareUrl(input: {appUrl: string; locale: string; token: string}) {
   return `${input.appUrl.replace(/\/$/, "")}/${input.locale}/share/${encodeURIComponent(input.token)}`;
+}
+
+export type ShareLinkForOwner = {
+  id: string;
+  tokenHash: string;
+  title: string | null;
+  enabled: boolean;
+  expiresAt: Date | null;
+  accessCount: number;
+  lastAccessAt: Date | null;
+  createdAt: Date;
+};
+
+export function serializeShareLinkForOwner(shareLink: ShareLinkForOwner, input: {appUrl: string; locale: string}) {
+  const canRebuildUrl = hashToken(shareLink.id) === shareLink.tokenHash;
+  return {
+    id: shareLink.id,
+    url: canRebuildUrl ? buildShareUrl({appUrl: input.appUrl, locale: input.locale, token: shareLink.id}) : null,
+    title: shareLink.title,
+    enabled: shareLink.enabled,
+    expiresAt: shareLink.expiresAt,
+    accessCount: shareLink.accessCount,
+    lastAccessAt: shareLink.lastAccessAt,
+    createdAt: shareLink.createdAt
+  };
 }
 
 export async function getPublicShare(token: string) {

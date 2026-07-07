@@ -45,11 +45,16 @@ const config: Config = {
         "fade-in": {
           "0%": {opacity: "0"},
           "100%": {opacity: "1"}
+        },
+        "mind-map-loading": {
+          "0%": {transform: "translateX(-110%)"},
+          "100%": {transform: "translateX(300%)"}
         }
       },
       animation: {
         "fade-up": "fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "fade-in": "fade-in 0.4s ease both"
+        "fade-in": "fade-in 0.4s ease both",
+        "mind-map-loading": "mind-map-loading 1.15s ease-in-out infinite"
       }
     }
   },

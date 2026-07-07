@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {createBillingPortalSession} from "@/lib/billing";
-import {env} from "@/lib/env";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const portalSchema = z.object({
   returnPath: z.string().max(240).optional()
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({error: "当前账号还没有可管理的 Stripe 客户记录。"}, {status: 400});
     }
 
-    const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    const appUrl = getRequestOrigin(request);
     // 客户门户由 Stripe 托管，用于用户自助管理订阅、支付方式和发票。
     const session = await createBillingPortalSession({
       customerId: stripeCustomerId,

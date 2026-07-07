@@ -49,11 +49,41 @@ export function getTranscribeQueue() {
   return transcribeQueue;
 }
 
+// 以 taskId 派生稳定 jobId，保证同一任务在队列里最多只有一个 job，从根本上避免重复入队与重复转写。
+export function transcribeJobId(taskId: string) {
+  return `transcribe:${taskId}`;
+}
+
+// 统一入队入口：所有创建/重试路径都应通过它排队。
+// - 同一任务若已有 active job 正在处理，直接复用，避免重复下载/转写；
+// - 已完成/失败/等待中的历史 job 会先移除再重新入队，保证重试能生效；
+// - 使用稳定 jobId，即使并发请求也会被 BullMQ 按 jobId 去重。
+export async function enqueueTranscribeJob(data: TranscribeJob) {
+  const queue = getTranscribeQueue();
+  const jobId = transcribeJobId(data.taskId);
+  const existing = await queue.getJob(jobId);
+  if (existing) {
+    const state = await existing.getState().catch(() => "unknown");
+    if (state === "active" || state === "waiting" || state === "delayed" || state === "prioritized") {
+      // 已有 job 在排队或处理中，不再重复添加。
+      return existing;
+    }
+    // completed/failed 等历史 job 会占用同一 jobId，重试前先移除。
+    await existing.remove().catch(() => undefined);
+  }
+  return queue.add("transcribe" as never, data as never, {jobId});
+}
+
 export async function removeQueuedTranscribeJob(taskId: string) {
   const queue = getTranscribeQueue();
-  // 取消任务只能移除尚未被 worker 取走的 job。active job 需要 worker 自己在状态更新时识别取消。
+  // 优先按稳定 jobId 精确移除。
+  const byId = await queue.getJob(transcribeJobId(taskId));
+  if (byId) {
+    await byId.remove().catch(() => undefined);
+  }
+  // 兼容历史上用随机 jobId 入队的 job：再按 data.taskId 扫描移除尚未取走的 job。
   const jobs = await queue.getJobs(["waiting", "delayed", "prioritized", "paused"], 0, 500);
   const matched = jobs.filter((job) => job.data.taskId === taskId);
-  await Promise.all(matched.map((job) => job.remove()));
-  return matched.length;
+  await Promise.all(matched.map((job) => job.remove().catch(() => undefined)));
+  return matched.length + (byId ? 1 : 0);
 }

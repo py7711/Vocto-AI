@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {getCurrentUser} from "@/lib/auth";
+import {jsonSafe} from "@/lib/json";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -7,5 +8,5 @@ export async function GET() {
     return NextResponse.json({user: null}, {status: 401});
   }
 
-  return NextResponse.json({user});
+  return NextResponse.json(jsonSafe({user}));
 }

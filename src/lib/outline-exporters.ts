@@ -14,9 +14,44 @@ function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function formatSeconds(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "";
+  const totalSeconds = Math.floor(value);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function timestampLabel(value: unknown) {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+  const timestamp = value as {label?: unknown; start?: unknown; end?: unknown};
+  const label = text(timestamp.label);
+  if (label) return label;
+  const start = formatSeconds(timestamp.start);
+  if (!start) return "";
+  const end = formatSeconds(timestamp.end);
+  return end ? `${start}-${end}` : start;
+}
+
+function insightLine(value: unknown) {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+  const entry = value as {text?: unknown; label?: unknown; timestamps?: unknown; timestamp?: unknown};
+  const body = text(entry.text) || text(entry.label);
+  if (!body) return "";
+  const timestamps = Array.isArray(entry.timestamps) ? entry.timestamps.map(timestampLabel).filter(Boolean) : [];
+  const singleTimestamp = timestampLabel(entry.timestamp);
+  if (singleTimestamp) timestamps.push(singleTimestamp);
+  return timestamps.length ? `${body} (${timestamps.join(", ")})` : body;
+}
+
 function flattenMindMap(node: any, depth = 0): string[] {
   if (!node) return [];
-  const label = text(node.label);
+  const label = insightLine(node.label);
   const current = label ? [`${"  ".repeat(depth)}- ${label}`] : [];
   const children = Array.isArray(node.children) ? node.children.flatMap((child: any) => flattenMindMap(child, depth + 1)) : [];
   return [...current, ...children];
@@ -29,7 +64,7 @@ export function buildOutline(input: {title: string; provider?: string | null; in
   const sections: OutlineSection[] = [];
 
   const overview = text(summary?.overview);
-  const bullets: string[] = Array.isArray(summary?.bullets) ? summary.bullets.map((line: unknown) => text(line)).filter(Boolean) : [];
+  const bullets: string[] = Array.isArray(summary?.bullets) ? summary.bullets.map(insightLine).filter(Boolean) : [];
   if (overview || bullets.length) {
     sections.push({
       title: "Summary",

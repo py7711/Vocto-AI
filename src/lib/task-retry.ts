@@ -1,6 +1,6 @@
 import "server-only";
 
-import {getTranscribeQueue} from "@/lib/queue";
+import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate} from "@/lib/tasks";
 import {reserveQuotaForTask} from "@/lib/usage";
@@ -78,7 +78,7 @@ export async function retryTranscriptionTask({
     }
   });
 
-  await getTranscribeQueue().add("transcribe" as never, {
+  await enqueueTranscribeJob({
     taskId: task.id,
     sourceType: task.sourceType,
     sourceUrl: task.sourceUrl,

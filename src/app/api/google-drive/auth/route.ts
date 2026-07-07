@@ -22,7 +22,8 @@ export async function GET(request: Request) {
   authorizationUrl.searchParams.set("scope", googleDriveScopes());
   authorizationUrl.searchParams.set("state", `${state}:${locale}`);
   authorizationUrl.searchParams.set("access_type", "offline");
-  authorizationUrl.searchParams.set("prompt", "consent select_account");
+  authorizationUrl.searchParams.set("include_granted_scopes", "true");
+  authorizationUrl.searchParams.set("prompt", "consent");
 
   return NextResponse.redirect(authorizationUrl);
 }

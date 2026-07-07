@@ -6,6 +6,7 @@ import {basename, extname, join} from "node:path";
 import {Readable} from "node:stream";
 import {Transform} from "node:stream";
 import {pipeline} from "node:stream/promises";
+import {normalizeDurationSeconds} from "@/lib/duration";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, putObject} from "@/lib/storage";
@@ -398,25 +399,73 @@ function shouldChunk(durationSeconds: number | undefined) {
   return Boolean(durationSeconds && durationSeconds > env.AUDIO_CHUNK_MAX_SECONDS);
 }
 
+// 受控并发映射：按 limit 限制同时运行的任务数，保留输入顺序返回结果。
+async function mapWithConcurrency<T, R>(items: T[], limit: number, worker: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let cursor = 0;
+  const runners = Array.from({length: Math.min(limit, items.length)}, async () => {
+    while (cursor < items.length) {
+      const current = cursor++;
+      results[current] = await worker(items[current], current);
+    }
+  });
+  await Promise.all(runners);
+  return results;
+}
+
 export async function prepareTaskAudioAsset(input: {
   taskId: string;
   sourceUrl: string;
   sourceType: "UPLOAD" | "YOUTUBE" | "GOOGLE_DRIVE";
   originalName?: string | null;
   objectKey?: string | null;
+  enableSpeakerLabels?: boolean;
 }) {
+  // 幂等保护：若该任务已完成过音频标准化并上传 R2，直接复用，避免重试/重复处理时再次从
+  // YouTube/来源下载并转码（这是重复下载同一视频的根因之一）。转写参数（语言、发言人等）
+  // 只在调用服务商时生效，与标准化音频无关，因此复用完全安全。
+  const existingNormalized = await prisma.mediaAsset.findUnique({
+    where: {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "NORMALIZED_AUDIO", chunkIndex: -1}},
+    select: {url: true, durationSeconds: true}
+  });
+  if (existingNormalized?.url) {
+    return {
+      mediaUrl: existingNormalized.url,
+      normalizedUrl: existingNormalized.url,
+      durationSeconds: existingNormalized.durationSeconds ?? undefined,
+      chunkCount: 0
+    };
+  }
+
   const directory = await mkdtemp(join(tmpdir(), "uniscribe-media-"));
   const stem = safeMediaStem(input.originalName, input.taskId);
   const sourcePath = join(directory, "source");
   const audioPath = join(directory, "audio.mp3");
   try {
+    const sourceAssetKey = {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "SOURCE_MEDIA" as const, chunkIndex: -1}};
+    const existingSourceAsset = await prisma.mediaAsset.findUnique({
+      where: sourceAssetKey,
+      select: {metadata: true}
+    });
+    const existingMetadata = existingSourceAsset?.metadata;
+    const wasSpeakerLabelsRequested = Boolean(
+      existingMetadata &&
+      typeof existingMetadata === "object" &&
+      !Array.isArray(existingMetadata) &&
+      (existingMetadata as Record<string, unknown>).speakerLabelsRequested === true
+    );
+    const sourceMetadata = {
+      sourceType: input.sourceType,
+      speakerLabelsRequested: wasSpeakerLabelsRequested || Boolean(input.enableSpeakerLabels)
+    };
+
     await prisma.mediaAsset.upsert({
-      where: {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "SOURCE_MEDIA", chunkIndex: -1}},
+      where: sourceAssetKey,
       update: {
         url: input.sourceUrl,
         objectKey: input.objectKey ?? undefined,
         fileName: input.originalName ?? stem,
-        metadata: {sourceType: input.sourceType}
+        metadata: sourceMetadata
       },
       create: {
         mediaTaskId: input.taskId,
@@ -425,7 +474,7 @@ export async function prepareTaskAudioAsset(input: {
         url: input.sourceUrl,
         objectKey: input.objectKey,
         fileName: input.originalName ?? stem,
-        metadata: {sourceType: input.sourceType}
+        metadata: sourceMetadata
       }
     });
 
@@ -443,7 +492,7 @@ export async function prepareTaskAudioAsset(input: {
         fileName: `${stem}.mp3`,
         contentType: audioContentType,
         sizeBytes: uploadedAudio.sizeBytes,
-        durationSeconds: durationSeconds ? Math.round(durationSeconds) : undefined,
+        durationSeconds: normalizeDurationSeconds(durationSeconds),
         metadata: {sampleRate: 16000, channels: 1, bitrate: "96k"}
       },
       create: {
@@ -455,7 +504,7 @@ export async function prepareTaskAudioAsset(input: {
         fileName: `${stem}.mp3`,
         contentType: audioContentType,
         sizeBytes: uploadedAudio.sizeBytes,
-        durationSeconds: durationSeconds ? Math.round(durationSeconds) : undefined,
+        durationSeconds: normalizeDurationSeconds(durationSeconds),
         metadata: {sampleRate: 16000, channels: 1, bitrate: "96k"}
       }
     });
@@ -464,66 +513,78 @@ export async function prepareTaskAudioAsset(input: {
       where: {id: input.taskId},
       data: {
         normalizedUrl: uploadedAudio.publicUrl,
-        durationSeconds: durationSeconds ? Math.round(durationSeconds) : undefined
+        durationSeconds: normalizeDurationSeconds(durationSeconds)
       }
     });
 
+    // 主转写链路（Deepgram/AssemblyAI）直接使用完整音频，不做分段切片；
+    // 只有在两家服务商都不可用、进入 Groq 兜底时才按需切片（见 chunkAudioForFallback）。
+    // 这里清理历史切片资产，保证重试任务不残留旧切片。
     await prisma.mediaAsset.deleteMany({
       where: {mediaTaskId: input.taskId, kind: "AUDIO_CHUNK"}
     });
-
-    if (!shouldChunk(durationSeconds)) {
-      return {
-        mediaUrl: uploadedAudio.publicUrl,
-        normalizedUrl: uploadedAudio.publicUrl,
-        durationSeconds,
-        chunkCount: 0
-      };
-    }
-
-    const silenceEnds = await detectSilenceBoundaries(audioPath).catch(() => []);
-    const ranges = buildChunkRanges(durationSeconds!, silenceEnds);
-    const chunks: Array<{url: string; objectKey: string; start: number; end: number; index: number}> = [];
-
-    for (const range of ranges) {
-      const chunkPath = join(directory, `chunk-${range.index}.mp3`);
-      await sliceAudio({
-        inputPath: audioPath,
-        outputPath: chunkPath,
-        startSeconds: range.start,
-        durationSeconds: range.end - range.start
-      });
-      const chunkKey = `tasks/${input.taskId}/chunks/${String(range.index).padStart(4, "0")}-${stem}.mp3`;
-      const uploadedChunk = await uploadFileToR2({key: chunkKey, filePath: chunkPath, contentType: audioContentType});
-      chunks.push({url: uploadedChunk.publicUrl, objectKey: uploadedChunk.key, start: range.start, end: range.end, index: range.index});
-      await prisma.mediaAsset.create({
-        data: {
-          mediaTaskId: input.taskId,
-          kind: "AUDIO_CHUNK",
-          chunkIndex: range.index,
-          url: uploadedChunk.publicUrl,
-          objectKey: uploadedChunk.key,
-          fileName: `${String(range.index + 1).padStart(2, "0")}-${stem}.mp3`,
-          contentType: audioContentType,
-          sizeBytes: uploadedChunk.sizeBytes,
-          durationSeconds: Math.round(range.end - range.start),
-          startSeconds: Math.round(range.start),
-          endSeconds: Math.round(range.end),
-          metadata: {strategy: "silence-aware", targetSeconds: env.AUDIO_CHUNK_TARGET_SECONDS}
-        }
-      });
-    }
 
     return {
       mediaUrl: uploadedAudio.publicUrl,
       normalizedUrl: uploadedAudio.publicUrl,
       durationSeconds,
-      chunkCount: chunks.length,
-      chunks
+      chunkCount: 0
     };
   } finally {
     await rm(directory, {recursive: true, force: true}).catch(() => undefined);
   }
+}
+
+// 兜底切片：仅在 Deepgram/AssemblyAI 均不可用时调用。
+// 下载已标准化的完整音频到临时目录，按静音边界智能分段，切成本地音频文件供 Groq 逐段转写。
+// 返回的 directory 需由调用方在用完后清理。
+export async function chunkAudioForFallback(input: {
+  audioUrl: string;
+  objectKey?: string | null;
+}): Promise<{
+  chunks: Array<{filePath: string; start: number; end: number; index: number}>;
+  durationSeconds?: number;
+  directory: string;
+}> {
+  const directory = await mkdtemp(join(tmpdir(), "uniscribe-fallback-"));
+  const audioPath = join(directory, "audio.mp3");
+
+  const downloadUrl = input.audioUrl.startsWith("r2://") && input.objectKey
+    ? await createDownloadUrl(input.objectKey)
+    : input.audioUrl;
+  const response = await fetch(downloadUrl);
+  if (!response.ok || !response.body) {
+    await rm(directory, {recursive: true, force: true}).catch(() => undefined);
+    throw new Error(`兜底切片无法下载标准化音频：${response.status} ${response.statusText}`);
+  }
+  await pipeline(Readable.fromWeb(response.body as any), createWriteStream(audioPath));
+
+  const durationSeconds = await probeDurationSeconds(audioPath);
+
+  // 短音频或时长未知：无需切片，整段交给 Groq。
+  if (!shouldChunk(durationSeconds)) {
+    return {
+      chunks: [{filePath: audioPath, start: 0, end: durationSeconds ?? 0, index: 0}],
+      durationSeconds,
+      directory
+    };
+  }
+
+  const silenceEnds = await detectSilenceBoundaries(audioPath).catch(() => []);
+  const ranges = buildChunkRanges(durationSeconds!, silenceEnds);
+  const chunks = await mapWithConcurrency(ranges, 3, async (range) => {
+    const chunkPath = join(directory, `chunk-${range.index}.mp3`);
+    await sliceAudio({
+      inputPath: audioPath,
+      outputPath: chunkPath,
+      startSeconds: range.start,
+      durationSeconds: range.end - range.start
+    });
+    return {filePath: chunkPath, start: range.start, end: range.end, index: range.index};
+  });
+  chunks.sort((a, b) => a.index - b.index);
+
+  return {chunks, durationSeconds, directory};
 }
 
 // 当前转写链路不把 YouTube/公开视频下载到本地再用 ffmpeg 转码，而是用 yt-dlp 解析临时直链，
@@ -611,7 +672,7 @@ export async function resolveMediaMetadata(url: string) {
 
   return {
     title: metadata.title || metadata.fulltitle,
-    durationSeconds: typeof metadata.duration === "number" ? Math.round(metadata.duration) : undefined,
+    durationSeconds: normalizeDurationSeconds(metadata.duration),
     thumbnailUrl: metadata.thumbnail,
     sourceUrl: metadata.webpage_url,
     providerName: metadata.extractor_key,

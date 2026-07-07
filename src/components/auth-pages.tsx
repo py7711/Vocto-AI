@@ -2,8 +2,9 @@
 
 import {useEffect, useMemo, useState} from "react";
 import {useLocale} from "next-intl";
-import Image from "next/image";
 import {ArrowLeft, ArrowRight, Eye, EyeOff, Mail} from "lucide-react";
+import {BrandLogo} from "@/components/brand-logo";
+import {isLocale} from "@/lib/locales";
 
 const authCopy = {
   zh: {
@@ -24,6 +25,8 @@ const authCopy = {
     verifySuccess: "邮箱验证成功",
     verifySuccessText: "你的账号已经完成邮箱验证，可以进入仪表盘继续使用。",
     verifyFailed: "邮箱验证失败",
+    verifyResent: "验证邮件已发送，请检查你的收件箱。",
+    verifyAlreadyDone: "你的邮箱已经完成验证，可以进入仪表盘继续使用。",
     goDashboard: "进入仪表盘",
     openVerifyLink: "打开验证链接",
     devVerifyHint: "当前未配置邮件服务，下面的开发验证链接可用于本地或测试环境。",
@@ -78,16 +81,18 @@ const authCopy = {
     verifySuccess: "Email verified",
     verifySuccessText: "Your account email is verified. You can continue to the dashboard.",
     verifyFailed: "Email verification failed",
+    verifyResent: "Verification email sent. Please check your inbox.",
+    verifyAlreadyDone: "Your email is already verified. You can continue to the dashboard.",
     goDashboard: "Open dashboard",
     openVerifyLink: "Open verification link",
     devVerifyHint: "Email delivery is not configured, so this development link is available for local or test environments.",
     resend: "Resend verification email",
-    backToSignin: "Back to sign in",
-    missingEmail: "No email yet? Check your spam folder.",
+    backToSignin: "Back to Sign In",
+    missingEmail: "Didn't receive the email? Please check your spam folder.",
     signupHeading: "Sign up",
     signinHeading: "Sign In",
     google: "Continue with Google",
-    signupDivider: "or sign up with email",
+    signupDivider: "Or sign up with email",
     signinDivider: "or sign in with email",
     email: "Email",
     emailLabel: "Email:",
@@ -105,7 +110,7 @@ const authCopy = {
     submitSignup: "Sign Up with Email",
     back: "Back",
     already: "Already have an account?",
-    signinLink: "Sign in",
+    signinLink: "Sign In",
     forgotPassword: "Forgot your password?",
     termsPrefix: "By using UniScribe, you agree to our",
     terms: "Terms of Service",
@@ -132,6 +137,8 @@ const authCopy = {
     verifySuccess: "Email verificado",
     verifySuccessText: "Tu email ya está verificado. Puedes continuar al panel.",
     verifyFailed: "No se pudo verificar el email",
+    verifyResent: "Email de verificación enviado. Revisa tu bandeja de entrada.",
+    verifyAlreadyDone: "Tu email ya está verificado. Puedes continuar al panel.",
     goDashboard: "Abrir panel",
     openVerifyLink: "Abrir enlace de verificación",
     devVerifyHint: "El envío de email no está configurado; este enlace sirve para entorno local o pruebas.",
@@ -186,6 +193,8 @@ const authCopy = {
     verifySuccess: "Email vérifié",
     verifySuccessText: "Votre email est vérifié. Vous pouvez continuer.",
     verifyFailed: "Échec de vérification",
+    verifyResent: "Email de vérification envoyé. Vérifiez votre boîte de réception.",
+    verifyAlreadyDone: "Votre email est déjà vérifié. Vous pouvez continuer.",
     goDashboard: "Ouvrir le tableau",
     openVerifyLink: "Ouvrir le lien",
     devVerifyHint: "L'envoi d'email n'est pas configuré ; ce lien sert en local ou test.",
@@ -240,6 +249,8 @@ const authCopy = {
     verifySuccess: "E-Mail bestätigt",
     verifySuccessText: "Deine E-Mail ist bestätigt. Du kannst zum Dashboard wechseln.",
     verifyFailed: "E-Mail-Bestätigung fehlgeschlagen",
+    verifyResent: "Bestätigungs-E-Mail gesendet. Prüfe deinen Posteingang.",
+    verifyAlreadyDone: "Deine E-Mail ist bereits bestätigt. Du kannst zum Dashboard wechseln.",
     goDashboard: "Dashboard öffnen",
     openVerifyLink: "Bestätigungslink öffnen",
     devVerifyHint: "E-Mail-Versand ist nicht konfiguriert; dieser Link ist für lokale Tests verfügbar.",
@@ -294,6 +305,8 @@ const authCopy = {
     verifySuccess: "メール確認済み",
     verifySuccessText: "メール確認が完了しました。ダッシュボードへ進めます。",
     verifyFailed: "メール確認に失敗しました",
+    verifyResent: "確認メールを送信しました。受信箱を確認してください。",
+    verifyAlreadyDone: "メール確認はすでに完了しています。ダッシュボードへ進めます。",
     goDashboard: "ダッシュボードを開く",
     openVerifyLink: "確認リンクを開く",
     devVerifyHint: "メール送信未設定のため、ローカル/テスト用リンクを表示しています。",
@@ -348,6 +361,8 @@ const authCopy = {
     verifySuccess: "이메일 인증 완료",
     verifySuccessText: "이메일 인증이 완료되었습니다. 대시보드로 이동할 수 있습니다.",
     verifyFailed: "이메일 인증 실패",
+    verifyResent: "인증 메일을 보냈습니다. 받은편지함을 확인하세요.",
+    verifyAlreadyDone: "이메일 인증이 이미 완료되었습니다. 대시보드로 이동할 수 있습니다.",
     goDashboard: "대시보드 열기",
     openVerifyLink: "인증 링크 열기",
     devVerifyHint: "메일 서비스가 설정되지 않아 로컬/테스트용 링크가 표시됩니다.",
@@ -402,6 +417,8 @@ const authCopy = {
     verifySuccess: "Email verificado",
     verifySuccessText: "Seu email foi verificado. Você pode continuar ao painel.",
     verifyFailed: "Falha na verificação",
+    verifyResent: "Email de verificação enviado. Verifique sua caixa de entrada.",
+    verifyAlreadyDone: "Seu email já foi verificado. Você pode continuar ao painel.",
     goDashboard: "Abrir painel",
     openVerifyLink: "Abrir link de verificação",
     devVerifyHint: "O envio de email não está configurado; este link serve para local ou teste.",
@@ -440,8 +457,684 @@ const authCopy = {
   }
 } as const;
 
+const authCopy20 = {
+  ...authCopy,
+  ar: {
+    signupTitle: "إنشاء حساب UniScribe",
+    signinTitle: "تسجيل الدخول إلى UniScribe",
+    signupSubtitle: "أنشئ حسابا لإدارة مهام النسخ والرصيد وملفات التصدير.",
+    signinSubtitle: "تابع بالبريد الإلكتروني لفتح لوحة النسخ.",
+    signupCta: "إنشاء حساب وفتح اللوحة",
+    signinCta: "تسجيل الدخول بالبريد الإلكتروني",
+    switchToSignin: "لديك حساب؟ سجّل الدخول",
+    switchToSignup: "ليس لديك حساب؟ سجّل مجانا",
+    securityEyebrow: "مساحة عمل شخصية آمنة",
+    securityPoints: ["توقيعات رفع قصيرة ترسل الوسائط مباشرة إلى التخزين.", "الحصة والمهام وميزات AI والترجمة والتصدير في لوحة واحدة.", "يدعم تسجيل البريد وGoogle والتحقق والفوترة."],
+    verifyTitle: "تحقق من بريدك الإلكتروني",
+    verifyText: (email: string) => `أرسلنا رسالة تحقق إلى ${email}. افتح الرابط للتحقق من حسابك.`,
+    verifyPending: "جار التحقق من البريد...",
+    verifyPendingText: "يرجى الانتظار بينما نتحقق من الرابط.",
+    verifySuccess: "تم التحقق من البريد",
+    verifySuccessText: "تم التحقق من بريد حسابك. يمكنك المتابعة إلى اللوحة.",
+    verifyFailed: "فشل التحقق من البريد",
+    verifyResent: "تم إرسال رسالة التحقق. تحقق من صندوق الوارد.",
+    verifyAlreadyDone: "تم التحقق من بريدك بالفعل. يمكنك المتابعة إلى اللوحة.",
+    goDashboard: "فتح اللوحة",
+    openVerifyLink: "فتح رابط التحقق",
+    devVerifyHint: "إرسال البريد غير مكوّن، لذلك يتوفر هذا الرابط للتطوير أو الاختبار.",
+    resend: "إعادة إرسال رسالة التحقق",
+    backToSignin: "العودة إلى تسجيل الدخول",
+    missingEmail: "لم تصلك الرسالة؟ تحقق من مجلد الرسائل غير المرغوب فيها.",
+    signupHeading: "التسجيل",
+    signinHeading: "تسجيل الدخول",
+    google: "المتابعة باستخدام Google",
+    signupDivider: "أو التسجيل بالبريد الإلكتروني",
+    signinDivider: "أو تسجيل الدخول بالبريد الإلكتروني",
+    email: "البريد الإلكتروني",
+    emailLabel: "البريد الإلكتروني:",
+    edit: "تعديل",
+    firstName: "الاسم الأول",
+    firstNamePlaceholder: "الاسم الأول",
+    lastName: "اسم العائلة",
+    lastNamePlaceholder: "اسم العائلة",
+    password: "كلمة المرور",
+    passwordPlaceholder: "أدخل كلمة المرور",
+    togglePassword: "إظهار أو إخفاء كلمة المرور",
+    continue: "متابعة",
+    registering: "جار إنشاء الحساب...",
+    loginBusy: "جار تسجيل الدخول...",
+    submitSignup: "التسجيل بالبريد الإلكتروني",
+    back: "رجوع",
+    already: "لديك حساب؟",
+    signinLink: "تسجيل الدخول",
+    forgotPassword: "نسيت كلمة المرور؟",
+    termsPrefix: "باستخدام UniScribe، فإنك توافق على",
+    terms: "شروط الخدمة",
+    and: "و",
+    privacy: "سياسة الخصوصية",
+    registerError: "فشل التسجيل.",
+    loginError: "فشل تسجيل الدخول."
+  },
+  hu: {
+    signupTitle: "UniScribe-fiók létrehozása",
+    signinTitle: "Bejelentkezés a UniScribe-ba",
+    signupSubtitle: "Hozz létre fiókot az átiratok, kvóta és exportok kezeléséhez.",
+    signinSubtitle: "Folytasd e-maillel az átiratkezelő megnyitásához.",
+    signupCta: "Fiók létrehozása és irányítópult megnyitása",
+    signinCta: "Bejelentkezés e-maillel",
+    switchToSignin: "Már van fiókod? Jelentkezz be",
+    switchToSignup: "Nincs fiókod? Regisztrálj ingyen",
+    securityEyebrow: "Biztonságos személyes munkaterület",
+    securityPoints: ["Rövid életű feltöltési aláírások közvetlenül tárhelyre küldik a médiát.", "Kvóta, sorok, AI, fordítás és export egy irányítópulton.", "E-mail, Google, ellenőrzés és előfizetéses számlázás támogatott."],
+    verifyTitle: "E-mail ellenőrzése",
+    verifyText: (email: string) => `Ellenőrző e-mailt küldtünk ide: ${email}. Nyisd meg a linket a fiók ellenőrzéséhez.`,
+    verifyPending: "E-mail ellenőrzése...",
+    verifyPendingText: "Várj, amíg ellenőrizzük a linket.",
+    verifySuccess: "E-mail ellenőrizve",
+    verifySuccessText: "A fiókod e-mail címe ellenőrizve. Folytathatod az irányítópulton.",
+    verifyFailed: "Az e-mail ellenőrzése sikertelen",
+    verifyResent: "Ellenőrző e-mail elküldve. Nézd meg a beérkezőket.",
+    verifyAlreadyDone: "Az e-mail címed már ellenőrizve van. Folytathatod.",
+    goDashboard: "Irányítópult megnyitása",
+    openVerifyLink: "Ellenőrző link megnyitása",
+    devVerifyHint: "Az e-mail küldés nincs beállítva, ezért ez a fejlesztői link elérhető helyi vagy teszt környezethez.",
+    resend: "Ellenőrző e-mail újraküldése",
+    backToSignin: "Vissza a bejelentkezéshez",
+    missingEmail: "Nem kaptad meg? Nézd meg a spam mappát.",
+    signupHeading: "Regisztráció",
+    signinHeading: "Bejelentkezés",
+    google: "Folytatás Google-lel",
+    signupDivider: "vagy regisztráció e-maillel",
+    signinDivider: "vagy bejelentkezés e-maillel",
+    email: "E-mail",
+    emailLabel: "E-mail:",
+    edit: "Szerkesztés",
+    firstName: "Keresztnév",
+    firstNamePlaceholder: "Keresztnév",
+    lastName: "Vezetéknév",
+    lastNamePlaceholder: "Vezetéknév",
+    password: "Jelszó",
+    passwordPlaceholder: "Add meg a jelszavad",
+    togglePassword: "Jelszó láthatóságának váltása",
+    continue: "Folytatás",
+    registering: "Fiók létrehozása...",
+    loginBusy: "Bejelentkezés...",
+    submitSignup: "Regisztráció e-maillel",
+    back: "Vissza",
+    already: "Már van fiókod?",
+    signinLink: "Bejelentkezés",
+    forgotPassword: "Elfelejtetted a jelszót?",
+    termsPrefix: "A UniScribe használatával elfogadod a",
+    terms: "Szolgáltatási feltételeket",
+    and: "és",
+    privacy: "Adatvédelmi irányelveket",
+    registerError: "A regisztráció sikertelen.",
+    loginError: "A bejelentkezés sikertelen."
+  },
+  id: {
+    signupTitle: "Buat akun UniScribe",
+    signinTitle: "Masuk ke UniScribe",
+    signupSubtitle: "Buat akun untuk mengelola tugas transkripsi, kuota, dan aset ekspor.",
+    signinSubtitle: "Lanjutkan dengan email untuk membuka dashboard transkripsi.",
+    signupCta: "Buat akun dan buka dashboard",
+    signinCta: "Masuk dengan email",
+    switchToSignin: "Sudah punya akun? Masuk",
+    switchToSignup: "Belum punya akun? Daftar gratis",
+    securityEyebrow: "Workspace pribadi yang aman",
+    securityPoints: ["Tanda tangan unggah singkat mengirim media langsung ke penyimpanan.", "Kuota, antrean, AI, terjemahan, dan ekspor ada di satu dashboard.", "Email, Google, verifikasi, dan penagihan langganan didukung."],
+    verifyTitle: "Verifikasi email Anda",
+    verifyText: (email: string) => `Kami mengirim email verifikasi ke ${email}. Buka tautan tersebut untuk memverifikasi akun.`,
+    verifyPending: "Memverifikasi email...",
+    verifyPendingText: "Mohon tunggu saat kami mengonfirmasi tautan verifikasi.",
+    verifySuccess: "Email terverifikasi",
+    verifySuccessText: "Email akun Anda sudah terverifikasi. Anda dapat melanjutkan ke dashboard.",
+    verifyFailed: "Verifikasi email gagal",
+    verifyResent: "Email verifikasi dikirim. Periksa kotak masuk Anda.",
+    verifyAlreadyDone: "Email Anda sudah terverifikasi. Anda dapat melanjutkan ke dashboard.",
+    goDashboard: "Buka dashboard",
+    openVerifyLink: "Buka tautan verifikasi",
+    devVerifyHint: "Pengiriman email belum dikonfigurasi, jadi tautan pengembangan ini tersedia untuk lokal atau pengujian.",
+    resend: "Kirim ulang email verifikasi",
+    backToSignin: "Kembali ke masuk",
+    missingEmail: "Tidak menerima email? Periksa folder spam.",
+    signupHeading: "Daftar",
+    signinHeading: "Masuk",
+    google: "Lanjutkan dengan Google",
+    signupDivider: "atau daftar dengan email",
+    signinDivider: "atau masuk dengan email",
+    email: "Email",
+    emailLabel: "Email:",
+    edit: "Edit",
+    firstName: "Nama depan",
+    firstNamePlaceholder: "Nama depan",
+    lastName: "Nama belakang",
+    lastNamePlaceholder: "Nama belakang",
+    password: "Kata sandi",
+    passwordPlaceholder: "Masukkan kata sandi",
+    togglePassword: "Alihkan visibilitas kata sandi",
+    continue: "Lanjutkan",
+    registering: "Membuat akun...",
+    loginBusy: "Masuk...",
+    submitSignup: "Daftar dengan email",
+    back: "Kembali",
+    already: "Sudah punya akun?",
+    signinLink: "Masuk",
+    forgotPassword: "Lupa kata sandi?",
+    termsPrefix: "Dengan menggunakan UniScribe, Anda menyetujui",
+    terms: "Ketentuan Layanan",
+    and: "dan",
+    privacy: "Kebijakan Privasi",
+    registerError: "Pendaftaran gagal.",
+    loginError: "Masuk gagal."
+  },
+  it: {
+    signupTitle: "Crea il tuo account UniScribe",
+    signinTitle: "Accedi a UniScribe",
+    signupSubtitle: "Crea un account per gestire trascrizioni, quota ed esportazioni.",
+    signinSubtitle: "Continua con email per aprire il dashboard di trascrizione.",
+    signupCta: "Crea account e apri dashboard",
+    signinCta: "Accedi con email",
+    switchToSignin: "Hai già un account? Accedi",
+    switchToSignup: "Non hai un account? Registrati gratis",
+    securityEyebrow: "Workspace personale sicuro",
+    securityPoints: ["Firme di upload brevi inviano i media direttamente allo storage.", "Quota, code, AI, traduzione ed esportazioni in un dashboard.", "Email, Google, verifica e fatturazione abbonamenti supportati."],
+    verifyTitle: "Verifica la tua email",
+    verifyText: (email: string) => `Abbiamo inviato un'email di verifica a ${email}. Apri il link per verificare l'account.`,
+    verifyPending: "Verifica email...",
+    verifyPendingText: "Attendi mentre confermiamo il link di verifica.",
+    verifySuccess: "Email verificata",
+    verifySuccessText: "L'email del tuo account è verificata. Puoi continuare al dashboard.",
+    verifyFailed: "Verifica email non riuscita",
+    verifyResent: "Email di verifica inviata. Controlla la posta.",
+    verifyAlreadyDone: "La tua email è già verificata. Puoi continuare al dashboard.",
+    goDashboard: "Apri dashboard",
+    openVerifyLink: "Apri link di verifica",
+    devVerifyHint: "L'invio email non è configurato; questo link di sviluppo è disponibile per ambienti locali o di test.",
+    resend: "Reinvia email di verifica",
+    backToSignin: "Torna all'accesso",
+    missingEmail: "Non hai ricevuto l'email? Controlla lo spam.",
+    signupHeading: "Registrati",
+    signinHeading: "Accedi",
+    google: "Continua con Google",
+    signupDivider: "o registrati con email",
+    signinDivider: "o accedi con email",
+    email: "Email",
+    emailLabel: "Email:",
+    edit: "Modifica",
+    firstName: "Nome",
+    firstNamePlaceholder: "Nome",
+    lastName: "Cognome",
+    lastNamePlaceholder: "Cognome",
+    password: "Password",
+    passwordPlaceholder: "Inserisci la password",
+    togglePassword: "Mostra o nascondi password",
+    continue: "Continua",
+    registering: "Creazione account...",
+    loginBusy: "Accesso...",
+    submitSignup: "Registrati con email",
+    back: "Indietro",
+    already: "Hai già un account?",
+    signinLink: "Accedi",
+    forgotPassword: "Password dimenticata?",
+    termsPrefix: "Usando UniScribe accetti i nostri",
+    terms: "Termini di servizio",
+    and: "e",
+    privacy: "Informativa privacy",
+    registerError: "Registrazione non riuscita.",
+    loginError: "Accesso non riuscito."
+  },
+  nl: {
+    signupTitle: "Maak je UniScribe-account",
+    signinTitle: "Inloggen bij UniScribe",
+    signupSubtitle: "Maak een account om transcriptietaken, quota en exports te beheren.",
+    signinSubtitle: "Ga verder met e-mail om je transcriptiedashboard te openen.",
+    signupCta: "Account maken en dashboard openen",
+    signinCta: "Inloggen met e-mail",
+    switchToSignin: "Heb je al een account? Log in",
+    switchToSignup: "Geen account? Gratis registreren",
+    securityEyebrow: "Veilige persoonlijke workspace",
+    securityPoints: ["Kortlevende uploadhandtekeningen sturen media rechtstreeks naar opslag.", "Quota, wachtrijen, AI, vertaling en exports staan in één dashboard.", "E-mail, Google, verificatie en abonnementsfacturatie worden ondersteund."],
+    verifyTitle: "Verifieer je e-mail",
+    verifyText: (email: string) => `We hebben een verificatiemail gestuurd naar ${email}. Open de link om je account te verifiëren.`,
+    verifyPending: "E-mail verifiëren...",
+    verifyPendingText: "Even geduld terwijl we je verificatielink controleren.",
+    verifySuccess: "E-mail geverifieerd",
+    verifySuccessText: "Je account-e-mail is geverifieerd. Je kunt doorgaan naar het dashboard.",
+    verifyFailed: "E-mailverificatie mislukt",
+    verifyResent: "Verificatiemail verzonden. Controleer je inbox.",
+    verifyAlreadyDone: "Je e-mail is al geverifieerd. Je kunt doorgaan naar het dashboard.",
+    goDashboard: "Dashboard openen",
+    openVerifyLink: "Verificatielink openen",
+    devVerifyHint: "E-mailbezorging is niet geconfigureerd, dus deze ontwikkellink is beschikbaar voor lokaal of testgebruik.",
+    resend: "Verificatiemail opnieuw sturen",
+    backToSignin: "Terug naar inloggen",
+    missingEmail: "Geen e-mail ontvangen? Controleer je spammap.",
+    signupHeading: "Registreren",
+    signinHeading: "Inloggen",
+    google: "Doorgaan met Google",
+    signupDivider: "of registreer met e-mail",
+    signinDivider: "of log in met e-mail",
+    email: "E-mail",
+    emailLabel: "E-mail:",
+    edit: "Bewerken",
+    firstName: "Voornaam",
+    firstNamePlaceholder: "Voornaam",
+    lastName: "Achternaam",
+    lastNamePlaceholder: "Achternaam",
+    password: "Wachtwoord",
+    passwordPlaceholder: "Voer je wachtwoord in",
+    togglePassword: "Wachtwoord tonen of verbergen",
+    continue: "Doorgaan",
+    registering: "Account maken...",
+    loginBusy: "Inloggen...",
+    submitSignup: "Registreren met e-mail",
+    back: "Terug",
+    already: "Heb je al een account?",
+    signinLink: "Inloggen",
+    forgotPassword: "Wachtwoord vergeten?",
+    termsPrefix: "Door UniScribe te gebruiken ga je akkoord met onze",
+    terms: "Servicevoorwaarden",
+    and: "en",
+    privacy: "Privacyverklaring",
+    registerError: "Registreren mislukt.",
+    loginError: "Inloggen mislukt."
+  },
+  pl: {
+    signupTitle: "Utwórz konto UniScribe",
+    signinTitle: "Zaloguj się do UniScribe",
+    signupSubtitle: "Utwórz konto, aby zarządzać transkrypcjami, limitem i eksportami.",
+    signinSubtitle: "Kontynuuj przez e-mail, aby otworzyć panel transkrypcji.",
+    signupCta: "Utwórz konto i otwórz panel",
+    signinCta: "Zaloguj się e-mailem",
+    switchToSignin: "Masz już konto? Zaloguj się",
+    switchToSignup: "Nie masz konta? Zarejestruj się za darmo",
+    securityEyebrow: "Bezpieczna osobista przestrzeń pracy",
+    securityPoints: ["Krótkotrwałe podpisy przesyłania wysyłają media bezpośrednio do magazynu.", "Limity, kolejki, AI, tłumaczenia i eksporty są w jednym panelu.", "Obsługiwane są e-mail, Google, weryfikacja i rozliczenia subskrypcji."],
+    verifyTitle: "Zweryfikuj e-mail",
+    verifyText: (email: string) => `Wysłaliśmy wiadomość weryfikacyjną na ${email}. Otwórz link, aby zweryfikować konto.`,
+    verifyPending: "Weryfikacja e-maila...",
+    verifyPendingText: "Poczekaj, potwierdzamy link weryfikacyjny.",
+    verifySuccess: "E-mail zweryfikowany",
+    verifySuccessText: "E-mail konta został zweryfikowany. Możesz przejść do panelu.",
+    verifyFailed: "Weryfikacja e-maila nie powiodła się",
+    verifyResent: "Wiadomość weryfikacyjna wysłana. Sprawdź skrzynkę.",
+    verifyAlreadyDone: "Twój e-mail jest już zweryfikowany. Możesz przejść do panelu.",
+    goDashboard: "Otwórz panel",
+    openVerifyLink: "Otwórz link weryfikacyjny",
+    devVerifyHint: "Wysyłka e-maili nie jest skonfigurowana, więc ten link deweloperski jest dostępny lokalnie lub testowo.",
+    resend: "Wyślij e-mail ponownie",
+    backToSignin: "Wróć do logowania",
+    missingEmail: "Nie dostałeś wiadomości? Sprawdź spam.",
+    signupHeading: "Rejestracja",
+    signinHeading: "Logowanie",
+    google: "Kontynuuj z Google",
+    signupDivider: "lub zarejestruj się e-mailem",
+    signinDivider: "lub zaloguj się e-mailem",
+    email: "E-mail",
+    emailLabel: "E-mail:",
+    edit: "Edytuj",
+    firstName: "Imię",
+    firstNamePlaceholder: "Imię",
+    lastName: "Nazwisko",
+    lastNamePlaceholder: "Nazwisko",
+    password: "Hasło",
+    passwordPlaceholder: "Wpisz hasło",
+    togglePassword: "Pokaż lub ukryj hasło",
+    continue: "Kontynuuj",
+    registering: "Tworzenie konta...",
+    loginBusy: "Logowanie...",
+    submitSignup: "Zarejestruj e-mailem",
+    back: "Wstecz",
+    already: "Masz już konto?",
+    signinLink: "Zaloguj się",
+    forgotPassword: "Nie pamiętasz hasła?",
+    termsPrefix: "Korzystając z UniScribe, akceptujesz",
+    terms: "Warunki korzystania",
+    and: "oraz",
+    privacy: "Politykę prywatności",
+    registerError: "Rejestracja nie powiodła się.",
+    loginError: "Logowanie nie powiodło się."
+  },
+  ru: {
+    signupTitle: "Создайте аккаунт UniScribe",
+    signinTitle: "Вход в UniScribe",
+    signupSubtitle: "Создайте аккаунт, чтобы управлять расшифровками, лимитами и экспортами.",
+    signinSubtitle: "Продолжите с e-mail, чтобы открыть панель расшифровок.",
+    signupCta: "Создать аккаунт и открыть панель",
+    signinCta: "Войти по e-mail",
+    switchToSignin: "Уже есть аккаунт? Войти",
+    switchToSignup: "Нет аккаунта? Зарегистрироваться бесплатно",
+    securityEyebrow: "Безопасное личное рабочее пространство",
+    securityPoints: ["Короткие подписи загрузки отправляют медиа прямо в хранилище.", "Лимиты, очереди, AI, перевод и экспорты доступны в одной панели.", "Поддерживаются e-mail, Google, подтверждение и подписочная оплата."],
+    verifyTitle: "Подтвердите e-mail",
+    verifyText: (email: string) => `Мы отправили письмо подтверждения на ${email}. Откройте ссылку, чтобы подтвердить аккаунт.`,
+    verifyPending: "Подтверждаем e-mail...",
+    verifyPendingText: "Подождите, пока мы проверяем ссылку подтверждения.",
+    verifySuccess: "E-mail подтвержден",
+    verifySuccessText: "E-mail аккаунта подтвержден. Можно перейти в панель.",
+    verifyFailed: "Не удалось подтвердить e-mail",
+    verifyResent: "Письмо подтверждения отправлено. Проверьте почту.",
+    verifyAlreadyDone: "Ваш e-mail уже подтвержден. Можно перейти в панель.",
+    goDashboard: "Открыть панель",
+    openVerifyLink: "Открыть ссылку подтверждения",
+    devVerifyHint: "Доставка e-mail не настроена, поэтому эта ссылка доступна для локальной или тестовой среды.",
+    resend: "Отправить письмо снова",
+    backToSignin: "Назад ко входу",
+    missingEmail: "Не получили письмо? Проверьте папку спама.",
+    signupHeading: "Регистрация",
+    signinHeading: "Вход",
+    google: "Продолжить с Google",
+    signupDivider: "или зарегистрироваться по e-mail",
+    signinDivider: "или войти по e-mail",
+    email: "E-mail",
+    emailLabel: "E-mail:",
+    edit: "Изменить",
+    firstName: "Имя",
+    firstNamePlaceholder: "Имя",
+    lastName: "Фамилия",
+    lastNamePlaceholder: "Фамилия",
+    password: "Пароль",
+    passwordPlaceholder: "Введите пароль",
+    togglePassword: "Показать или скрыть пароль",
+    continue: "Продолжить",
+    registering: "Создаем аккаунт...",
+    loginBusy: "Входим...",
+    submitSignup: "Зарегистрироваться по e-mail",
+    back: "Назад",
+    already: "Уже есть аккаунт?",
+    signinLink: "Войти",
+    forgotPassword: "Забыли пароль?",
+    termsPrefix: "Используя UniScribe, вы соглашаетесь с",
+    terms: "Условиями обслуживания",
+    and: "и",
+    privacy: "Политикой конфиденциальности",
+    registerError: "Регистрация не удалась.",
+    loginError: "Вход не удался."
+  },
+  th: {
+    signupTitle: "สร้างบัญชี UniScribe",
+    signinTitle: "เข้าสู่ระบบ UniScribe",
+    signupSubtitle: "สร้างบัญชีเพื่อจัดการงานถอดเสียง โควตา และไฟล์ส่งออก",
+    signinSubtitle: "ดำเนินการต่อด้วยอีเมลเพื่อเปิดแดชบอร์ดการถอดเสียง",
+    signupCta: "สร้างบัญชีและเปิดแดชบอร์ด",
+    signinCta: "เข้าสู่ระบบด้วยอีเมล",
+    switchToSignin: "มีบัญชีแล้ว? เข้าสู่ระบบ",
+    switchToSignup: "ยังไม่มีบัญชี? สมัครฟรี",
+    securityEyebrow: "พื้นที่ทำงานส่วนตัวที่ปลอดภัย",
+    securityPoints: ["ลายเซ็นอัปโหลดระยะสั้นส่งสื่อไปยังที่เก็บโดยตรง", "โควตา คิว AI การแปล และการส่งออกอยู่ในแดชบอร์ดเดียว", "รองรับอีเมล Google การยืนยัน และการเรียกเก็บเงินสมาชิก"],
+    verifyTitle: "ยืนยันอีเมลของคุณ",
+    verifyText: (email: string) => `เราส่งอีเมลยืนยันไปที่ ${email} แล้ว เปิดลิงก์เพื่อยืนยันบัญชี`,
+    verifyPending: "กำลังยืนยันอีเมล...",
+    verifyPendingText: "โปรดรอสักครู่ขณะเรายืนยันลิงก์",
+    verifySuccess: "ยืนยันอีเมลแล้ว",
+    verifySuccessText: "อีเมลบัญชีของคุณได้รับการยืนยันแล้ว คุณสามารถไปที่แดชบอร์ดได้",
+    verifyFailed: "ยืนยันอีเมลไม่สำเร็จ",
+    verifyResent: "ส่งอีเมลยืนยันแล้ว โปรดตรวจสอบกล่องจดหมาย",
+    verifyAlreadyDone: "อีเมลของคุณได้รับการยืนยันแล้ว คุณสามารถไปที่แดชบอร์ดได้",
+    goDashboard: "เปิดแดชบอร์ด",
+    openVerifyLink: "เปิดลิงก์ยืนยัน",
+    devVerifyHint: "ยังไม่ได้ตั้งค่าการส่งอีเมล ลิงก์สำหรับพัฒนานี้จึงใช้ได้ในเครื่องหรือสภาพแวดล้อมทดสอบ",
+    resend: "ส่งอีเมลยืนยันอีกครั้ง",
+    backToSignin: "กลับไปเข้าสู่ระบบ",
+    missingEmail: "ไม่ได้รับอีเมล? ตรวจสอบโฟลเดอร์สแปม",
+    signupHeading: "สมัคร",
+    signinHeading: "เข้าสู่ระบบ",
+    google: "ดำเนินการต่อด้วย Google",
+    signupDivider: "หรือสมัครด้วยอีเมล",
+    signinDivider: "หรือเข้าสู่ระบบด้วยอีเมล",
+    email: "อีเมล",
+    emailLabel: "อีเมล:",
+    edit: "แก้ไข",
+    firstName: "ชื่อ",
+    firstNamePlaceholder: "ชื่อ",
+    lastName: "นามสกุล",
+    lastNamePlaceholder: "นามสกุล",
+    password: "รหัสผ่าน",
+    passwordPlaceholder: "ป้อนรหัสผ่าน",
+    togglePassword: "สลับการแสดงรหัสผ่าน",
+    continue: "ดำเนินการต่อ",
+    registering: "กำลังสร้างบัญชี...",
+    loginBusy: "กำลังเข้าสู่ระบบ...",
+    submitSignup: "สมัครด้วยอีเมล",
+    back: "กลับ",
+    already: "มีบัญชีแล้ว?",
+    signinLink: "เข้าสู่ระบบ",
+    forgotPassword: "ลืมรหัสผ่าน?",
+    termsPrefix: "การใช้ UniScribe หมายความว่าคุณยอมรับ",
+    terms: "ข้อกำหนดการให้บริการ",
+    and: "และ",
+    privacy: "นโยบายความเป็นส่วนตัว",
+    registerError: "ลงทะเบียนไม่สำเร็จ",
+    loginError: "เข้าสู่ระบบไม่สำเร็จ"
+  },
+  tr: {
+    signupTitle: "UniScribe hesabını oluştur",
+    signinTitle: "UniScribe'a giriş yap",
+    signupSubtitle: "Transkripsiyon işleri, kota ve dışa aktarımları yönetmek için hesap oluştur.",
+    signinSubtitle: "Transkripsiyon panelini açmak için e-posta ile devam et.",
+    signupCta: "Hesap oluştur ve paneli aç",
+    signinCta: "E-posta ile giriş yap",
+    switchToSignin: "Hesabın var mı? Giriş yap",
+    switchToSignup: "Hesabın yok mu? Ücretsiz kaydol",
+    securityEyebrow: "Güvenli kişisel çalışma alanı",
+    securityPoints: ["Kısa süreli yükleme imzaları medyayı doğrudan depolamaya gönderir.", "Kota, kuyruklar, AI, çeviri ve dışa aktarımlar tek panelde.", "E-posta, Google, doğrulama ve abonelik faturalaması desteklenir."],
+    verifyTitle: "E-postanı doğrula",
+    verifyText: (email: string) => `${email} adresine doğrulama e-postası gönderdik. Hesabını doğrulamak için bağlantıyı aç.`,
+    verifyPending: "E-posta doğrulanıyor...",
+    verifyPendingText: "Doğrulama bağlantını kontrol ederken lütfen bekle.",
+    verifySuccess: "E-posta doğrulandı",
+    verifySuccessText: "Hesap e-postan doğrulandı. Panele devam edebilirsin.",
+    verifyFailed: "E-posta doğrulaması başarısız",
+    verifyResent: "Doğrulama e-postası gönderildi. Gelen kutunu kontrol et.",
+    verifyAlreadyDone: "E-postan zaten doğrulandı. Panele devam edebilirsin.",
+    goDashboard: "Paneli aç",
+    openVerifyLink: "Doğrulama bağlantısını aç",
+    devVerifyHint: "E-posta gönderimi yapılandırılmadı, bu geliştirme bağlantısı yerel veya test ortamı için kullanılabilir.",
+    resend: "Doğrulama e-postasını yeniden gönder",
+    backToSignin: "Girişe dön",
+    missingEmail: "E-posta gelmedi mi? Spam klasörünü kontrol et.",
+    signupHeading: "Kayıt ol",
+    signinHeading: "Giriş yap",
+    google: "Google ile devam et",
+    signupDivider: "veya e-posta ile kaydol",
+    signinDivider: "veya e-posta ile giriş yap",
+    email: "E-posta",
+    emailLabel: "E-posta:",
+    edit: "Düzenle",
+    firstName: "Ad",
+    firstNamePlaceholder: "Ad",
+    lastName: "Soyad",
+    lastNamePlaceholder: "Soyad",
+    password: "Parola",
+    passwordPlaceholder: "Parolanı gir",
+    togglePassword: "Parola görünürlüğünü değiştir",
+    continue: "Devam",
+    registering: "Hesap oluşturuluyor...",
+    loginBusy: "Giriş yapılıyor...",
+    submitSignup: "E-posta ile kaydol",
+    back: "Geri",
+    already: "Hesabın var mı?",
+    signinLink: "Giriş yap",
+    forgotPassword: "Parolanı mı unuttun?",
+    termsPrefix: "UniScribe'ı kullanarak",
+    terms: "Hizmet Şartları",
+    and: "ve",
+    privacy: "Gizlilik Politikası",
+    registerError: "Kayıt başarısız.",
+    loginError: "Giriş başarısız."
+  },
+  uk: {
+    signupTitle: "Створіть акаунт UniScribe",
+    signinTitle: "Увійти в UniScribe",
+    signupSubtitle: "Створіть акаунт, щоб керувати транскрипціями, лімітом і експортами.",
+    signinSubtitle: "Продовжте з e-mail, щоб відкрити панель транскрипцій.",
+    signupCta: "Створити акаунт і відкрити панель",
+    signinCta: "Увійти через e-mail",
+    switchToSignin: "Вже маєте акаунт? Увійдіть",
+    switchToSignup: "Немає акаунта? Зареєструйтеся безкоштовно",
+    securityEyebrow: "Безпечний особистий робочий простір",
+    securityPoints: ["Короткі підписи завантаження надсилають медіа прямо в сховище.", "Ліміти, черги, AI, переклад і експорти доступні в одній панелі.", "Підтримуються e-mail, Google, підтвердження та оплата підписки."],
+    verifyTitle: "Підтвердьте e-mail",
+    verifyText: (email: string) => `Ми надіслали лист підтвердження на ${email}. Відкрийте посилання, щоб підтвердити акаунт.`,
+    verifyPending: "Підтверджуємо e-mail...",
+    verifyPendingText: "Зачекайте, доки ми перевіримо посилання.",
+    verifySuccess: "E-mail підтверджено",
+    verifySuccessText: "E-mail акаунта підтверджено. Можна перейти до панелі.",
+    verifyFailed: "Не вдалося підтвердити e-mail",
+    verifyResent: "Лист підтвердження надіслано. Перевірте пошту.",
+    verifyAlreadyDone: "Ваш e-mail уже підтверджено. Можна перейти до панелі.",
+    goDashboard: "Відкрити панель",
+    openVerifyLink: "Відкрити посилання підтвердження",
+    devVerifyHint: "Доставку e-mail не налаштовано, тому це тестове посилання доступне для локального або тестового середовища.",
+    resend: "Надіслати лист ще раз",
+    backToSignin: "Повернутися до входу",
+    missingEmail: "Не отримали листа? Перевірте спам.",
+    signupHeading: "Реєстрація",
+    signinHeading: "Вхід",
+    google: "Продовжити з Google",
+    signupDivider: "або зареєструйтеся через e-mail",
+    signinDivider: "або увійдіть через e-mail",
+    email: "E-mail",
+    emailLabel: "E-mail:",
+    edit: "Редагувати",
+    firstName: "Ім'я",
+    firstNamePlaceholder: "Ім'я",
+    lastName: "Прізвище",
+    lastNamePlaceholder: "Прізвище",
+    password: "Пароль",
+    passwordPlaceholder: "Введіть пароль",
+    togglePassword: "Показати або приховати пароль",
+    continue: "Продовжити",
+    registering: "Створення акаунта...",
+    loginBusy: "Вхід...",
+    submitSignup: "Зареєструватися через e-mail",
+    back: "Назад",
+    already: "Вже маєте акаунт?",
+    signinLink: "Увійти",
+    forgotPassword: "Забули пароль?",
+    termsPrefix: "Використовуючи UniScribe, ви погоджуєтесь із",
+    terms: "Умовами надання послуг",
+    and: "та",
+    privacy: "Політикою приватності",
+    registerError: "Реєстрація не вдалася.",
+    loginError: "Вхід не вдався."
+  },
+  vi: {
+    signupTitle: "Tạo tài khoản UniScribe",
+    signinTitle: "Đăng nhập UniScribe",
+    signupSubtitle: "Tạo tài khoản để quản lý tác vụ chép lời, hạn mức và tệp xuất.",
+    signinSubtitle: "Tiếp tục bằng email để mở dashboard chép lời.",
+    signupCta: "Tạo tài khoản và mở dashboard",
+    signinCta: "Đăng nhập bằng email",
+    switchToSignin: "Đã có tài khoản? Đăng nhập",
+    switchToSignup: "Chưa có tài khoản? Đăng ký miễn phí",
+    securityEyebrow: "Không gian làm việc cá nhân an toàn",
+    securityPoints: ["Chữ ký tải lên ngắn hạn gửi media trực tiếp tới lưu trữ.", "Hạn mức, hàng đợi, AI, dịch và xuất nằm trong một dashboard.", "Hỗ trợ email, Google, xác minh và thanh toán thuê bao."],
+    verifyTitle: "Xác minh email của bạn",
+    verifyText: (email: string) => `Chúng tôi đã gửi email xác minh tới ${email}. Mở liên kết để xác minh tài khoản.`,
+    verifyPending: "Đang xác minh email...",
+    verifyPendingText: "Vui lòng chờ trong khi chúng tôi xác nhận liên kết.",
+    verifySuccess: "Email đã xác minh",
+    verifySuccessText: "Email tài khoản của bạn đã được xác minh. Bạn có thể tiếp tục tới dashboard.",
+    verifyFailed: "Xác minh email thất bại",
+    verifyResent: "Email xác minh đã được gửi. Vui lòng kiểm tra hộp thư.",
+    verifyAlreadyDone: "Email của bạn đã được xác minh. Bạn có thể tiếp tục tới dashboard.",
+    goDashboard: "Mở dashboard",
+    openVerifyLink: "Mở liên kết xác minh",
+    devVerifyHint: "Chưa cấu hình gửi email, nên liên kết phát triển này dùng cho môi trường cục bộ hoặc thử nghiệm.",
+    resend: "Gửi lại email xác minh",
+    backToSignin: "Quay lại đăng nhập",
+    missingEmail: "Chưa nhận được email? Kiểm tra thư rác.",
+    signupHeading: "Đăng ký",
+    signinHeading: "Đăng nhập",
+    google: "Tiếp tục với Google",
+    signupDivider: "hoặc đăng ký bằng email",
+    signinDivider: "hoặc đăng nhập bằng email",
+    email: "Email",
+    emailLabel: "Email:",
+    edit: "Sửa",
+    firstName: "Tên",
+    firstNamePlaceholder: "Tên",
+    lastName: "Họ",
+    lastNamePlaceholder: "Họ",
+    password: "Mật khẩu",
+    passwordPlaceholder: "Nhập mật khẩu",
+    togglePassword: "Hiện hoặc ẩn mật khẩu",
+    continue: "Tiếp tục",
+    registering: "Đang tạo tài khoản...",
+    loginBusy: "Đang đăng nhập...",
+    submitSignup: "Đăng ký bằng email",
+    back: "Quay lại",
+    already: "Đã có tài khoản?",
+    signinLink: "Đăng nhập",
+    forgotPassword: "Quên mật khẩu?",
+    termsPrefix: "Khi dùng UniScribe, bạn đồng ý với",
+    terms: "Điều khoản dịch vụ",
+    and: "và",
+    privacy: "Chính sách quyền riêng tư",
+    registerError: "Đăng ký thất bại.",
+    loginError: "Đăng nhập thất bại."
+  },
+  "zh-TW": {
+    signupTitle: "建立你的 UniScribe 帳號",
+    signinTitle: "登入 UniScribe",
+    signupSubtitle: "註冊後進入儀表板，管理轉寫任務、額度和匯出資產。",
+    signinSubtitle: "使用電子郵件繼續存取你的轉寫儀表板。",
+    signupCta: "註冊並進入儀表板",
+    signinCta: "使用電子郵件登入",
+    switchToSignin: "已有帳號？登入",
+    switchToSignup: "沒有帳號？免費註冊",
+    securityEyebrow: "個人安全工作區",
+    securityPoints: ["短期上傳簽章，媒體檔案直傳物件儲存。", "額度、任務佇列、AI 洞察、翻譯和匯出統一進入儀表板。", "支援電子郵件、Google、驗證與訂閱付款。"],
+    verifyTitle: "驗證你的電子郵件",
+    verifyText: (email: string) => `我們已向 ${email} 傳送驗證郵件。請開啟郵件中的連結驗證帳號。`,
+    verifyPending: "正在驗證電子郵件...",
+    verifyPendingText: "請稍候，我們正在確認你的驗證連結。",
+    verifySuccess: "電子郵件已驗證",
+    verifySuccessText: "你的帳號電子郵件已完成驗證，可以繼續前往儀表板。",
+    verifyFailed: "電子郵件驗證失敗",
+    verifyResent: "驗證郵件已傳送，請檢查收件匣。",
+    verifyAlreadyDone: "你的電子郵件已完成驗證，可以繼續前往儀表板。",
+    goDashboard: "開啟儀表板",
+    openVerifyLink: "開啟驗證連結",
+    devVerifyHint: "目前未設定郵件服務，下方開發驗證連結可用於本機或測試環境。",
+    resend: "重新傳送驗證郵件",
+    backToSignin: "返回登入",
+    missingEmail: "未收到郵件？請檢查垃圾郵件資料夾。",
+    signupHeading: "註冊",
+    signinHeading: "登入",
+    google: "使用 Google 繼續",
+    signupDivider: "或使用電子郵件註冊",
+    signinDivider: "或使用電子郵件登入",
+    email: "電子郵件",
+    emailLabel: "電子郵件：",
+    edit: "編輯",
+    firstName: "名字",
+    firstNamePlaceholder: "名字",
+    lastName: "姓氏",
+    lastNamePlaceholder: "姓氏",
+    password: "密碼",
+    passwordPlaceholder: "請輸入密碼",
+    togglePassword: "切換密碼可見性",
+    continue: "繼續",
+    registering: "註冊中...",
+    loginBusy: "登入中...",
+    submitSignup: "使用電子郵件註冊",
+    back: "返回",
+    already: "已有帳號？",
+    signinLink: "登入",
+    forgotPassword: "忘記密碼？",
+    termsPrefix: "使用 UniScribe 即表示你同意我們的",
+    terms: "服務條款",
+    and: "和",
+    privacy: "隱私權政策",
+    registerError: "註冊失敗。",
+    loginError: "登入失敗。"
+  }
+} as const;
+
 function getAuthCopy(locale: string) {
-  return authCopy[locale as keyof typeof authCopy] ?? authCopy.en;
+  return isLocale(locale) && locale in authCopy20 ? authCopy20[locale as keyof typeof authCopy20] : authCopy20.en;
 }
 
 const forgotCopy = {
@@ -484,10 +1177,10 @@ const forgotCopy = {
     privacy: "Privacy Policy",
     devResetHint: "Email delivery is not configured, so this development reset link is available for local or test environments.",
     openResetLink: "Open reset link",
-    resetTitle: "Set a new password",
-    resetSubtitle: "Enter a new password for your UniScribe account.",
-    confirmPassword: "Confirm password",
-    resetCta: "Update password",
+    resetTitle: "Reset Password",
+    resetSubtitle: "Enter your new password below",
+    confirmPassword: "Confirm New Password",
+    resetCta: "Reset Password",
     resetting: "Updating...",
     resetSuccess: "Your password has been updated. You can continue to the dashboard.",
     resetInvalid: "This reset link is invalid or expired.",
@@ -639,8 +1332,300 @@ const forgotCopy = {
   }
 } as const;
 
+const forgotCopy20 = {
+  ...forgotCopy,
+  ar: {
+    title: "نسيت كلمة المرور",
+    subtitle: "أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور.",
+    email: "البريد الإلكتروني",
+    placeholder: "أدخل بريدك الإلكتروني",
+    cta: "إرسال رابط إعادة التعيين",
+    sending: "جار الإرسال...",
+    sent: "إذا كان هذا البريد مسجلا، فستتلقى رسالة لإعادة تعيين كلمة المرور.",
+    back: "العودة إلى تسجيل الدخول",
+    termsPrefix: "باستخدام UniScribe، فإنك توافق على",
+    terms: "شروط الخدمة",
+    and: "و",
+    privacy: "سياسة الخصوصية",
+    devResetHint: "إرسال البريد غير مكوّن، لذلك يتوفر رابط إعادة التعيين هذا للتطوير أو الاختبار.",
+    openResetLink: "فتح رابط إعادة التعيين",
+    resetTitle: "إعادة تعيين كلمة المرور",
+    resetSubtitle: "أدخل كلمة مرور UniScribe الجديدة.",
+    confirmPassword: "تأكيد كلمة المرور الجديدة",
+    resetCta: "تحديث كلمة المرور",
+    resetting: "جار التحديث...",
+    resetSuccess: "تم تحديث كلمة المرور. يمكنك المتابعة إلى اللوحة.",
+    resetInvalid: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
+    mismatch: "كلمتا المرور غير متطابقتين."
+  },
+  hu: {
+    title: "Elfelejtett jelszó",
+    subtitle: "Add meg az e-mail címed a jelszó visszaállításához.",
+    email: "E-mail",
+    placeholder: "Add meg az e-mail címed",
+    cta: "Visszaállító link küldése",
+    sending: "Küldés...",
+    sent: "Ha ez az e-mail regisztrálva van, kapsz egy jelszó-visszaállító e-mailt.",
+    back: "Vissza a bejelentkezéshez",
+    termsPrefix: "A UniScribe használatával elfogadod a",
+    terms: "Szolgáltatási feltételeket",
+    and: "és",
+    privacy: "Adatvédelmi irányelveket",
+    devResetHint: "Az e-mail küldés nincs beállítva, ezért ez a fejlesztői visszaállító link elérhető helyi vagy teszt környezethez.",
+    openResetLink: "Visszaállító link megnyitása",
+    resetTitle: "Jelszó visszaállítása",
+    resetSubtitle: "Add meg az új UniScribe-jelszavad.",
+    confirmPassword: "Új jelszó megerősítése",
+    resetCta: "Jelszó frissítése",
+    resetting: "Frissítés...",
+    resetSuccess: "A jelszavad frissült. Folytathatod az irányítópulton.",
+    resetInvalid: "Ez a visszaállító link érvénytelen vagy lejárt.",
+    mismatch: "A jelszavak nem egyeznek."
+  },
+  id: {
+    title: "Lupa Kata Sandi",
+    subtitle: "Masukkan email untuk mengatur ulang kata sandi Anda.",
+    email: "Email",
+    placeholder: "Masukkan email Anda",
+    cta: "Kirim tautan reset",
+    sending: "Mengirim...",
+    sent: "Jika email tersebut terdaftar, Anda akan menerima email reset kata sandi.",
+    back: "Kembali ke masuk",
+    termsPrefix: "Dengan menggunakan UniScribe, Anda menyetujui",
+    terms: "Ketentuan Layanan",
+    and: "dan",
+    privacy: "Kebijakan Privasi",
+    devResetHint: "Pengiriman email belum dikonfigurasi, jadi tautan reset pengembangan ini tersedia untuk lokal atau pengujian.",
+    openResetLink: "Buka tautan reset",
+    resetTitle: "Reset Kata Sandi",
+    resetSubtitle: "Masukkan kata sandi UniScribe baru Anda.",
+    confirmPassword: "Konfirmasi kata sandi baru",
+    resetCta: "Perbarui kata sandi",
+    resetting: "Memperbarui...",
+    resetSuccess: "Kata sandi Anda telah diperbarui. Anda dapat melanjutkan ke dashboard.",
+    resetInvalid: "Tautan reset ini tidak valid atau kedaluwarsa.",
+    mismatch: "Kata sandi tidak cocok."
+  },
+  it: {
+    title: "Password dimenticata",
+    subtitle: "Inserisci la tua email per reimpostare la password.",
+    email: "Email",
+    placeholder: "Inserisci la tua email",
+    cta: "Invia link di reset",
+    sending: "Invio...",
+    sent: "Se l'email è registrata, riceverai un messaggio per reimpostare la password.",
+    back: "Torna all'accesso",
+    termsPrefix: "Usando UniScribe accetti i nostri",
+    terms: "Termini di servizio",
+    and: "e",
+    privacy: "Informativa privacy",
+    devResetHint: "L'invio email non è configurato; questo link di reset è disponibile per ambienti locali o di test.",
+    openResetLink: "Apri link di reset",
+    resetTitle: "Reimposta password",
+    resetSubtitle: "Inserisci la nuova password UniScribe.",
+    confirmPassword: "Conferma nuova password",
+    resetCta: "Aggiorna password",
+    resetting: "Aggiornamento...",
+    resetSuccess: "La password è stata aggiornata. Puoi continuare al dashboard.",
+    resetInvalid: "Questo link di reset non è valido o è scaduto.",
+    mismatch: "Le password non coincidono."
+  },
+  nl: {
+    title: "Wachtwoord vergeten",
+    subtitle: "Voer je e-mail in om je wachtwoord opnieuw in te stellen.",
+    email: "E-mail",
+    placeholder: "Voer je e-mail in",
+    cta: "Resetlink sturen",
+    sending: "Versturen...",
+    sent: "Als dit e-mailadres geregistreerd is, ontvang je een wachtwoordresetmail.",
+    back: "Terug naar inloggen",
+    termsPrefix: "Door UniScribe te gebruiken ga je akkoord met onze",
+    terms: "Servicevoorwaarden",
+    and: "en",
+    privacy: "Privacyverklaring",
+    devResetHint: "E-mailbezorging is niet geconfigureerd, dus deze ontwikkelresetlink is beschikbaar voor lokaal of testgebruik.",
+    openResetLink: "Resetlink openen",
+    resetTitle: "Wachtwoord resetten",
+    resetSubtitle: "Voer je nieuwe UniScribe-wachtwoord in.",
+    confirmPassword: "Nieuw wachtwoord bevestigen",
+    resetCta: "Wachtwoord bijwerken",
+    resetting: "Bijwerken...",
+    resetSuccess: "Je wachtwoord is bijgewerkt. Je kunt doorgaan naar het dashboard.",
+    resetInvalid: "Deze resetlink is ongeldig of verlopen.",
+    mismatch: "Wachtwoorden komen niet overeen."
+  },
+  pl: {
+    title: "Nie pamiętasz hasła",
+    subtitle: "Wpisz e-mail, aby zresetować hasło.",
+    email: "E-mail",
+    placeholder: "Wpisz e-mail",
+    cta: "Wyślij link resetowania",
+    sending: "Wysyłanie...",
+    sent: "Jeśli ten e-mail jest zarejestrowany, otrzymasz wiadomość resetowania hasła.",
+    back: "Wróć do logowania",
+    termsPrefix: "Korzystając z UniScribe, akceptujesz",
+    terms: "Warunki korzystania",
+    and: "oraz",
+    privacy: "Politykę prywatności",
+    devResetHint: "Wysyłka e-maili nie jest skonfigurowana, więc ten link resetowania jest dostępny lokalnie lub testowo.",
+    openResetLink: "Otwórz link resetowania",
+    resetTitle: "Resetuj hasło",
+    resetSubtitle: "Wpisz nowe hasło UniScribe.",
+    confirmPassword: "Potwierdź nowe hasło",
+    resetCta: "Zaktualizuj hasło",
+    resetting: "Aktualizowanie...",
+    resetSuccess: "Hasło zostało zaktualizowane. Możesz przejść do panelu.",
+    resetInvalid: "Ten link resetowania jest nieprawidłowy lub wygasł.",
+    mismatch: "Hasła nie są zgodne."
+  },
+  ru: {
+    title: "Забыли пароль",
+    subtitle: "Введите e-mail, чтобы сбросить пароль.",
+    email: "E-mail",
+    placeholder: "Введите e-mail",
+    cta: "Отправить ссылку сброса",
+    sending: "Отправка...",
+    sent: "Если этот e-mail зарегистрирован, вы получите письмо для сброса пароля.",
+    back: "Назад ко входу",
+    termsPrefix: "Используя UniScribe, вы соглашаетесь с",
+    terms: "Условиями обслуживания",
+    and: "и",
+    privacy: "Политикой конфиденциальности",
+    devResetHint: "Доставка e-mail не настроена, поэтому эта ссылка сброса доступна для локальной или тестовой среды.",
+    openResetLink: "Открыть ссылку сброса",
+    resetTitle: "Сброс пароля",
+    resetSubtitle: "Введите новый пароль UniScribe.",
+    confirmPassword: "Подтвердите новый пароль",
+    resetCta: "Обновить пароль",
+    resetting: "Обновление...",
+    resetSuccess: "Пароль обновлен. Можно перейти в панель.",
+    resetInvalid: "Эта ссылка сброса недействительна или истекла.",
+    mismatch: "Пароли не совпадают."
+  },
+  th: {
+    title: "ลืมรหัสผ่าน",
+    subtitle: "ป้อนอีเมลของคุณเพื่อรีเซ็ตรหัสผ่าน",
+    email: "อีเมล",
+    placeholder: "ป้อนอีเมลของคุณ",
+    cta: "ส่งลิงก์รีเซ็ต",
+    sending: "กำลังส่ง...",
+    sent: "หากอีเมลนี้ลงทะเบียนแล้ว คุณจะได้รับอีเมลรีเซ็ตรหัสผ่าน",
+    back: "กลับไปเข้าสู่ระบบ",
+    termsPrefix: "การใช้ UniScribe หมายความว่าคุณยอมรับ",
+    terms: "ข้อกำหนดการให้บริการ",
+    and: "และ",
+    privacy: "นโยบายความเป็นส่วนตัว",
+    devResetHint: "ยังไม่ได้ตั้งค่าการส่งอีเมล ลิงก์รีเซ็ตสำหรับพัฒนานี้จึงใช้ได้ในเครื่องหรือสภาพแวดล้อมทดสอบ",
+    openResetLink: "เปิดลิงก์รีเซ็ต",
+    resetTitle: "รีเซ็ตรหัสผ่าน",
+    resetSubtitle: "ป้อนรหัสผ่าน UniScribe ใหม่ของคุณ",
+    confirmPassword: "ยืนยันรหัสผ่านใหม่",
+    resetCta: "อัปเดตรหัสผ่าน",
+    resetting: "กำลังอัปเดต...",
+    resetSuccess: "อัปเดตรหัสผ่านแล้ว คุณสามารถไปที่แดชบอร์ดได้",
+    resetInvalid: "ลิงก์รีเซ็ตนี้ไม่ถูกต้องหรือหมดอายุแล้ว",
+    mismatch: "รหัสผ่านไม่ตรงกัน"
+  },
+  tr: {
+    title: "Parolamı Unuttum",
+    subtitle: "Parolanı sıfırlamak için e-postanı gir.",
+    email: "E-posta",
+    placeholder: "E-postanı gir",
+    cta: "Sıfırlama bağlantısı gönder",
+    sending: "Gönderiliyor...",
+    sent: "Bu e-posta kayıtlıysa parola sıfırlama e-postası alacaksın.",
+    back: "Girişe dön",
+    termsPrefix: "UniScribe'ı kullanarak",
+    terms: "Hizmet Şartları",
+    and: "ve",
+    privacy: "Gizlilik Politikası",
+    devResetHint: "E-posta gönderimi yapılandırılmadı, bu geliştirme sıfırlama bağlantısı yerel veya test ortamı için kullanılabilir.",
+    openResetLink: "Sıfırlama bağlantısını aç",
+    resetTitle: "Parolayı sıfırla",
+    resetSubtitle: "Yeni UniScribe parolanı gir.",
+    confirmPassword: "Yeni parolayı onayla",
+    resetCta: "Parolayı güncelle",
+    resetting: "Güncelleniyor...",
+    resetSuccess: "Parolan güncellendi. Panele devam edebilirsin.",
+    resetInvalid: "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş.",
+    mismatch: "Parolalar eşleşmiyor."
+  },
+  uk: {
+    title: "Забули пароль",
+    subtitle: "Введіть e-mail, щоб скинути пароль.",
+    email: "E-mail",
+    placeholder: "Введіть e-mail",
+    cta: "Надіслати посилання скидання",
+    sending: "Надсилання...",
+    sent: "Якщо цей e-mail зареєстровано, ви отримаєте лист для скидання пароля.",
+    back: "Повернутися до входу",
+    termsPrefix: "Використовуючи UniScribe, ви погоджуєтесь із",
+    terms: "Умовами надання послуг",
+    and: "та",
+    privacy: "Політикою приватності",
+    devResetHint: "Доставку e-mail не налаштовано, тому це посилання скидання доступне для локального або тестового середовища.",
+    openResetLink: "Відкрити посилання скидання",
+    resetTitle: "Скинути пароль",
+    resetSubtitle: "Введіть новий пароль UniScribe.",
+    confirmPassword: "Підтвердьте новий пароль",
+    resetCta: "Оновити пароль",
+    resetting: "Оновлення...",
+    resetSuccess: "Пароль оновлено. Можна перейти до панелі.",
+    resetInvalid: "Це посилання скидання недійсне або протерміноване.",
+    mismatch: "Паролі не збігаються."
+  },
+  vi: {
+    title: "Quên mật khẩu",
+    subtitle: "Nhập email để đặt lại mật khẩu.",
+    email: "Email",
+    placeholder: "Nhập email của bạn",
+    cta: "Gửi liên kết đặt lại",
+    sending: "Đang gửi...",
+    sent: "Nếu email đó đã đăng ký, bạn sẽ nhận được email đặt lại mật khẩu.",
+    back: "Quay lại đăng nhập",
+    termsPrefix: "Khi dùng UniScribe, bạn đồng ý với",
+    terms: "Điều khoản dịch vụ",
+    and: "và",
+    privacy: "Chính sách quyền riêng tư",
+    devResetHint: "Chưa cấu hình gửi email, nên liên kết đặt lại này dùng cho môi trường cục bộ hoặc thử nghiệm.",
+    openResetLink: "Mở liên kết đặt lại",
+    resetTitle: "Đặt lại mật khẩu",
+    resetSubtitle: "Nhập mật khẩu UniScribe mới.",
+    confirmPassword: "Xác nhận mật khẩu mới",
+    resetCta: "Cập nhật mật khẩu",
+    resetting: "Đang cập nhật...",
+    resetSuccess: "Mật khẩu của bạn đã được cập nhật. Bạn có thể tiếp tục tới dashboard.",
+    resetInvalid: "Liên kết đặt lại này không hợp lệ hoặc đã hết hạn.",
+    mismatch: "Mật khẩu không khớp."
+  },
+  "zh-TW": {
+    title: "重設密碼",
+    subtitle: "輸入你的帳號電子郵件，我們會傳送重設密碼連結。",
+    email: "電子郵件",
+    placeholder: "請輸入電子郵件",
+    cta: "傳送重設連結",
+    sending: "傳送中...",
+    sent: "如果此電子郵件已註冊，你將收到密碼重設郵件。",
+    back: "返回登入",
+    termsPrefix: "使用 UniScribe 即表示你同意我們的",
+    terms: "服務條款",
+    and: "和",
+    privacy: "隱私權政策",
+    devResetHint: "目前未設定郵件服務，下方開發重設連結可用於本機或測試環境。",
+    openResetLink: "開啟重設連結",
+    resetTitle: "設定新密碼",
+    resetSubtitle: "輸入新的 UniScribe 密碼。",
+    confirmPassword: "確認新密碼",
+    resetCta: "更新密碼",
+    resetting: "更新中...",
+    resetSuccess: "密碼已更新。你可以繼續前往儀表板。",
+    resetInvalid: "此重設連結無效或已過期。",
+    mismatch: "兩次輸入的密碼不一致。"
+  }
+} as const;
+
 function getForgotCopy(locale: string) {
-  return forgotCopy[locale as keyof typeof forgotCopy] ?? forgotCopy.en;
+  return isLocale(locale) && locale in forgotCopy20 ? forgotCopy20[locale as keyof typeof forgotCopy20] : forgotCopy20.en;
 }
 
 async function createPasswordCredential(password: string) {
@@ -684,11 +1669,13 @@ export function AuthPage({mode}: {mode: "signin" | "signup"}) {
   );
 
   return (
-    <main className="min-h-screen bg-lavender px-4 py-10 md:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-md content-center">
-        <div className="animate-fade-up rounded-xl border border-ink/10 bg-white px-6 py-8 shadow-lifted md:px-10 md:py-10">
-          <div className="mb-8 flex justify-center">
-            <Image src="/uniscribe-logo.svg" alt="UniScribe" width={172} height={42} priority />
+    <main className="min-h-screen bg-white">
+      <section className="mx-auto grid min-h-screen w-[286px] content-center">
+        <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
+          <div className="mb-10 flex justify-center">
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
+              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            </a>
           </div>
           {isSignup ? (
             <SignupCard
@@ -750,21 +1737,22 @@ function GoogleMark() {
 
 function Divider({label}: {label: string}) {
   return (
-    <div className="my-5 flex items-center gap-4 text-sm font-bold text-ink/45">
-      <span className="h-px flex-1 bg-ink/12" />
+    <div className="my-4 flex h-5 items-center gap-3 text-sm leading-5 text-[rgb(2,8,23)]">
+      <span className="h-px flex-1 bg-slate-200" />
       {label}
-      <span className="h-px flex-1 bg-ink/12" />
+      <span className="h-px flex-1 bg-slate-200" />
     </div>
   );
 }
 
 function GoogleButton({locale, label, nextPath}: {locale: string; label: string; nextPath?: string | null}) {
   const nextParam = nextPath ? `&next=${encodeURIComponent(nextPath)}` : "";
+  const oauthUrl = `/api/auth/google/start?locale=${locale}${nextParam}`;
   return (
-    <a href={`/api/auth/google/start?locale=${locale}${nextParam}`} className="focus-ring mt-6 flex min-h-[56px] w-full items-center justify-center gap-5 rounded-lg border border-ink/15 bg-white px-6 py-3 text-lg font-black text-ink transition hover:border-violet/30 hover:bg-lavender/35">
+    <button type="button" onClick={() => { window.location.href = oauthUrl; }} className="focus-ring mt-4 flex h-[52px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-slate-200 bg-white px-4 py-6 text-base font-medium text-[rgb(2,8,23)] ring-offset-background transition-colors hover:bg-slate-50">
       <GoogleMark />
       {label}
-    </a>
+    </button>
   );
 }
 
@@ -858,22 +1846,22 @@ function SignupCard({
 
   return (
     <div>
-      <h1 className="text-center text-3xl font-black text-ink">{text.signupHeading}</h1>
+      <h1 className="text-center text-2xl font-semibold leading-8 text-[rgb(2,8,23)]">{text.signupTitle}</h1>
       <GoogleButton locale={locale} label={text.google} />
       <Divider label={text.signupDivider} />
       {step === "email" ? (
         <>
           <label className="block">
-            <span className="mb-2 block text-sm font-black">{text.email}</span>
+            <span className="block text-sm font-medium leading-5 text-[rgb(2,8,23)]">{text.email}</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="focus-ring w-full rounded-md border border-ink/15 px-4 py-3 text-base"
-              placeholder="Enter your email"
+              className="focus-ring mt-2 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-[rgb(2,8,23)] outline-none"
+              placeholder={text.email}
             />
           </label>
-          <button type="button" onClick={() => setStep("profile")} disabled={!email.includes("@")} className="focus-ring mt-6 w-full rounded-md bg-violet px-5 py-3 text-base font-black text-white shadow-soft transition hover:bg-violetDark disabled:opacity-45">
+          <button type="button" onClick={() => setStep("profile")} disabled={!email.includes("@")} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
             {text.continue}
           </button>
         </>
@@ -914,8 +1902,8 @@ function SignupCard({
           <button type="button" onClick={() => setStep("email")} className="mx-auto mt-6 block text-lg font-black text-ink/55">{text.back}</button>
         </>
       )}
-      <p className="mt-6 text-center text-sm text-ink/55">{text.already} <a className="font-black text-violet" href={`/${locale}/auth/signin`}>{text.signinLink}</a></p>
-      <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-ink/55">{text.termsPrefix} <a className="font-bold text-violet" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="font-bold text-violet" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
+      <p className="mt-4 text-center text-sm leading-5 text-slate-500">{text.already} <a className="text-violet hover:underline" href={`/${locale}/auth/signin`}>{text.signinLink}</a></p>
+      <p className="mx-auto mt-4 max-w-[286px] text-center text-xs leading-4 text-slate-500">{text.termsPrefix} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
     </div>
   );
 }
@@ -923,17 +1911,21 @@ function SignupCard({
 export function VerifyEmailPage() {
   const locale = useLocale();
   const text = getAuthCopy(locale);
-  const [status, setStatus] = useState<"pending" | "success" | "failed">("pending");
+  const [status, setStatus] = useState<"idle" | "pending" | "success" | "failed">("idle");
   const [message, setMessage] = useState<string>("");
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [resendUrl, setResendUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
     if (!token) {
-      setStatus("failed");
-      setMessage(text.verifyFailed);
+      setStatus("idle");
+      setMessage("");
       return;
     }
 
+    setStatus("pending");
     fetch("/api/auth/verify-email", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -947,25 +1939,74 @@ export function VerifyEmailPage() {
       .catch((cause) => {
         setStatus("failed");
         setMessage(cause instanceof Error ? cause.message : String(cause));
-      });
+    });
   }, [locale, text]);
 
+  async function resendVerification() {
+    setResendBusy(true);
+    setResendMessage(null);
+    setResendUrl(null);
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({locale})
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? text.verifyFailed);
+      if (data.alreadyVerified) {
+        setStatus("success");
+        setResendMessage(text.verifyAlreadyDone);
+      } else {
+        setResendMessage(text.verifyResent);
+        setResendUrl(data.verificationUrl ?? null);
+      }
+    } catch (cause) {
+      setResendMessage(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setResendBusy(false);
+    }
+  }
+
+  const isIdle = status === "idle";
+  const title = isIdle ? text.verifyTitle : status === "pending" ? text.verifyPending : status === "success" ? text.verifySuccess : text.verifyFailed;
+  const description = isIdle
+    ? text.verifyPendingText
+    : status === "success"
+      ? text.verifySuccessText
+      : status === "pending"
+        ? text.verifyPendingText
+        : message;
+
   return (
-    <main className="min-h-screen bg-lavender px-4 py-10 md:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-xl content-center">
-        <div className="animate-fade-up rounded-xl border border-ink/10 bg-white p-8 text-center shadow-lifted md:p-12">
-          <div className="mb-12 flex justify-center">
-            <Image src="/uniscribe-logo.svg" alt="UniScribe" width={190} height={52} priority />
+    <main className="grid min-h-screen place-items-center bg-white">
+      <section className="animate-fade-up h-[480px] w-[384px] rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
+        <div className="mx-auto w-[286px]">
+          <div className="flex justify-center">
+            <a href={`/${locale}`} className="block transition-opacity hover:opacity-90" aria-label="UniScribe home">
+              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            </a>
           </div>
-          <Mail className="mx-auto text-violet" size={68} />
-          <h1 className="mt-8 text-3xl font-black text-ink">
-            {status === "pending" ? text.verifyPending : status === "success" ? text.verifySuccess : text.verifyFailed}
-          </h1>
-          <p className="mt-4 text-base leading-7 text-ink/60">{status === "success" ? text.verifySuccessText : status === "pending" ? text.verifyPendingText : message}</p>
-          <a href={`/${locale}/dashboard`} className="focus-ring mt-8 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-violet px-5 py-4 text-lg font-black text-white shadow-soft transition hover:bg-violetDark">
-            {text.signinCta}
-            <ArrowRight size={18} />
-          </a>
+          <Mail className="mx-auto mt-10 text-violet" size={48} />
+          <h2 className="mt-4 text-2xl font-semibold leading-8 text-[rgb(2,8,23)]">{title}</h2>
+          <p className="mt-4 text-sm font-normal leading-5 text-slate-500">{description}</p>
+          {status === "success" ? (
+            <a href={`/${locale}/dashboard`} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center rounded-md bg-violet px-4 py-2 text-sm font-medium leading-5 text-white transition-colors hover:bg-violet/90">
+              {text.goDashboard}
+            </a>
+          ) : (
+            <>
+              <button type="button" onClick={resendVerification} disabled={resendBusy} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center rounded-md bg-violet px-4 py-2 text-sm font-medium leading-5 text-white transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
+                {text.resend}
+              </button>
+              <a href={`/${locale}/auth/signin`} className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium leading-5 text-violet transition-colors hover:bg-slate-50">
+                ← {text.backToSignin}
+              </a>
+            </>
+          )}
+          {resendMessage ? <p className="mt-3 text-sm font-normal leading-5 text-slate-500">{resendMessage}</p> : null}
+          {resendUrl ? <a href={resendUrl} className="mt-2 block break-all text-sm leading-5 text-violet hover:underline">{text.openVerifyLink}</a> : null}
+          <p className="mt-4 text-sm font-normal leading-5 text-slate-500">{text.missingEmail}</p>
         </div>
       </section>
     </main>
@@ -1003,36 +2044,34 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-lavender px-4 py-10 md:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-md content-center">
-        <div className="animate-fade-up rounded-xl border border-ink/10 bg-white px-6 py-8 shadow-lifted md:px-10 md:py-10">
-          <div className="mb-8 flex justify-center">
-            <Image src="/uniscribe-logo.svg" alt="UniScribe" width={172} height={42} priority />
+    <main className="min-h-screen bg-white">
+      <section className="mx-auto grid min-h-screen w-[286px] content-center">
+        <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
+          <div className="mb-10 flex justify-center">
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
+              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            </a>
           </div>
-          <form onSubmit={submit}>
-            <h1 className="text-center text-3xl font-black text-ink">{text.title}</h1>
-            <p className="mx-auto mt-3 max-w-sm text-center text-sm leading-6 text-ink/58">{text.subtitle}</p>
-            <label className="mt-6 block">
-              <span className="mb-2 block text-sm font-black">{text.email}</span>
-              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="focus-ring w-full rounded-md border border-ink/15 px-4 py-3 text-base" placeholder={text.placeholder} required />
-            </label>
-            {sent ? <p className="mt-4 rounded-lg border border-violet/20 bg-violet/10 px-3 py-2 text-sm font-bold leading-6 text-violet">{text.sent}</p> : null}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold leading-8 text-[rgb(2,8,23)]">{text.title}</h1>
+            <p className="mx-auto mt-2 text-base leading-6 text-[rgb(2,8,23)]">{text.subtitle}</p>
+          </div>
+          <form onSubmit={submit} className="mt-4">
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="focus-ring flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-[rgb(2,8,23)] outline-none" placeholder={text.email} required />
+            {sent ? <p className="mt-4 rounded-md border border-violet/20 bg-violet/10 px-3 py-2 text-sm leading-5 text-violet">{text.sent}</p> : null}
             {resetUrl ? (
-              <div className="mt-4 rounded-lg border border-violet/20 bg-violet/5 p-4">
-                <p className="text-sm font-bold leading-6 text-ink/65">{text.devResetHint}</p>
-                <a href={resetUrl} className="mt-3 inline-flex break-all text-sm font-black text-violet">{text.openResetLink}</a>
+              <div className="mt-4 rounded-md border border-violet/20 bg-violet/5 p-3">
+                <p className="text-sm leading-5 text-slate-600">{text.devResetHint}</p>
+                <a href={resetUrl} className="mt-2 inline-flex break-all text-sm text-violet hover:underline">{text.openResetLink}</a>
               </div>
             ) : null}
-            {error ? <p className="mt-4 rounded-lg border border-coral/25 bg-coral/10 px-3 py-2 text-sm font-bold text-coral">{error}</p> : null}
-            <button disabled={busy || !email.includes("@")} className="focus-ring mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-violet px-5 py-3 text-base font-black text-white shadow-soft transition hover:bg-violetDark disabled:opacity-45">
+            {error ? <p className="mt-4 rounded-md border border-coral/25 bg-coral/10 px-3 py-2 text-sm text-coral">{error}</p> : null}
+            <button type="submit" disabled={busy || !email.includes("@")} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
               {busy ? text.sending : text.cta}
-              <ArrowRight size={18} />
             </button>
-            <a className="mt-4 flex items-center justify-center gap-2 text-sm font-black text-violet" href={`/${locale}/auth/signin`}>
-              <ArrowLeft size={16} />
+            <a className="mt-4 block text-center text-sm leading-5 text-violet hover:underline" href={`/${locale}/auth/signin`}>
               {text.back}
             </a>
-            <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-ink/55">{text.termsPrefix} <a className="font-bold text-violet" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="font-bold text-violet" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
           </form>
         </div>
       </section>
@@ -1084,39 +2123,31 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-lavender px-4 py-10 md:px-8">
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-md content-center">
-        <div className="animate-fade-up rounded-xl border border-ink/10 bg-white px-6 py-8 shadow-lifted md:px-10 md:py-10">
-          <div className="mb-8 flex justify-center">
-            <Image src="/uniscribe-logo.svg" alt="UniScribe" width={172} height={42} priority />
+    <main className="min-h-screen bg-white">
+      <section className="mx-auto grid min-h-screen w-[286px] content-center">
+        <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
+          <div className="mb-10 flex justify-center">
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
+              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            </a>
           </div>
-          <form onSubmit={submit}>
-            <h1 className="text-center text-3xl font-black text-ink">{text.resetTitle}</h1>
-            <p className="mx-auto mt-3 max-w-sm text-center text-sm leading-6 text-ink/58">{text.resetSubtitle}</p>
-            <label className="mt-6 block">
-              <span className="mb-2 block text-sm font-black">{text.resetTitle}</span>
-              <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="focus-ring w-full rounded-md border border-ink/15 px-4 py-3 text-base" placeholder="New password" required />
-            </label>
-            <label className="mt-4 block">
-              <span className="mb-2 block text-sm font-black">{text.confirmPassword}</span>
-              <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="focus-ring w-full rounded-md border border-ink/15 px-4 py-3 text-base" placeholder={text.confirmPassword} required />
-            </label>
-            {message ? <p className={status === "success" ? "mt-4 rounded-lg border border-violet/20 bg-violet/10 px-3 py-2 text-sm font-bold leading-6 text-violet" : "mt-4 rounded-lg border border-coral/25 bg-coral/10 px-3 py-2 text-sm font-bold text-coral"}>{message}</p> : null}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold leading-8 text-[rgb(2,8,23)]">{text.resetTitle}</h1>
+            <p className="mx-auto mt-2 text-base leading-6 text-[rgb(2,8,23)]">{text.resetSubtitle}</p>
+          </div>
+          <form onSubmit={submit} className="mt-4">
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="focus-ring flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-[rgb(2,8,23)] outline-none" placeholder={getAuthCopy(locale).password} required />
+            <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="focus-ring mt-4 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-[rgb(2,8,23)] outline-none" placeholder={text.confirmPassword} required />
+            {message ? <p className={status === "success" ? "mt-4 rounded-md border border-violet/20 bg-violet/10 px-3 py-2 text-sm leading-5 text-violet" : "mt-4 rounded-md border border-coral/25 bg-coral/10 px-3 py-2 text-sm text-coral"}>{message}</p> : null}
             {status === "success" ? (
-              <a href={`/${locale}/dashboard`} className="focus-ring mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-violet px-5 py-3 text-base font-black text-white shadow-soft transition hover:bg-violetDark">
+              <a href={`/${locale}/dashboard`} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90">
                 {getAuthCopy(locale).goDashboard}
-                <ArrowRight size={18} />
               </a>
             ) : (
-              <button disabled={busy || password.length < 8 || confirmPassword.length < 8} className="focus-ring mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-violet px-5 py-3 text-base font-black text-white shadow-soft transition hover:bg-violetDark disabled:opacity-45">
+              <button type="submit" disabled={busy || password.length < 8 || confirmPassword.length < 8} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
                 {busy ? text.resetting : text.resetCta}
-                <ArrowRight size={18} />
               </button>
             )}
-            <a className="mt-4 flex items-center justify-center gap-2 text-sm font-black text-violet" href={`/${locale}/auth/signin`}>
-              <ArrowLeft size={16} />
-              {text.back}
-            </a>
           </form>
         </div>
       </section>
@@ -1183,32 +2214,31 @@ function SigninCard({
 
   return (
     <form onSubmit={submitLogin}>
-      <h1 className="text-center text-3xl font-black text-ink">{copy.title}</h1>
+      <h1 className="mt-4 text-center text-2xl font-semibold leading-8 text-[rgb(2,8,23)]">{copy.title}</h1>
       <GoogleButton locale={locale} label={text.google} nextPath={nextPath} />
       <Divider label={text.signinDivider} />
-      <label className="block">
-        <span className="mb-2 block text-sm font-black">{text.email}</span>
-        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="focus-ring w-full rounded-md border border-ink/15 px-4 py-3 text-base" placeholder="Enter your email" autoComplete="email" required />
+      <label className="block pt-1">
+        <span className="block text-sm font-medium leading-5 text-[rgb(2,8,23)]">{text.email}</span>
+        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="focus-ring mt-2 flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-5 text-[rgb(2,8,23)] outline-none" placeholder={text.email} autoComplete="email" required />
       </label>
-      <label className="mt-4 block">
-        <span className="mb-2 block text-sm font-black">{text.password}</span>
-        <div className="flex rounded-md border border-ink/15">
-          <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className="focus-ring min-w-0 flex-1 px-4 py-3 text-base outline-none" placeholder={text.passwordPlaceholder} autoComplete="current-password" required />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="focus-ring px-4" aria-label={text.togglePassword}>
+      <label className="mt-4 block pt-1">
+        <span className="block text-sm font-medium leading-5 text-[rgb(2,8,23)]">{text.password}</span>
+        <div className="mt-2 flex h-10 rounded-md border border-slate-200 bg-white">
+          <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className="focus-ring min-w-0 flex-1 rounded-md px-3 py-2 pr-1 text-sm leading-5 outline-none" placeholder={text.passwordPlaceholder} autoComplete="current-password" required />
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="focus-ring grid w-10 place-items-center text-slate-500" aria-label={text.togglePassword}>
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
       </label>
       {error ? <p className="mt-4 animate-fade-in rounded-lg border border-coral/30 bg-coral/10 px-3 py-2 text-sm font-bold text-coral">{error}</p> : null}
-      <button disabled={busy || !canSubmit} className="focus-ring mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-violet px-5 py-3 text-base font-black text-white shadow-soft transition hover:bg-violetDark disabled:cursor-not-allowed disabled:opacity-45">
+      <button disabled={busy || !canSubmit} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
         {busy ? text.loginBusy : copy.cta}
-        <ArrowRight size={18} />
       </button>
-      <a className="mt-4 block text-center text-sm font-black text-violet" href={`/${locale}/auth/forgot-password`}>{text.forgotPassword}</a>
-      <p className="mt-5 text-center text-sm text-ink/55">
-        <a className="font-black text-violet" href={copy.switchHref}>{copy.switchText}</a>
+      <a className="mt-4 flex h-6 items-center justify-center text-center text-sm leading-[17px] text-violet hover:underline" href={`/${locale}/auth/forgot-password`}>{text.forgotPassword}</a>
+      <p className="mt-4 text-center text-sm leading-5 text-slate-500">
+        <a className="text-violet hover:underline" href={copy.switchHref}>{copy.switchText}</a>
       </p>
-      <p className="mx-auto mt-6 max-w-sm text-center text-xs leading-5 text-ink/55">{text.termsPrefix} <a className="font-bold text-violet" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="font-bold text-violet" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
+      <p className="mx-auto mt-4 max-w-[286px] text-center text-xs leading-4 text-slate-500">{text.termsPrefix} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
     </form>
   );
 }

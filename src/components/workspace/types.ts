@@ -11,6 +11,8 @@ export type Task = {
   originalName?: string | null;
   sourceType?: string | null;
   sourceUrl?: string | null;
+  normalizedUrl?: string | null;
+  objectKey?: string | null;
   folderId?: string | null;
   folder?: FolderItem | null;
   durationSeconds?: number | null;
@@ -22,11 +24,26 @@ export type Task = {
     segments: TranscriptSegment[];
   } | null;
   insights?: Array<{type: string; locale?: string; content: any; createdAt?: string; updatedAt?: string}>;
-  shareLinks?: Array<{id: string; title?: string | null; enabled?: boolean; expiresAt?: string | null; accessCount?: number; lastAccessAt?: string | null; createdAt: string}>;
+  shareLinks?: Array<{id: string; url?: string | null; title?: string | null; enabled?: boolean; expiresAt?: string | null; accessCount?: number; lastAccessAt?: string | null; createdAt: string}>;
   currentUserRating?: {rating: number; updatedAt?: string; userId?: string} | null;
   ratingSummary?: {average: number | null; count: number};
   mediaAssets?: MediaAsset[];
 };
+
+export function mergeTaskSnapshot(current: Task | null, updated: Task): Task {
+  if (!current || current.id !== updated.id) return updated;
+  return {
+    ...current,
+    ...updated,
+    transcript: updated.transcript !== undefined ? updated.transcript : current.transcript,
+    insights: updated.insights !== undefined ? updated.insights : current.insights,
+    shareLinks: updated.shareLinks !== undefined ? updated.shareLinks : current.shareLinks,
+    currentUserRating: updated.currentUserRating !== undefined ? updated.currentUserRating : current.currentUserRating,
+    ratingSummary: updated.ratingSummary !== undefined ? updated.ratingSummary : current.ratingSummary,
+    mediaAssets: updated.mediaAssets !== undefined ? updated.mediaAssets : current.mediaAssets,
+    folder: updated.folder !== undefined ? updated.folder : current.folder
+  };
+}
 
 export type TaskListItem = {
   id: string;
@@ -44,7 +61,7 @@ export type TaskListItem = {
   completedAt?: string | null;
   transcript?: {id: string} | null;
   insights?: Array<{type: string; locale?: string; content?: any; createdAt?: string; updatedAt?: string}>;
-  shareLinks?: Array<{id: string; createdAt: string}>;
+  shareLinks?: Array<{id: string; url?: string | null; title?: string | null; enabled?: boolean; expiresAt?: string | null; accessCount?: number; lastAccessAt?: string | null; createdAt: string}>;
   mediaAssets?: MediaAsset[];
 };
 
@@ -81,9 +98,19 @@ export type CurrentUser = {
   name?: string | null;
   image?: string | null;
   role?: string;
+  passwordSet?: boolean;
+  oauthAccounts?: Array<{provider: string; email?: string | null; avatarUrl?: string | null}>;
   dailyFreeCount?: number;
   dailyResetAt?: string | null;
-  subscriptions?: Array<{plan: string; status?: string; remainingMinutes: number; monthlyMinuteQuota: number}>;
+  subscriptions?: Array<{
+    plan: string;
+    status?: string;
+    remainingMinutes: number;
+    monthlyMinuteQuota: number;
+    currentPeriodStart?: string | null;
+    currentPeriodEnd?: string | null;
+    stripeSubscriptionId?: string | null;
+  }>;
 };
 
 export type UsageSnapshot = {

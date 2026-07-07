@@ -3,12 +3,16 @@ import "server-only";
 import {z} from "zod";
 import type {MediaTask, Prisma, Transcript} from "@prisma/client";
 import {getCurrentUser} from "@/lib/auth";
-import {getTranscribeQueue, type TranscribeJob} from "@/lib/queue";
+import {normalizeDurationSeconds} from "@/lib/duration";
+import {enqueueTranscribeJob, type TranscribeJob} from "@/lib/queue";
 import {assertRateLimit} from "@/lib/rate-limit";
 import {prisma} from "@/lib/prisma";
 import {anonymousUserId} from "@/lib/tasks";
-import {assertAndUpdateFreeDailyQuota, estimatedMinutesFromFileSize, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
+import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {env} from "@/lib/env";
+import {getRequestOrigin} from "@/lib/request-origin";
+import {serializeShareLinkForOwner, type ShareLinkForOwner} from "@/lib/share-links";
 
 // 兼容旧版/外部客户端的转写字段。工作台内部使用 `/api/tasks`，但历史页面、公开工具
 // 和部分第三方集成会提交 fileId、sourceUrl、languageCode 等旧字段名，所以这里集中做入参归一化。
@@ -42,13 +46,19 @@ type TaskWithRelations = MediaTask & {
   transcript?: Transcript | null;
   insights?: Array<{type: string; content: Prisma.JsonValue; createdAt: Date; updatedAt: Date}>;
   folder?: {id: string; name: string; position: number} | null;
-  shareLinks?: Array<{id: string; createdAt: Date}>;
+  shareLinks?: ShareLinkForOwner[];
 };
 
-export function serializeCompatTask(task: TaskWithRelations) {
+export function serializeCompatTask(task: TaskWithRelations, input: {locale?: string; appUrl?: string} = {}) {
+  const locale = input.locale ?? "zh";
+  const appUrl = input.appUrl ?? env.NEXT_PUBLIC_APP_URL;
+  const shareLinks = task.shareLinks?.map((shareLink) =>
+    serializeShareLinkForOwner(shareLink, {appUrl, locale})
+  );
   // 兼容响应保留 transcriptionFileId、fileId、filename 等旧字段，避免旧客户端升级时出现破坏性变更。
   return {
     ...task,
+    shareLinks,
     transcriptionFileId: task.id,
     fileId: task.id,
     filename: task.originalName,
@@ -56,7 +66,7 @@ export function serializeCompatTask(task: TaskWithRelations) {
     duration: task.durationSeconds,
     transcriptionType: task.sourceType === "YOUTUBE" ? "transcript" : "file",
     hasTranscript: Boolean(task.transcript),
-    share: task.shareLinks?.[0] ?? null
+    share: shareLinks?.[0] ?? null
   };
 }
 
@@ -86,7 +96,11 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
   // 兼容入口也必须沿用正式任务创建的额度事务：先校验免费次数和订阅分钟，再创建任务并预留额度。
   const task = await prisma.$transaction(async (tx) => {
     if (quotaUserId) {
+      await assertFreeMinutesCanCoverDuration({userId: quotaUserId, durationSeconds: input.duration, tx});
       await assertAndUpdateFreeDailyQuota({userId: quotaUserId, tx});
+      if (enableSpeakerLabels) {
+        await assertFreeSpeakerIdentificationQuota({userId: quotaUserId, tx});
+      }
     }
 
     if (quotaUserId && input.folderId) {
@@ -107,7 +121,7 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
         originalName: input.originalName ?? input.filename ?? input.title ?? input.transcriptionFileId ?? input.fileId,
         language,
         fileSizeBytes: input.fileSizeBytes,
-        durationSeconds: input.duration ? Math.round(input.duration) : undefined,
+        durationSeconds: normalizeDurationSeconds(input.duration),
         status: "QUEUED",
         statusMessage: "任务已进入队列。",
         progress: 5
@@ -123,8 +137,8 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
         objectKey: input.transcriptionFileId ?? input.fileId,
         fileName: input.originalName ?? input.filename ?? input.title,
         sizeBytes: input.fileSizeBytes,
-        durationSeconds: input.duration ? Math.round(input.duration) : undefined,
-        metadata: {sourceType}
+        durationSeconds: normalizeDurationSeconds(input.duration),
+        metadata: {sourceType, speakerLabelsRequested: enableSpeakerLabels}
       }
     });
 
@@ -132,7 +146,7 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
       await reserveQuotaForTask({
         userId: quotaUserId,
         mediaTaskId: created.id,
-        estimatedMinutes: estimatedMinutesFromFileSize(input.fileSizeBytes),
+        estimatedMinutes: billableMinutesFromDurationSeconds(input.duration) ?? estimatedMinutesFromFileSize(input.fileSizeBytes),
         tx
       });
     }
@@ -141,7 +155,7 @@ export async function createCompatTask(request: Request, sourceType: TranscribeJ
   });
 
   try {
-    await getTranscribeQueue().add("transcribe" as never, {
+    await enqueueTranscribeJob({
       taskId: task.id,
       sourceType,
       sourceUrl,
@@ -188,9 +202,25 @@ export async function listCompatTasks(request: Request) {
         transcript: true,
         insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
-        shareLinks: {where: {enabled: true}, orderBy: {createdAt: "desc"}, take: 1}
+        shareLinks: {
+          where: {enabled: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
+          orderBy: {createdAt: "desc"},
+          take: 1
+        }
       }
     })
   ]);
-  return {items: items.map(serializeCompatTask), total, page, pageSize};
+  const locale = url.searchParams.get("locale") ?? undefined;
+  const appUrl = getRequestOrigin(request);
+  return {items: items.map((item) => serializeCompatTask(item, {locale, appUrl})), total, page, pageSize};
 }

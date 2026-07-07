@@ -2,11 +2,12 @@ import "server-only";
 
 import {z} from "zod";
 import {authenticateApiKey, apiUnauthorizedResponse, createDeveloperSecret} from "@/lib/developer-settings";
-import {getTranscribeQueue, type TranscribeJob} from "@/lib/queue";
+import {enqueueTranscribeJob, type TranscribeJob} from "@/lib/queue";
 import {assertRateLimit} from "@/lib/rate-limit";
 import {prisma} from "@/lib/prisma";
 import {publicObjectUrl} from "@/lib/storage";
-import {estimatedMinutesFromFileSize, quotaErrorStatus, reserveQuotaForTask} from "@/lib/usage";
+import {normalizeDurationSeconds} from "@/lib/duration";
+import {assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, reserveQuotaForTask} from "@/lib/usage";
 import {serializeTranscription} from "@/lib/webhook-delivery";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 
@@ -19,14 +20,20 @@ export const openApiCreateSchema = z.object({
   youtube_url: z.string().url().optional(),
   source_url: z.string().url().optional(),
   original_name: z.string().max(512).optional(),
+  filename: z.string().max(512).optional(),
+  file_name: z.string().max(512).optional(),
   language: z.string().default("auto"),
+  language_code: z.string().optional(),
   speaker_labels: z.boolean().default(true),
   enable_speaker_labels: z.boolean().optional(),
+  enable_speaker_diarization: z.boolean().optional(),
   subtitle: z.boolean().default(true),
+  transcription_type: z.string().optional(),
   premium_model: z.boolean().default(false),
   summary_template: z.enum(summaryTemplateInputValues).default("standard"),
   summary_language: z.string().default("en"),
   file_size_bytes: z.number().int().positive().optional(),
+  duration_seconds: z.number().positive().optional(),
   webhook_url: z.string().url().optional()
 }).refine((input) => Boolean(input.file_key || input.file_url || input.url || input.youtube_url || input.source_url), {
   message: "请提供 file_key、file_url、url、source_url 或 youtube_url。"
@@ -67,7 +74,10 @@ export async function createOpenApiTranscription(request: Request, forceSource?:
     const input = openApiCreateSchema.parse(await request.json());
     const sourceUrl = input.youtube_url || input.source_url || input.file_url || input.url || (input.file_key ? publicObjectUrl(input.file_key) : "");
     const sourceType: TranscribeJob["sourceType"] = forceSource ?? (input.youtube_url ? "YOUTUBE" : "UPLOAD");
-    const enableSpeakerLabels = input.enable_speaker_labels ?? input.speaker_labels;
+    const language = input.language_code ?? input.language;
+    const originalName = input.original_name ?? input.filename ?? input.file_name ?? input.file_key;
+    const enableSpeakerLabels = input.enable_speaker_labels ?? input.enable_speaker_diarization ?? input.speaker_labels;
+    const subtitleEnabled = input.transcription_type === "subtitle" ? true : input.subtitle;
 
     // API Key、一次性 webhook、任务创建和额度预留需要在同一事务内完成，
     // 避免外部调用成功返回后出现没有回调端点或没有扣减额度的半成品任务。
@@ -94,8 +104,9 @@ export async function createOpenApiTranscription(request: Request, forceSource?:
           sourceType: sourceType === "GOOGLE_DRIVE" ? "UPLOAD" : sourceType,
           sourceUrl,
           objectKey: input.file_key,
-          originalName: input.original_name ?? input.file_key,
-          language: input.language,
+          originalName,
+          language,
+          durationSeconds: normalizeDurationSeconds(input.duration_seconds),
           fileSizeBytes: input.file_size_bytes,
           status: "QUEUED",
           statusMessage: "任务已进入队列。",
@@ -103,23 +114,42 @@ export async function createOpenApiTranscription(request: Request, forceSource?:
         }
       });
 
+      if (enableSpeakerLabels) {
+        await assertFreeSpeakerIdentificationQuota({userId: user.id, tx});
+      }
+      await assertFreeMinutesCanCoverDuration({userId: user.id, durationSeconds: input.duration_seconds, tx});
+
+      await tx.mediaAsset.create({
+        data: {
+          mediaTaskId: created.id,
+          kind: "SOURCE_MEDIA",
+          chunkIndex: -1,
+          url: sourceUrl,
+          objectKey: input.file_key,
+          fileName: originalName,
+          sizeBytes: input.file_size_bytes,
+          durationSeconds: normalizeDurationSeconds(input.duration_seconds),
+          metadata: {sourceType, speakerLabelsRequested: enableSpeakerLabels}
+        }
+      });
+
       await reserveQuotaForTask({
         userId: user.id,
         mediaTaskId: created.id,
-        estimatedMinutes: estimatedMinutesFromFileSize(input.file_size_bytes),
+        estimatedMinutes: billableMinutesFromDurationSeconds(input.duration_seconds) ?? estimatedMinutesFromFileSize(input.file_size_bytes),
         tx
       });
 
       return created;
     });
 
-    await getTranscribeQueue().add("transcribe" as never, {
+    await enqueueTranscribeJob({
       taskId: task.id,
       sourceType,
       sourceUrl,
-      language: input.language,
+      language,
       enableSpeakerLabels,
-      subtitleEnabled: input.subtitle,
+      subtitleEnabled,
       premiumModel: input.premium_model,
       summaryTemplate: normalizeSummaryTemplate(input.summary_template),
       summaryLanguage: input.summary_language

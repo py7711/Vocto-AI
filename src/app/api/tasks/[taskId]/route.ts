@@ -3,6 +3,9 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {releaseQuotaForFailedTask} from "@/lib/usage";
+import {jsonSafe} from "@/lib/json";
+import {getRequestOrigin} from "@/lib/request-origin";
+import {serializeShareLinkForOwner} from "@/lib/share-links";
 
 const updateTaskSchema = z.object({
   originalName: z.string().trim().min(1).max(512).optional(),
@@ -13,6 +16,17 @@ const updateTaskSchema = z.object({
   transcriptionType: z.string().max(80).optional()
 });
 
+function serializeTaskForWorkspace<T extends {shareLinks?: Array<Parameters<typeof serializeShareLinkForOwner>[0]>}>(task: T, request: Request) {
+  const locale = new URL(request.url).searchParams.get("locale") || "zh";
+  const appUrl = getRequestOrigin(request);
+  return {
+    ...task,
+    shareLinks: task.shareLinks?.map((shareLink) =>
+      serializeShareLinkForOwner(shareLink, {appUrl, locale})
+    )
+  };
+}
+
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
     const access = await assertTaskAccess(params.taskId, "read", request.headers);
@@ -20,7 +34,17 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
     const task = await prisma.mediaTask.findUnique({
       where: {id: params.taskId},
       include: {
-        transcript: true,
+        transcript: {
+          select: {
+            id: true,
+            mediaTaskId: true,
+            plainText: true,
+            segments: true,
+            editedText: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
         insights: true,
         exports: true,
         mediaAssets: {
@@ -28,6 +52,16 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
         },
         shareLinks: {
           where: {enabled: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
           orderBy: {createdAt: "desc"},
           take: 1
         },
@@ -50,14 +84,14 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
     const ratingAverage = ratings.length ? ratings.reduce((sum, item) => sum + item.rating, 0) / ratings.length : null;
     const currentUserRating = access.user ? ratings.find((item) => item.userId === access.user?.id) ?? null : null;
 
-    return NextResponse.json({
+    return NextResponse.json(jsonSafe(serializeTaskForWorkspace({
       ...task,
       currentUserRating,
       ratingSummary: {
         average: ratingAverage,
         count: ratings.length
       }
-    });
+    }, request)));
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
@@ -90,7 +124,17 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
       where: {id: params.taskId},
       data,
       include: {
-        transcript: true,
+        transcript: {
+          select: {
+            id: true,
+            mediaTaskId: true,
+            plainText: true,
+            segments: true,
+            editedText: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
         insights: true,
         exports: true,
         mediaAssets: {
@@ -98,6 +142,16 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
         },
         shareLinks: {
           where: {enabled: true},
+          select: {
+            id: true,
+            tokenHash: true,
+            title: true,
+            enabled: true,
+            expiresAt: true,
+            accessCount: true,
+            lastAccessAt: true,
+            createdAt: true
+          },
           orderBy: {createdAt: "desc"},
           take: 1
         },
@@ -113,7 +167,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     });
 
     await publishTaskUpdate(params.taskId);
-    return NextResponse.json(task);
+    return NextResponse.json(jsonSafe(serializeTaskForWorkspace(task, request)));
   } catch (error) {
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});

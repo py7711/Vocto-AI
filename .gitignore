@@ -14,3 +14,4 @@ exports
 !src/app/api/tasks/\[taskId\]/exports/\[format\]/route.ts
 /uploads/
 .DS_Store
+/docs/design-reference/

@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import type {TranscribeJob} from "@/lib/queue";
-import {getTranscribeQueue} from "@/lib/queue";
+import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl} from "@/server/media/prepare";
@@ -58,7 +58,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
         ? "GOOGLE_DRIVE"
         : existing.sourceType;
 
-    await getTranscribeQueue().add("transcribe" as never, {
+    await enqueueTranscribeJob({
       taskId: existing.id,
       sourceType: jobSourceType,
       sourceUrl: existing.sourceUrl,

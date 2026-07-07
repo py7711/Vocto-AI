@@ -1,11 +1,16 @@
-import {InfoPage} from "@/components/info-pages";
+import {getInfoPageCopy, InfoPage} from "@/components/info-pages";
 
-export const metadata = {
-  title: {
-    absolute: "Security & Privacy | UniScribe"
-  }
-};
+export function generateMetadata({params}: {params: {locale: string}}) {
+  const copy = getInfoPageCopy(params.locale, "security");
 
-export default function SecurityRoute() {
-  return <InfoPage type="security" />;
+  return {
+    title: {
+      absolute: `${copy.title} | UniScribe`
+    },
+    description: copy.description
+  };
+}
+
+export default function SecurityRoute({params}: {params: {locale: string}}) {
+  return <InfoPage type="security" locale={params.locale} />;
 }
