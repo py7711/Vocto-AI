@@ -24,9 +24,11 @@ export async function POST(request: Request) {
     if (!token) return NextResponse.json({error: "请提供 shareCode。"}, {status: 422});
 
     const url = new URL(request.url);
-    for (const key of ["showSpeakerName", "showTimestamps", "subtitleMaxChars", "subtitleMaxDurationSeconds"] as const) {
-      const value = input[key];
-      if (value !== undefined) url.searchParams.set(key, String(value));
+    if (input.showSpeakerName !== undefined) url.searchParams.set("showSpeaker", String(input.showSpeakerName));
+    if (input.showTimestamps !== undefined) url.searchParams.set("showTimestamp", String(input.showTimestamps));
+    if (input.subtitleMaxChars !== undefined) url.searchParams.set("subtitleMaxChars", String(input.subtitleMaxChars));
+    if (input.subtitleMaxDurationSeconds !== undefined) {
+      url.searchParams.set("subtitleMaxDurationSeconds", String(input.subtitleMaxDurationSeconds));
     }
 
     const forwarded = new Request(url, {headers: request.headers});
