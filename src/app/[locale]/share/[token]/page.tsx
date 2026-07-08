@@ -3,7 +3,7 @@ import {getSharePageTitle, SharePage} from "@/components/share-page";
 
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   return {
-    title: `${getSharePageTitle(params.locale)} | UniScribe`
+    title: `${getSharePageTitle(params.locale)} | Votxt`
   };
 }
 

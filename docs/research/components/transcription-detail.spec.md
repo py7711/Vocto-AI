@@ -3,7 +3,7 @@
 ## Overview
 - **Target file:** `src/components/transcription-page.tsx`
 - **Related component:** `src/components/media-player.tsx`
-- **Target URL:** `https://www.uniscribe.co/transcriptions/7477261729076727808`
+- **Target URL:** `https://www.votxt.co/transcriptions/7477261729076727808`
 - **Local URL:** `http://localhost:3000/en/transcriptions/cmqyzscrp00021lvpt08gi2oo`
 - **Captured:** 2026-06-30, desktop viewport 1280x720
 - **Interaction model:** click-driven toolbar/dialogs plus independently scrollable transcript and insight panes

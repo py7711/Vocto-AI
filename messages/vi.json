@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Chuyển âm thanh và video thành văn bản miễn phí trực tuyến",
-    "description": "UniScribe cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng."
+    "description": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Âm thanh và video thành văn bản thật sự hữu ích.",
     "upload": "Tải lên",
     "uploadFile": "Tải tệp lên",
@@ -30,12 +30,12 @@
     "completed": "Hoàn tất",
     "failed": "Thất bại",
     "headline": "Chuyển Âm Thanh & Video Thành Văn Bản",
-    "subheadline": "UniScribe cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng.",
+    "subheadline": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng.",
     "formats": "Hỗ trợ 11 định dạng",
     "languages": "Hỗ trợ 63 ngôn ngữ",
     "exportCount": "Xuất 6 định dạng",
     "localUploadHint": "Âm thanh: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Video: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "Khi sử dụng UniScribe, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư.",
+    "terms": "Khi sử dụng Votxt, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư.",
     "ready": "Sẵn sàng",
     "save": "Lưu",
     "workspace": "Không gian làm việc",

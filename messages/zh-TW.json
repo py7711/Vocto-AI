@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "免費線上將音訊與影片轉成文字",
-    "description": "UniScribe 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。"
+    "description": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。"
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "把音訊與影片變成真正可用的文字。",
     "upload": "上傳",
     "uploadFile": "上傳檔案",
@@ -30,12 +30,12 @@
     "completed": "已完成",
     "failed": "失敗",
     "headline": "將音訊與影片轉成文字",
-    "subheadline": "UniScribe 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。",
+    "subheadline": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。",
     "formats": "支援 11 種格式",
     "languages": "支援 63 種語言",
     "exportCount": "匯出 6 種格式",
     "localUploadHint": "音訊：amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma。影片：3gp, mkv, mov, mp4, mpg, ts, webm, wmv。",
-    "terms": "使用 UniScribe 即表示你同意我們的服務條款與隱私權政策。",
+    "terms": "使用 Votxt 即表示你同意我們的服務條款與隱私權政策。",
     "ready": "就緒",
     "save": "儲存",
     "workspace": "工作區",

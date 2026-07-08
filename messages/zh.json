@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "免费在线语音转文本转换器",
-    "description": "UniScribe 将音频、视频和 YouTube 链接转换成可编辑转写、总结、思维导图、问答、翻译和字幕导出。"
+    "description": "Votxt 将音频、视频和 YouTube 链接转换成可编辑转写、总结、思维导图、问答、翻译和字幕导出。"
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "把音视频变成真正可继续工作的文字。",
     "upload": "上传",
     "uploadFile": "上传文件",
@@ -35,7 +35,7 @@
     "languages": "支持 63 种语言",
     "exportCount": "支持 6 种导出格式",
     "localUploadHint": "支持 mpg、mp3、mp4、m4a、wav、mov、mkv、webm、wmv、flac 和常见媒体链接。",
-    "terms": "使用 UniScribe 即表示你同意服务条款和隐私政策。",
+    "terms": "使用 Votxt 即表示你同意服务条款和隐私政策。",
     "ready": "就绪",
     "save": "保存",
     "workspace": "工作台",

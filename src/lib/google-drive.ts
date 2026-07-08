@@ -105,7 +105,7 @@ export async function fetchDriveJson<T>(connection: DriveConnection, url: string
 
 export function driveDownloadUrl(fileId: string, accessToken: string) {
   // Drive 媒体下载接口不返回永久公开 URL。这里生成一次性带 access_token 的读取地址，
-  // 只在服务端导入过程中使用，随后媒体会写入 UniScribe 自己的对象存储。
+  // 只在服务端导入过程中使用，随后媒体会写入 Votxt 自己的对象存储。
   const url = new URL(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`);
   url.searchParams.set("alt", "media");
   url.searchParams.set("access_token", accessToken);

@@ -83,35 +83,35 @@ const pageTitles: Record<string, string> = {
   "wma-to-text": "WMA to Text",
   "mkv-to-text": "MKV to Text",
   "wmv-to-text": "WMV to Text",
-  "video-to-audio-extractor": "Free Browser-Based Video to Audio Extractor | UniScribe Tools",
-  "wav-to-mp3-converter": "Free Browser-Based WAV to MP3 Converter | UniScribe Tools",
+  "video-to-audio-extractor": "Free Browser-Based Video to Audio Extractor | Votxt Tools",
+  "wav-to-mp3-converter": "Free Browser-Based WAV to MP3 Converter | Votxt Tools",
   "youtube-subtitle-downloader": "YouTube Subtitle Downloader | Download SRT and VTT Captions",
-  "youtube-video-downloader": "YouTube Video Downloader | UniScribe Tools"
+  "youtube-video-downloader": "YouTube Video Downloader | Votxt Tools"
 };
 
 const canonicalToolSlugs = new Set(["audio-to-text", "video-link-to-text", "video-to-audio-extractor", "wav-to-mp3-converter", "youtube-subtitle-downloader", "youtube-video-downloader"]);
 
 const localizedTitleTemplates: Record<Locale, {language: string; tool: string}> = {
-  ar: {language: "حوّل صوت {language} إلى نص مجاناً خلال ثوانٍ", tool: "{name} | أداة UniScribe"},
-  de: {language: "{language}-Audio kostenlos in Sekunden transkribieren", tool: "{name} | UniScribe-Werkzeug"},
-  en: {language: "Transcribe {language} Audio to Text in Seconds for Free", tool: "{name} | UniScribe Tool"},
-  es: {language: "Transcribe audio en {language} a texto gratis en segundos", tool: "{name} | Herramienta UniScribe"},
-  fr: {language: "Transcrire l'audio en {language} gratuitement en quelques secondes", tool: "{name} | Outil UniScribe"},
-  hu: {language: "{language} hang átírása szöveggé ingyen, másodpercek alatt", tool: "{name} | UniScribe eszköz"},
-  id: {language: "Transkripsikan audio {language} ke teks gratis dalam hitungan detik", tool: "{name} | Alat UniScribe"},
-  it: {language: "Trascrivi audio in {language} in testo gratis in pochi secondi", tool: "{name} | Strumento UniScribe"},
-  ja: {language: "{language} 音声を無料で数秒でテキスト化", tool: "{name} | UniScribe ツール"},
-  ko: {language: "{language} 오디오를 무료로 몇 초 만에 텍스트로 변환", tool: "{name} | UniScribe 도구"},
-  nl: {language: "{language} audio gratis in seconden naar tekst transcriberen", tool: "{name} | UniScribe-tool"},
-  pl: {language: "Transkrybuj audio w języku {language} na tekst za darmo w kilka sekund", tool: "{name} | Narzędzie UniScribe"},
-  pt: {language: "Transcreva áudio em {language} para texto grátis em segundos", tool: "{name} | Ferramenta UniScribe"},
-  ru: {language: "Расшифруйте аудио на {language} в текст бесплатно за секунды", tool: "{name} | Инструмент UniScribe"},
-  th: {language: "ถอดเสียงภาษา {language} เป็นข้อความฟรีในไม่กี่วินาที", tool: "{name} | เครื่องมือ UniScribe"},
-  tr: {language: "{language} sesi ücretsiz olarak saniyeler içinde metne dönüştürün", tool: "{name} | UniScribe aracı"},
-  uk: {language: "Транскрибуйте аудіо мовою {language} у текст безкоштовно за секунди", tool: "{name} | Інструмент UniScribe"},
-  vi: {language: "Chép lời âm thanh {language} thành văn bản miễn phí trong vài giây", tool: "{name} | Công cụ UniScribe"},
-  zh: {language: "免费快速将 {language} 音频转成文字", tool: "{name} | UniScribe 工具"},
-  "zh-TW": {language: "免費快速將 {language} 音訊轉成文字", tool: "{name} | UniScribe 工具"}
+  ar: {language: "حوّل صوت {language} إلى نص مجاناً خلال ثوانٍ", tool: "{name} | أداة Votxt"},
+  de: {language: "{language}-Audio kostenlos in Sekunden transkribieren", tool: "{name} | Votxt-Werkzeug"},
+  en: {language: "Transcribe {language} Audio to Text in Seconds for Free", tool: "{name} | Votxt Tool"},
+  es: {language: "Transcribe audio en {language} a texto gratis en segundos", tool: "{name} | Herramienta Votxt"},
+  fr: {language: "Transcrire l'audio en {language} gratuitement en quelques secondes", tool: "{name} | Outil Votxt"},
+  hu: {language: "{language} hang átírása szöveggé ingyen, másodpercek alatt", tool: "{name} | Votxt eszköz"},
+  id: {language: "Transkripsikan audio {language} ke teks gratis dalam hitungan detik", tool: "{name} | Alat Votxt"},
+  it: {language: "Trascrivi audio in {language} in testo gratis in pochi secondi", tool: "{name} | Strumento Votxt"},
+  ja: {language: "{language} 音声を無料で数秒でテキスト化", tool: "{name} | Votxt ツール"},
+  ko: {language: "{language} 오디오를 무료로 몇 초 만에 텍스트로 변환", tool: "{name} | Votxt 도구"},
+  nl: {language: "{language} audio gratis in seconden naar tekst transcriberen", tool: "{name} | Votxt-tool"},
+  pl: {language: "Transkrybuj audio w języku {language} na tekst za darmo w kilka sekund", tool: "{name} | Narzędzie Votxt"},
+  pt: {language: "Transcreva áudio em {language} para texto grátis em segundos", tool: "{name} | Ferramenta Votxt"},
+  ru: {language: "Расшифруйте аудио на {language} в текст бесплатно за секунды", tool: "{name} | Инструмент Votxt"},
+  th: {language: "ถอดเสียงภาษา {language} เป็นข้อความฟรีในไม่กี่วินาที", tool: "{name} | เครื่องมือ Votxt"},
+  tr: {language: "{language} sesi ücretsiz olarak saniyeler içinde metne dönüştürün", tool: "{name} | Votxt aracı"},
+  uk: {language: "Транскрибуйте аудіо мовою {language} у текст безкоштовно за секунди", tool: "{name} | Інструмент Votxt"},
+  vi: {language: "Chép lời âm thanh {language} thành văn bản miễn phí trong vài giây", tool: "{name} | Công cụ Votxt"},
+  zh: {language: "免费快速将 {language} 音频转成文字", tool: "{name} | Votxt 工具"},
+  "zh-TW": {language: "免費快速將 {language} 音訊轉成文字", tool: "{name} | Votxt 工具"}
 };
 
 const toTextTitleTemplates: Record<Locale, string> = {

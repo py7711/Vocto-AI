@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Converti audio e video in testo online gratis",
-    "description": "UniScribe ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati."
+    "description": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Audio e video in testo davvero utilizzabile.",
     "upload": "Carica",
     "uploadFile": "Carica file",
@@ -30,12 +30,12 @@
     "completed": "Completato",
     "failed": "Non riuscito",
     "headline": "Converti Audio e Video in Testo",
-    "subheadline": "UniScribe ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati.",
+    "subheadline": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati.",
     "formats": "Supporta 11 formati",
     "languages": "Supporta 63 lingue",
     "exportCount": "Esporta in 6 formati",
     "localUploadHint": "Audio: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Video: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "Usando UniScribe accetti i Termini di servizio e l'Informativa sulla privacy.",
+    "terms": "Usando Votxt accetti i Termini di servizio e l'Informativa sulla privacy.",
     "ready": "Pronto",
     "save": "Salva",
     "workspace": "Spazio di lavoro",

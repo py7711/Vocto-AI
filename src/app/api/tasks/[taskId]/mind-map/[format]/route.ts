@@ -5,7 +5,7 @@ import {userHasActiveMembership} from "@/lib/membership";
 import {normalizeMindMapExportNode, renderMindMapMarkdown, renderMindMapXmind} from "@/lib/mind-map-exporters";
 
 function safeDownloadName(value: string | null | undefined) {
-  return (value || "uniscribe").replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "") || "uniscribe";
+  return (value || "votxt").replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "") || "votxt";
 }
 
 export async function GET(request: Request, {params}: {params: {taskId: string; format: string}}) {

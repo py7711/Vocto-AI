@@ -7,7 +7,7 @@ import {getCurrentUser} from "@/lib/auth";
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   const copy = getWorkspaceCopy(params.locale);
   return {
-    title: `${copy.dashboardNav} | UniScribe`
+    title: `${copy.dashboardNav} | Votxt`
   };
 }
 

@@ -4074,7 +4074,7 @@ function createMindMapLayout(node: DetailMindMapNode, fallbackLabel: string) {
 }
 
 function safeDownloadName(value: string | undefined) {
-  return (value || "uniscribe").replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "") || "uniscribe";
+  return (value || "votxt").replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "") || "votxt";
 }
 
 function MindMapToolButton({children, label, onClick, disabled, active}: {children: React.ReactNode; label: string; onClick?: () => void; disabled?: boolean; active?: boolean}) {

@@ -1,4 +1,4 @@
-# UniScribe MySQL SQL 脚本说明
+# Votxt MySQL SQL 脚本说明
 
 本目录交付可直接导入 MySQL/TiDB 的数据库 SQL。所有业务表和业务字段都包含中文 `COMMENT`，便于研发、运维和客户在数据库管理工具中直接理解字段含义。
 
@@ -14,7 +14,7 @@ mysql -h HOST -u USER -p DATABASE < prisma/sql/all.sql
 
 生产环境若不需要种子数据，可删除脚本中「第二部分：演示数据」和「第三部分：QA 测试数据」段落后再导入。
 
-QA 测试账号为 `qa@uniscribe.local`，原始密码为 `aa123456`。前端登录提交的是 `sha256(uniscribe-password-v1:${password})` 形式的 `passwordCredential`，`all.sql` 中的固定 `password_hash` 必须对这个 credential 做 scrypt 后生成。修改测试密码或认证算法后，请运行 `pnpm run auth:seed:check` 校验 SQL 种子数据。
+QA 测试账号为 `qa@votxt.local`，原始密码为 `aa123456`。前端登录提交的是 `sha256(votxt-password-v1:${password})` 形式的 `passwordCredential`，`all.sql` 中的固定 `password_hash` 必须对这个 credential 做 scrypt 后生成。修改测试密码或认证算法后，请运行 `pnpm run auth:seed:check` 校验 SQL 种子数据。
 
 ## 字段长度规范
 

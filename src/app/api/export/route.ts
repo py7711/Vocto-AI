@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       subtitleMaxChars: input.subtitleMaxChars,
       subtitleMaxDurationSeconds: input.subtitleMaxDurationSeconds
     };
-    const baseName = (transcript.mediaTask.originalName || `uniscribe-${taskId}`).replace(/[^\w.\-]+/g, "_");
+    const baseName = (transcript.mediaTask.originalName || `votxt-${taskId}`).replace(/[^\w.\-]+/g, "_");
     const fileName = `${baseName}.${input.fileType}`;
 
     if (input.fileType === "pdf") {
@@ -55,12 +55,12 @@ export async function POST(request: Request) {
       const buffer = await renderToBuffer(
         createElement(
           Document,
-          {title: baseName, author: "UniScribe"},
+          {title: baseName, author: "Votxt"},
           createElement(
             Page,
             {size: "A4", style: styles.page},
-            createElement(Text, {style: styles.title}, transcript.mediaTask.originalName || "UniScribe Transcript"),
-            createElement(Text, {style: styles.meta}, transcript.mediaTask.provider || "UniScribe"),
+            createElement(Text, {style: styles.title}, transcript.mediaTask.originalName || "Votxt Transcript"),
+            createElement(Text, {style: styles.meta}, transcript.mediaTask.provider || "Votxt"),
             ...text.split(/\n{2,}/).map((paragraph, index) => createElement(Text, {key: index, style: styles.paragraph}, paragraph))
           )
         )
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       return new Response(new Uint8Array(buffer), {headers: {"Content-Type": contentTypes.pdf, "Content-Disposition": `attachment; filename="${fileName}"`}});
     }
     if (input.fileType === "docx") {
-      const buffer = await renderDocx(transcript, {...options, title: transcript.mediaTask.originalName || "UniScribe Transcript", meta: transcript.mediaTask.provider || undefined});
+      const buffer = await renderDocx(transcript, {...options, title: transcript.mediaTask.originalName || "Votxt Transcript", meta: transcript.mediaTask.provider || undefined});
       return new Response(new Uint8Array(buffer), {headers: {"Content-Type": contentTypes.docx, "Content-Disposition": `attachment; filename="${fileName}"`}});
     }
 

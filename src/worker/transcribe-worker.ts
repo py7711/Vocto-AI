@@ -226,7 +226,7 @@ async function createWorker() {
     });
   });
 
-  console.log(`UniScribe worker 正在监听队列 ${TRANSCRIBE_QUEUE}。`);
+  console.log(`Votxt worker 正在监听队列 ${TRANSCRIBE_QUEUE}。`);
 }
 
 void createWorker();

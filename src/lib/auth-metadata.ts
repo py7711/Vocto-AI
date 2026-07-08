@@ -29,7 +29,7 @@ export function authMetadata(locale: string, key: AuthMetadataKey) {
   const safeLocale = isLocale(locale) ? locale : "en";
   return {
     title: {
-      absolute: `${authMetadataTitles[safeLocale][key]} | UniScribe`
+      absolute: `${authMetadataTitles[safeLocale][key]} | Votxt`
     }
   };
 }

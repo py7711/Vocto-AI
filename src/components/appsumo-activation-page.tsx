@@ -51,9 +51,9 @@ const planOptions: Array<{id: PlanId; label: string}> = [
 const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
   en: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Activate your AppSumo license",
-    subtitle: "Redeem your lifetime deal code, attach it to the signed-in UniScribe account, and continue to the dashboard with the AppSumo welcome flow.",
+    subtitle: "Redeem your lifetime deal code, attach it to the signed-in Votxt account, and continue to the dashboard with the AppSumo welcome flow.",
     features: ["Annual LTD quota", "Dashboard onboarding", "Secure account binding"],
     codeEyebrow: "License code",
     redeemTitle: "Redeem AppSumo",
@@ -66,13 +66,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minutes available. Max file length: ${maxMinutes} minutes.`,
     activating: "Activating...",
     activateLicense: "Activate license",
-    helpText: "Local compatibility accepts codes beginning with AS, APPSUMO, or SUMO. If you are not signed in, UniScribe will ask you to sign in first."
+    helpText: "Local compatibility accepts codes beginning with AS, APPSUMO, or SUMO. If you are not signed in, Votxt will ask you to sign in first."
   },
   id: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Aktifkan lisensi AppSumo Anda",
-    subtitle: "Tukarkan kode lifetime deal, hubungkan ke akun UniScribe yang masuk, lalu lanjutkan ke dashboard dengan alur sambutan AppSumo.",
+    subtitle: "Tukarkan kode lifetime deal, hubungkan ke akun Votxt yang masuk, lalu lanjutkan ke dashboard dengan alur sambutan AppSumo.",
     features: ["Kuota LTD tahunan", "Onboarding dashboard", "Pengikatan akun aman"],
     codeEyebrow: "Kode lisensi",
     redeemTitle: "Tukarkan AppSumo",
@@ -85,13 +85,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} menit tersedia. Durasi file maksimum: ${maxMinutes} menit.`,
     activating: "Mengaktifkan...",
     activateLicense: "Aktifkan lisensi",
-    helpText: "Kompatibilitas lokal menerima kode yang diawali AS, APPSUMO, atau SUMO. Jika belum masuk, UniScribe akan meminta Anda masuk terlebih dahulu."
+    helpText: "Kompatibilitas lokal menerima kode yang diawali AS, APPSUMO, atau SUMO. Jika belum masuk, Votxt akan meminta Anda masuk terlebih dahulu."
   },
   ru: {
     dashboard: "Панель",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Активируйте лицензию AppSumo",
-    subtitle: "Введите код lifetime deal, привяжите его к текущему аккаунту UniScribe и перейдите в панель с приветственным сценарием AppSumo.",
+    subtitle: "Введите код lifetime deal, привяжите его к текущему аккаунту Votxt и перейдите в панель с приветственным сценарием AppSumo.",
     features: ["Годовой LTD-лимит", "Онбординг в панели", "Безопасная привязка аккаунта"],
     codeEyebrow: "Код лицензии",
     redeemTitle: "Активировать AppSumo",
@@ -104,13 +104,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `Доступно минут: ${minutes}. Максимальная длина файла: ${maxMinutes} минут.`,
     activating: "Активация...",
     activateLicense: "Активировать лицензию",
-    helpText: "Локальная совместимость принимает коды, начинающиеся с AS, APPSUMO или SUMO. Если вы не вошли, UniScribe сначала попросит войти."
+    helpText: "Локальная совместимость принимает коды, начинающиеся с AS, APPSUMO или SUMO. Если вы не вошли, Votxt сначала попросит войти."
   },
   es: {
     dashboard: "Panel",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Activa tu licencia de AppSumo",
-    subtitle: "Canjea tu código lifetime deal, vincúlalo a la cuenta UniScribe iniciada y continúa al panel con el flujo de bienvenida de AppSumo.",
+    subtitle: "Canjea tu código lifetime deal, vincúlalo a la cuenta Votxt iniciada y continúa al panel con el flujo de bienvenida de AppSumo.",
     features: ["Cuota LTD anual", "Onboarding del panel", "Vinculación segura de cuenta"],
     codeEyebrow: "Código de licencia",
     redeemTitle: "Canjear AppSumo",
@@ -123,13 +123,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minutos disponibles. Duración máxima de archivo: ${maxMinutes} minutos.`,
     activating: "Activando...",
     activateLicense: "Activar licencia",
-    helpText: "La compatibilidad local acepta códigos que empiezan por AS, APPSUMO o SUMO. Si no has iniciado sesión, UniScribe te pedirá entrar primero."
+    helpText: "La compatibilidad local acepta códigos que empiezan por AS, APPSUMO o SUMO. Si no has iniciado sesión, Votxt te pedirá entrar primero."
   },
   vi: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Kích hoạt giấy phép AppSumo",
-    subtitle: "Đổi mã lifetime deal, gắn mã vào tài khoản UniScribe đã đăng nhập và tiếp tục tới dashboard với luồng chào mừng AppSumo.",
+    subtitle: "Đổi mã lifetime deal, gắn mã vào tài khoản Votxt đã đăng nhập và tiếp tục tới dashboard với luồng chào mừng AppSumo.",
     features: ["Hạn mức LTD hằng năm", "Onboarding dashboard", "Liên kết tài khoản an toàn"],
     codeEyebrow: "Mã giấy phép",
     redeemTitle: "Đổi AppSumo",
@@ -142,13 +142,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} phút khả dụng. Độ dài tệp tối đa: ${maxMinutes} phút.`,
     activating: "Đang kích hoạt...",
     activateLicense: "Kích hoạt giấy phép",
-    helpText: "Tương thích cục bộ chấp nhận mã bắt đầu bằng AS, APPSUMO hoặc SUMO. Nếu bạn chưa đăng nhập, UniScribe sẽ yêu cầu đăng nhập trước."
+    helpText: "Tương thích cục bộ chấp nhận mã bắt đầu bằng AS, APPSUMO hoặc SUMO. Nếu bạn chưa đăng nhập, Votxt sẽ yêu cầu đăng nhập trước."
   },
   ar: {
     dashboard: "لوحة التحكم",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "فعّل ترخيص AppSumo",
-    subtitle: "استبدل رمز العرض مدى الحياة، واربطه بحساب UniScribe المسجل، ثم تابع إلى اللوحة مع تجربة ترحيب AppSumo.",
+    subtitle: "استبدل رمز العرض مدى الحياة، واربطه بحساب Votxt المسجل، ثم تابع إلى اللوحة مع تجربة ترحيب AppSumo.",
     features: ["حصة LTD سنوية", "تهيئة لوحة التحكم", "ربط آمن للحساب"],
     codeEyebrow: "رمز الترخيص",
     redeemTitle: "استبدال AppSumo",
@@ -161,13 +161,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} دقيقة متاحة. الحد الأقصى لطول الملف: ${maxMinutes} دقيقة.`,
     activating: "جار التفعيل...",
     activateLicense: "تفعيل الترخيص",
-    helpText: "تقبل بيئة التوافق المحلية الرموز التي تبدأ بـ AS أو APPSUMO أو SUMO. إذا لم تكن مسجلا، سيطلب منك UniScribe تسجيل الدخول أولا."
+    helpText: "تقبل بيئة التوافق المحلية الرموز التي تبدأ بـ AS أو APPSUMO أو SUMO. إذا لم تكن مسجلا، سيطلب منك Votxt تسجيل الدخول أولا."
   },
   pt: {
     dashboard: "Painel",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Ative sua licença AppSumo",
-    subtitle: "Resgate seu código lifetime deal, vincule-o à conta UniScribe conectada e continue ao painel com o fluxo de boas-vindas AppSumo.",
+    subtitle: "Resgate seu código lifetime deal, vincule-o à conta Votxt conectada e continue ao painel com o fluxo de boas-vindas AppSumo.",
     features: ["Cota LTD anual", "Onboarding no painel", "Vínculo seguro da conta"],
     codeEyebrow: "Código da licença",
     redeemTitle: "Resgatar AppSumo",
@@ -180,13 +180,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minutos disponíveis. Duração máxima do arquivo: ${maxMinutes} minutos.`,
     activating: "Ativando...",
     activateLicense: "Ativar licença",
-    helpText: "A compatibilidade local aceita códigos que começam com AS, APPSUMO ou SUMO. Se você não estiver conectado, o UniScribe pedirá login primeiro."
+    helpText: "A compatibilidade local aceita códigos que começam com AS, APPSUMO ou SUMO. Se você não estiver conectado, o Votxt pedirá login primeiro."
   },
   fr: {
     dashboard: "Tableau",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Activez votre licence AppSumo",
-    subtitle: "Utilisez votre code lifetime deal, associez-le au compte UniScribe connecté, puis ouvrez le tableau avec le parcours d'accueil AppSumo.",
+    subtitle: "Utilisez votre code lifetime deal, associez-le au compte Votxt connecté, puis ouvrez le tableau avec le parcours d'accueil AppSumo.",
     features: ["Quota LTD annuel", "Accueil dans le tableau", "Association de compte sécurisée"],
     codeEyebrow: "Code de licence",
     redeemTitle: "Utiliser AppSumo",
@@ -199,13 +199,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minutes disponibles. Durée maximale du fichier : ${maxMinutes} minutes.`,
     activating: "Activation...",
     activateLicense: "Activer la licence",
-    helpText: "La compatibilité locale accepte les codes commençant par AS, APPSUMO ou SUMO. Si vous n'êtes pas connecté, UniScribe vous demandera de vous connecter."
+    helpText: "La compatibilité locale accepte les codes commençant par AS, APPSUMO ou SUMO. Si vous n'êtes pas connecté, Votxt vous demandera de vous connecter."
   },
   zh: {
     dashboard: "仪表盘",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "激活你的 AppSumo 许可证",
-    subtitle: "兑换你的 lifetime deal 代码，将其绑定到已登录的 UniScribe 账号，然后进入带有 AppSumo 欢迎流程的仪表盘。",
+    subtitle: "兑换你的 lifetime deal 代码，将其绑定到已登录的 Votxt 账号，然后进入带有 AppSumo 欢迎流程的仪表盘。",
     features: ["年度 LTD 额度", "仪表盘引导", "安全账号绑定"],
     codeEyebrow: "许可证代码",
     redeemTitle: "兑换 AppSumo",
@@ -218,13 +218,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} 分钟可用。单个文件最长：${maxMinutes} 分钟。`,
     activating: "激活中...",
     activateLicense: "激活许可证",
-    helpText: "本地兼容模式接受以 AS、APPSUMO 或 SUMO 开头的代码。如果你尚未登录，UniScribe 会先要求登录。"
+    helpText: "本地兼容模式接受以 AS、APPSUMO 或 SUMO 开头的代码。如果你尚未登录，Votxt 会先要求登录。"
   },
   "zh-TW": {
     dashboard: "儀表板",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "啟用你的 AppSumo 授權",
-    subtitle: "兌換 lifetime deal 代碼，將其綁定到已登入的 UniScribe 帳號，然後進入 AppSumo 歡迎流程。",
+    subtitle: "兌換 lifetime deal 代碼，將其綁定到已登入的 Votxt 帳號，然後進入 AppSumo 歡迎流程。",
     features: ["年度 LTD 額度", "儀表板引導", "安全帳號綁定"],
     codeEyebrow: "授權代碼",
     redeemTitle: "兌換 AppSumo",
@@ -237,13 +237,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} 分鐘可用。單一檔案最長：${maxMinutes} 分鐘。`,
     activating: "啟用中...",
     activateLicense: "啟用授權",
-    helpText: "本機相容模式接受以 AS、APPSUMO 或 SUMO 開頭的代碼。如果你尚未登入，UniScribe 會先要求登入。"
+    helpText: "本機相容模式接受以 AS、APPSUMO 或 SUMO 開頭的代碼。如果你尚未登入，Votxt 會先要求登入。"
   },
   de: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "AppSumo-Lizenz aktivieren",
-    subtitle: "Löse deinen Lifetime-Deal-Code ein, verknüpfe ihn mit dem angemeldeten UniScribe-Konto und öffne das Dashboard mit dem AppSumo-Willkommensfluss.",
+    subtitle: "Löse deinen Lifetime-Deal-Code ein, verknüpfe ihn mit dem angemeldeten Votxt-Konto und öffne das Dashboard mit dem AppSumo-Willkommensfluss.",
     features: ["Jährliches LTD-Kontingent", "Dashboard-Onboarding", "Sichere Kontoverknüpfung"],
     codeEyebrow: "Lizenzcode",
     redeemTitle: "AppSumo einlösen",
@@ -256,13 +256,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} Minuten verfügbar. Maximale Dateilänge: ${maxMinutes} Minuten.`,
     activating: "Aktivierung...",
     activateLicense: "Lizenz aktivieren",
-    helpText: "Die lokale Kompatibilität akzeptiert Codes, die mit AS, APPSUMO oder SUMO beginnen. Wenn du nicht angemeldet bist, fordert UniScribe zuerst die Anmeldung an."
+    helpText: "Die lokale Kompatibilität akzeptiert Codes, die mit AS, APPSUMO oder SUMO beginnen. Wenn du nicht angemeldet bist, fordert Votxt zuerst die Anmeldung an."
   },
   it: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Attiva la tua licenza AppSumo",
-    subtitle: "Riscatta il codice lifetime deal, collegalo all'account UniScribe connesso e continua al dashboard con il flusso di benvenuto AppSumo.",
+    subtitle: "Riscatta il codice lifetime deal, collegalo all'account Votxt connesso e continua al dashboard con il flusso di benvenuto AppSumo.",
     features: ["Quota LTD annuale", "Onboarding dashboard", "Collegamento account sicuro"],
     codeEyebrow: "Codice licenza",
     redeemTitle: "Riscatta AppSumo",
@@ -275,13 +275,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minuti disponibili. Durata massima file: ${maxMinutes} minuti.`,
     activating: "Attivazione...",
     activateLicense: "Attiva licenza",
-    helpText: "La compatibilità locale accetta codici che iniziano con AS, APPSUMO o SUMO. Se non hai effettuato l'accesso, UniScribe ti chiederà prima di accedere."
+    helpText: "La compatibilità locale accetta codici che iniziano con AS, APPSUMO o SUMO. Se non hai effettuato l'accesso, Votxt ti chiederà prima di accedere."
   },
   th: {
     dashboard: "แดชบอร์ด",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "เปิดใช้งานใบอนุญาต AppSumo",
-    subtitle: "แลกรหัส lifetime deal ผูกเข้ากับบัญชี UniScribe ที่เข้าสู่ระบบ แล้วไปยังแดชบอร์ดพร้อมขั้นตอนต้อนรับ AppSumo",
+    subtitle: "แลกรหัส lifetime deal ผูกเข้ากับบัญชี Votxt ที่เข้าสู่ระบบ แล้วไปยังแดชบอร์ดพร้อมขั้นตอนต้อนรับ AppSumo",
     features: ["โควตา LTD รายปี", "การเริ่มต้นใช้งานแดชบอร์ด", "ผูกบัญชีอย่างปลอดภัย"],
     codeEyebrow: "รหัสใบอนุญาต",
     redeemTitle: "แลก AppSumo",
@@ -294,13 +294,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `ใช้ได้ ${minutes} นาที ความยาวไฟล์สูงสุด: ${maxMinutes} นาที`,
     activating: "กำลังเปิดใช้งาน...",
     activateLicense: "เปิดใช้งานใบอนุญาต",
-    helpText: "โหมดเข้ากันได้ในเครื่องรับรหัสที่ขึ้นต้นด้วย AS, APPSUMO หรือ SUMO หากยังไม่ได้เข้าสู่ระบบ UniScribe จะขอให้เข้าสู่ระบบก่อน"
+    helpText: "โหมดเข้ากันได้ในเครื่องรับรหัสที่ขึ้นต้นด้วย AS, APPSUMO หรือ SUMO หากยังไม่ได้เข้าสู่ระบบ Votxt จะขอให้เข้าสู่ระบบก่อน"
   },
   uk: {
     dashboard: "Панель",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Активуйте ліцензію AppSumo",
-    subtitle: "Активуйте код lifetime deal, прив'яжіть його до поточного акаунта UniScribe і перейдіть до панелі з вітальним сценарієм AppSumo.",
+    subtitle: "Активуйте код lifetime deal, прив'яжіть його до поточного акаунта Votxt і перейдіть до панелі з вітальним сценарієм AppSumo.",
     features: ["Річний LTD-ліміт", "Онбординг у панелі", "Безпечна прив'язка акаунта"],
     codeEyebrow: "Код ліцензії",
     redeemTitle: "Активувати AppSumo",
@@ -313,13 +313,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `Доступно хвилин: ${minutes}. Максимальна тривалість файлу: ${maxMinutes} хвилин.`,
     activating: "Активація...",
     activateLicense: "Активувати ліцензію",
-    helpText: "Локальна сумісність приймає коди, що починаються з AS, APPSUMO або SUMO. Якщо ви не ввійшли, UniScribe спочатку попросить увійти."
+    helpText: "Локальна сумісність приймає коди, що починаються з AS, APPSUMO або SUMO. Якщо ви не ввійшли, Votxt спочатку попросить увійти."
   },
   tr: {
     dashboard: "Panel",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "AppSumo lisansını etkinleştir",
-    subtitle: "Lifetime deal kodunu kullan, oturum açmış UniScribe hesabına bağla ve AppSumo karşılama akışıyla panele devam et.",
+    subtitle: "Lifetime deal kodunu kullan, oturum açmış Votxt hesabına bağla ve AppSumo karşılama akışıyla panele devam et.",
     features: ["Yıllık LTD kotası", "Panel onboarding", "Güvenli hesap bağlama"],
     codeEyebrow: "Lisans kodu",
     redeemTitle: "AppSumo kullan",
@@ -332,13 +332,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} dakika kullanılabilir. Maksimum dosya uzunluğu: ${maxMinutes} dakika.`,
     activating: "Etkinleştiriliyor...",
     activateLicense: "Lisansı etkinleştir",
-    helpText: "Yerel uyumluluk AS, APPSUMO veya SUMO ile başlayan kodları kabul eder. Oturum açmadıysan UniScribe önce giriş yapmanı ister."
+    helpText: "Yerel uyumluluk AS, APPSUMO veya SUMO ile başlayan kodları kabul eder. Oturum açmadıysan Votxt önce giriş yapmanı ister."
   },
   ja: {
     dashboard: "ダッシュボード",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "AppSumo ライセンスを有効化",
-    subtitle: "Lifetime deal コードを引き換え、ログイン中の UniScribe アカウントに紐付けて、AppSumo のウェルカムフロー付きでダッシュボードへ進みます。",
+    subtitle: "Lifetime deal コードを引き換え、ログイン中の Votxt アカウントに紐付けて、AppSumo のウェルカムフロー付きでダッシュボードへ進みます。",
     features: ["年間 LTD クォータ", "ダッシュボード案内", "安全なアカウント連携"],
     codeEyebrow: "ライセンスコード",
     redeemTitle: "AppSumo を引き換え",
@@ -351,13 +351,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} 分利用可能。最大ファイル長: ${maxMinutes} 分。`,
     activating: "有効化中...",
     activateLicense: "ライセンスを有効化",
-    helpText: "ローカル互換では AS、APPSUMO、SUMO で始まるコードを受け付けます。未ログインの場合、UniScribe は先にログインを求めます。"
+    helpText: "ローカル互換では AS、APPSUMO、SUMO で始まるコードを受け付けます。未ログインの場合、Votxt は先にログインを求めます。"
   },
   nl: {
     dashboard: "Dashboard",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Activeer je AppSumo-licentie",
-    subtitle: "Wissel je lifetime deal-code in, koppel deze aan het ingelogde UniScribe-account en ga door naar het dashboard met de AppSumo-welkomstflow.",
+    subtitle: "Wissel je lifetime deal-code in, koppel deze aan het ingelogde Votxt-account en ga door naar het dashboard met de AppSumo-welkomstflow.",
     features: ["Jaarlijkse LTD-quota", "Dashboard-onboarding", "Veilige accountkoppeling"],
     codeEyebrow: "Licentiecode",
     redeemTitle: "AppSumo inwisselen",
@@ -370,13 +370,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minuten beschikbaar. Maximale bestandslengte: ${maxMinutes} minuten.`,
     activating: "Activeren...",
     activateLicense: "Licentie activeren",
-    helpText: "Lokale compatibiliteit accepteert codes die beginnen met AS, APPSUMO of SUMO. Als je niet bent ingelogd, vraagt UniScribe je eerst in te loggen."
+    helpText: "Lokale compatibiliteit accepteert codes die beginnen met AS, APPSUMO of SUMO. Als je niet bent ingelogd, vraagt Votxt je eerst in te loggen."
   },
   pl: {
     dashboard: "Panel",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "Aktywuj licencję AppSumo",
-    subtitle: "Wykorzystaj kod lifetime deal, przypisz go do zalogowanego konta UniScribe i przejdź do panelu z powitaniem AppSumo.",
+    subtitle: "Wykorzystaj kod lifetime deal, przypisz go do zalogowanego konta Votxt i przejdź do panelu z powitaniem AppSumo.",
     features: ["Roczny limit LTD", "Onboarding panelu", "Bezpieczne powiązanie konta"],
     codeEyebrow: "Kod licencji",
     redeemTitle: "Wykorzystaj AppSumo",
@@ -389,13 +389,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} minut dostępne. Maksymalna długość pliku: ${maxMinutes} minut.`,
     activating: "Aktywowanie...",
     activateLicense: "Aktywuj licencję",
-    helpText: "Lokalna zgodność akceptuje kody zaczynające się od AS, APPSUMO lub SUMO. Jeśli nie jesteś zalogowany, UniScribe poprosi najpierw o logowanie."
+    helpText: "Lokalna zgodność akceptuje kody zaczynające się od AS, APPSUMO lub SUMO. Jeśli nie jesteś zalogowany, Votxt poprosi najpierw o logowanie."
   },
   ko: {
     dashboard: "대시보드",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "AppSumo 라이선스 활성화",
-    subtitle: "Lifetime deal 코드를 사용하고 로그인된 UniScribe 계정에 연결한 뒤 AppSumo 환영 흐름과 함께 대시보드로 이동하세요.",
+    subtitle: "Lifetime deal 코드를 사용하고 로그인된 Votxt 계정에 연결한 뒤 AppSumo 환영 흐름과 함께 대시보드로 이동하세요.",
     features: ["연간 LTD 할당량", "대시보드 온보딩", "안전한 계정 연결"],
     codeEyebrow: "라이선스 코드",
     redeemTitle: "AppSumo 사용",
@@ -408,13 +408,13 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes}분 사용 가능. 최대 파일 길이: ${maxMinutes}분.`,
     activating: "활성화 중...",
     activateLicense: "라이선스 활성화",
-    helpText: "로컬 호환 모드는 AS, APPSUMO 또는 SUMO로 시작하는 코드를 허용합니다. 로그인하지 않은 경우 UniScribe가 먼저 로그인을 요청합니다."
+    helpText: "로컬 호환 모드는 AS, APPSUMO 또는 SUMO로 시작하는 코드를 허용합니다. 로그인하지 않은 경우 Votxt가 먼저 로그인을 요청합니다."
   },
   hu: {
     dashboard: "Irányítópult",
-    badge: "UniScribe x AppSumo",
+    badge: "Votxt x AppSumo",
     title: "AppSumo-licenc aktiválása",
-    subtitle: "Váltsd be lifetime deal kódodat, kösd a bejelentkezett UniScribe-fiókhoz, majd folytasd az irányítópulton az AppSumo üdvözlő folyamattal.",
+    subtitle: "Váltsd be lifetime deal kódodat, kösd a bejelentkezett Votxt-fiókhoz, majd folytasd az irányítópulton az AppSumo üdvözlő folyamattal.",
     features: ["Éves LTD kvóta", "Irányítópult onboarding", "Biztonságos fiókkapcsolás"],
     codeEyebrow: "Licenckód",
     redeemTitle: "AppSumo beváltása",
@@ -427,7 +427,7 @@ const appSumoCopyByLocale: Record<Locale, AppSumoCopy> = {
     available: (minutes, maxMinutes) => `${minutes} perc elérhető. Maximális fájlhossz: ${maxMinutes} perc.`,
     activating: "Aktiválás...",
     activateLicense: "Licenc aktiválása",
-    helpText: "A helyi kompatibilitás elfogadja az AS, APPSUMO vagy SUMO kezdetű kódokat. Ha nem vagy bejelentkezve, a UniScribe először bejelentkezést kér."
+    helpText: "A helyi kompatibilitás elfogadja az AS, APPSUMO vagy SUMO kezdetű kódokat. Ha nem vagy bejelentkezve, a Votxt először bejelentkezést kér."
   }
 };
 

@@ -6,26 +6,26 @@ import {isLocale, locales, type Locale} from "@/lib/locales";
 type BlogPostParams = {locale: string; slug: string};
 
 const blogFallbackTitles: Record<Locale, string> = {
-  ar: "مدونة UniScribe",
-  de: "UniScribe Blog",
-  en: "UniScribe Blog",
-  es: "Blog de UniScribe",
-  fr: "Blog UniScribe",
-  hu: "UniScribe blog",
-  id: "Blog UniScribe",
-  it: "Blog UniScribe",
-  ja: "UniScribe ブログ",
-  ko: "UniScribe 블로그",
-  nl: "UniScribe-blog",
-  pl: "Blog UniScribe",
-  pt: "Blog da UniScribe",
-  ru: "Блог UniScribe",
-  th: "บล็อก UniScribe",
-  tr: "UniScribe blogu",
-  uk: "Блог UniScribe",
-  vi: "Blog UniScribe",
-  zh: "UniScribe 博客",
-  "zh-TW": "UniScribe 部落格"
+  ar: "مدونة Votxt",
+  de: "Votxt Blog",
+  en: "Votxt Blog",
+  es: "Blog de Votxt",
+  fr: "Blog Votxt",
+  hu: "Votxt blog",
+  id: "Blog Votxt",
+  it: "Blog Votxt",
+  ja: "Votxt ブログ",
+  ko: "Votxt 블로그",
+  nl: "Votxt-blog",
+  pl: "Blog Votxt",
+  pt: "Blog da Votxt",
+  ru: "Блог Votxt",
+  th: "บล็อก Votxt",
+  tr: "Votxt blogu",
+  uk: "Блог Votxt",
+  vi: "Blog Votxt",
+  zh: "Votxt 博客",
+  "zh-TW": "Votxt 部落格"
 };
 
 export function generateStaticParams() {

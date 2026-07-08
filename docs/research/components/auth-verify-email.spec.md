@@ -3,7 +3,7 @@
 ## Overview
 - Target file: `src/components/auth-pages.tsx`
 - Route: `/en/auth/verify-email`
-- Target URL: `https://www.uniscribe.co/auth/verify-email`
+- Target URL: `https://www.votxt.co/auth/verify-email`
 - Interaction model: form/status driven. Target inspection was read-only; no resend email action or token verification was submitted on the target site.
 
 ## Target No-Token State

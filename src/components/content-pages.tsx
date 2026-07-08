@@ -58,14 +58,14 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "关于 UniScribe 转写工作台的常见问题",
+      title: "关于 Votxt 转写工作台的常见问题",
       description: "覆盖官网、登录、仪表盘、队列、AI 洞察、导出和国际化能力。"
     },
     faqs: [
-      ["UniScribe 可以完成哪些转写工作？", "UniScribe 覆盖文件上传、链接转写、录音、仪表盘额度、AI 摘要、思维导图、问答、翻译和导出。"],
+      ["Votxt 可以完成哪些转写工作？", "Votxt 覆盖文件上传、链接转写、录音、仪表盘额度、AI 摘要、思维导图、问答、翻译和导出。"],
       ["可以用邮箱或 Google 登录吗？", "可以。你可以使用邮箱账号或 Google 账号进入个人转写工作台。"],
       ["支持哪些导出格式？", "任务完成后可以导出 Word、CSV、PDF、TXT、SRT 和 VTT，方便归档、字幕制作和内容复用。"],
-      ["支持多少种语言？", "UniScribe 支持 63 种语言的转写，并可为完成的转写生成翻译。"],
+      ["支持多少种语言？", "Votxt 支持 63 种语言的转写，并可为完成的转写生成翻译。"],
       ["仪表盘有哪些模块？", "仪表盘包含额度、文件夹、任务列表、上传文件、粘贴链接、转写状态、编辑器、AI 洞察和导出中心。"]
     ],
     blogHero: {
@@ -192,11 +192,11 @@ const contentCopy = {
       ["Can I try the service for free?", "Yes. The Free plan includes 120 minutes per month, up to 3 files per day, 30 minutes per file, standard transcription, exports, translation, and limited AI insights."],
       ["Which audio/video formats do you support?", "Audio formats include aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, and wma. Video formats include 3gp, mkv, mov, mp4, mpg, ts, webm, and wmv."],
       ["Can I upload large files?", "Paid plans allow files up to 10 hours long and 5 GB, with up to 50 files uploaded at a time."],
-      ["Can I export my transcript?", "Yes. UniScribe supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
-      ["Which languages does UniScribe support for transcription?", "UniScribe supports transcription in 63 languages."],
+      ["Can I export my transcript?", "Yes. Votxt supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
+      ["Which languages does Votxt support for transcription?", "Votxt supports transcription in 63 languages."],
       ["How soon can I expect my transcription results?", "Most files finish quickly. The exact time depends on file duration, size, and queue load."],
-      ["Are my payments secure with UniScribe?", "Payments are handled through secure checkout and subscription billing flows."],
-      ["How does UniScribe protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],
+      ["Are my payments secure with Votxt?", "Payments are handled through secure checkout and subscription billing flows."],
+      ["How does Votxt protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],
       ["When will I be billed?", "Subscription plans are billed monthly or yearly depending on the option you choose."],
       ["What happens if I cancel my subscription?", "You keep access for the paid period, and the subscription does not renew afterward."],
       ["Can I get a refund?", "Refund handling follows the refund policy linked from the footer."],
@@ -223,7 +223,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "Precios",
       title: "De prueba gratis a transcripción personal de alto volumen",
-      description: "UniScribe cubre minutos mensuales, límites diarios, tamaño de archivo, lotes, hablantes, exportaciones automatizadas y una ruta clara de mejora."
+      description: "Votxt cubre minutos mensuales, límites diarios, tamaño de archivo, lotes, hablantes, exportaciones automatizadas y una ruta clara de mejora."
     },
     perMonth: "/ mes",
     plans: [
@@ -234,20 +234,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Preguntas sobre el espacio de trabajo UniScribe",
+      title: "Preguntas sobre el espacio de trabajo Votxt",
       description: "Respuestas sobre sitio web, autenticación, panel, cola, IA, exportación, facturación e idiomas."
     },
     faqs: [
-      ["¿Qué puede transcribir UniScribe?", "Incluye carga, enlaces, grabación, cuotas, resúmenes, mapas mentales, Q&A, traducción y exportaciones."],
+      ["¿Qué puede transcribir Votxt?", "Incluye carga, enlaces, grabación, cuotas, resúmenes, mapas mentales, Q&A, traducción y exportaciones."],
       ["¿Puedo iniciar sesión con email o Google?", "Sí. Puedes entrar al espacio personal con email o con una cuenta de Google."],
       ["¿Qué formatos puedo exportar?", "Puedes exportar Word, CSV, PDF, TXT, SRT y VTT para archivo, subtítulos y reutilización de contenido."],
-      ["¿Cuántos idiomas admite?", "UniScribe admite transcripción en 63 idiomas y también puede generar traducciones."],
+      ["¿Cuántos idiomas admite?", "Votxt admite transcripción en 63 idiomas y también puede generar traducciones."],
       ["¿Qué incluye el panel?", "Cuotas, carpetas, tareas, carga de archivos, enlaces, estado, editor, IA y centro de exportación."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Guías de transcripción, subtítulos, resumen y reutilización",
-      description: "Un centro de recursos para flujos de transcripción de audio y video con UniScribe."
+      description: "Un centro de recursos para flujos de transcripción de audio y video con Votxt."
     },
     readMore: "Leer más",
     matrixTitle: "Más recursos de transcripción",
@@ -257,7 +257,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "Tarifs",
       title: "De l'essai gratuit à la transcription personnelle à grande échelle",
-      description: "UniScribe couvre minutes mensuelles, limites quotidiennes, taille des fichiers, lots, locuteurs, exports automatisables et montée en gamme claire."
+      description: "Votxt couvre minutes mensuelles, limites quotidiennes, taille des fichiers, lots, locuteurs, exports automatisables et montée en gamme claire."
     },
     perMonth: "/ mois",
     plans: [
@@ -268,20 +268,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Questions fréquentes sur UniScribe",
+      title: "Questions fréquentes sur Votxt",
       description: "Site, authentification, tableau de bord, file, IA, exports, facturation et localisation."
     },
     faqs: [
-      ["Que peut transcrire UniScribe ?", "UniScribe couvre l'import de fichiers, les liens, l'enregistrement, les quotas, les résumés IA, les cartes mentales, les Q&R, la traduction et les exports."],
+      ["Que peut transcrire Votxt ?", "Votxt couvre l'import de fichiers, les liens, l'enregistrement, les quotas, les résumés IA, les cartes mentales, les Q&R, la traduction et les exports."],
       ["Puis-je me connecter par email ou Google ?", "Oui. Vous pouvez accéder à votre espace personnel avec un email ou un compte Google."],
       ["Quels exports sont disponibles ?", "Vous pouvez exporter Word, CSV, PDF, TXT, SRT et VTT pour l'archive, les sous-titres et la réutilisation."],
-      ["Combien de langues sont prises en charge ?", "UniScribe prend en charge la transcription dans 63 langues et peut aussi générer des traductions."],
+      ["Combien de langues sont prises en charge ?", "Votxt prend en charge la transcription dans 63 langues et peut aussi générer des traductions."],
       ["Que contient le tableau de bord ?", "Quotas, dossiers, tâches, upload de fichiers, liens, statut, éditeur, IA et exports."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Guides pour transcription, sous-titres, résumés et réutilisation",
-      description: "Un centre de ressources pour les flux de transcription audio et vidéo avec UniScribe."
+      description: "Un centre de ressources pour les flux de transcription audio et vidéo avec Votxt."
     },
     readMore: "Lire",
     matrixTitle: "Plus de ressources de transcription",
@@ -291,7 +291,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "Preise",
       title: "Vom Gratis-Test bis zur persönlichen Transkription mit hohem Volumen",
-      description: "UniScribe deckt Monatsminuten, Tageslimits, Dateigrenzen, Stapel, Sprecherlabels, automatisierbare Exporte und klare Upgrades ab."
+      description: "Votxt deckt Monatsminuten, Tageslimits, Dateigrenzen, Stapel, Sprecherlabels, automatisierbare Exporte und klare Upgrades ab."
     },
     perMonth: "/ Monat",
     plans: [
@@ -302,20 +302,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Häufige Fragen zum UniScribe-Arbeitsbereich",
+      title: "Häufige Fragen zum Votxt-Arbeitsbereich",
       description: "Antworten zu Website, Authentifizierung, Dashboard, Warteschlange, KI, Export, Abrechnung und Lokalisierung."
     },
     faqs: [
-      ["Was kann UniScribe transkribieren?", "UniScribe bietet Uploads, Links, Aufnahme, Kontingente, KI-Zusammenfassungen, Mindmaps, Q&A, Übersetzung und Exporte."],
+      ["Was kann Votxt transkribieren?", "Votxt bietet Uploads, Links, Aufnahme, Kontingente, KI-Zusammenfassungen, Mindmaps, Q&A, Übersetzung und Exporte."],
       ["Kann ich mich mit E-Mail oder Google anmelden?", "Ja. Du kannst deinen persönlichen Arbeitsbereich per E-Mail oder Google-Konto öffnen."],
       ["Welche Exporte gibt es?", "Du kannst Word, CSV, PDF, TXT, SRT und VTT für Archive, Untertitel und Wiederverwendung exportieren."],
-      ["Wie viele Sprachen werden unterstützt?", "UniScribe unterstützt Transkription in 63 Sprachen und kann auch Übersetzungen erzeugen."],
+      ["Wie viele Sprachen werden unterstützt?", "Votxt unterstützt Transkription in 63 Sprachen und kann auch Übersetzungen erzeugen."],
       ["Was enthält das Dashboard?", "Quota, Ordner, Aufgaben, Datei-Upload, Links, Status, Editor, KI und Exportzentrum."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Leitfäden für Transkription, Untertitel, Zusammenfassung und Wiederverwendung",
-      description: "Ein Ressourcenbereich für Audio- und Video-Transkriptions-Workflows mit UniScribe."
+      description: "Ein Ressourcenbereich für Audio- und Video-Transkriptions-Workflows mit Votxt."
     },
     readMore: "Lesen",
     matrixTitle: "Content-Roadmap",
@@ -325,7 +325,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "料金",
       title: "無料トライアルから個人向け大容量文字起こしまで",
-      description: "UniScribe は月間分数、日次制限、ファイル上限、バッチ、話者ラベル、自動化向けエクスポート、明確なアップグレード導線を備えます。"
+      description: "Votxt は月間分数、日次制限、ファイル上限、バッチ、話者ラベル、自動化向けエクスポート、明確なアップグレード導線を備えます。"
     },
     perMonth: "/ 月",
     plans: [
@@ -336,20 +336,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "UniScribe ワークスペースのよくある質問",
+      title: "Votxt ワークスペースのよくある質問",
       description: "サイト、認証、ダッシュボード、キュー、AI、書き出し、請求、多言語対応をまとめます。"
     },
     faqs: [
-      ["UniScribe では何を文字起こしできますか？", "アップロード、リンク、録音、クォータ、AI要約、マインドマップ、Q&A、翻訳、書き出しに対応しています。"],
+      ["Votxt では何を文字起こしできますか？", "アップロード、リンク、録音、クォータ、AI要約、マインドマップ、Q&A、翻訳、書き出しに対応しています。"],
       ["メールまたは Google でログインできますか？", "はい。メールアカウントまたは Google アカウントで個人ワークスペースに入れます。"],
       ["どの形式で書き出せますか？", "Word、CSV、PDF、TXT、SRT、VTT を書き出せます。アーカイブ、字幕、再利用に使えます。"],
-      ["何言語に対応していますか？", "UniScribe は 63 言語の文字起こしに対応し、翻訳も生成できます。"],
+      ["何言語に対応していますか？", "Votxt は 63 言語の文字起こしに対応し、翻訳も生成できます。"],
       ["ダッシュボードには何がありますか？", "クォータ、フォルダ、タスク、ファイルアップロード、リンク、ステータス、エディタ、AI、書き出しがあります。"]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "文字起こし、字幕、要約、再利用のガイド",
-      description: "UniScribe で音声・動画文字起こしワークフローを進めるためのリソースセンターです。"
+      description: "Votxt で音声・動画文字起こしワークフローを進めるためのリソースセンターです。"
     },
     readMore: "読む",
     matrixTitle: "コンテンツ計画",
@@ -359,7 +359,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "요금제",
       title: "무료 체험부터 개인 대용량 전사까지",
-      description: "UniScribe는 월간 분수, 일일 제한, 파일 한도, 배치 작업, 화자 라벨, 자동화용 내보내기, 명확한 업그레이드 흐름을 제공합니다."
+      description: "Votxt는 월간 분수, 일일 제한, 파일 한도, 배치 작업, 화자 라벨, 자동화용 내보내기, 명확한 업그레이드 흐름을 제공합니다."
     },
     perMonth: "/ 월",
     plans: [
@@ -370,20 +370,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "UniScribe 워크스페이스 FAQ",
+      title: "Votxt 워크스페이스 FAQ",
       description: "웹사이트, 인증, 대시보드, 큐, AI, 내보내기, 결제, 현지화를 다룹니다."
     },
     faqs: [
-      ["UniScribe는 무엇을 전사할 수 있나요?", "업로드, 링크, 녹음, 할당량, AI 요약, 마인드맵, Q&A, 번역, 내보내기를 제공합니다."],
+      ["Votxt는 무엇을 전사할 수 있나요?", "업로드, 링크, 녹음, 할당량, AI 요약, 마인드맵, Q&A, 번역, 내보내기를 제공합니다."],
       ["이메일 또는 Google로 로그인할 수 있나요?", "네. 이메일 계정이나 Google 계정으로 개인 워크스페이스에 들어갈 수 있습니다."],
       ["어떤 형식을 내보낼 수 있나요?", "Word, CSV, PDF, TXT, SRT, VTT를 내보내 아카이브, 자막, 콘텐츠 재사용에 활용할 수 있습니다."],
-      ["몇 개 언어를 지원하나요?", "UniScribe는 63개 언어 전사를 지원하며 번역도 생성할 수 있습니다."],
+      ["몇 개 언어를 지원하나요?", "Votxt는 63개 언어 전사를 지원하며 번역도 생성할 수 있습니다."],
       ["대시보드에는 무엇이 있나요?", "할당량, 폴더, 작업 목록, 파일 업로드, 링크, 상태, 편집기, AI, 내보내기가 있습니다."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "전사, 자막, 요약, 콘텐츠 재사용 가이드",
-      description: "UniScribe에서 오디오 및 비디오 전사 워크플로를 진행하기 위한 리소스 센터입니다."
+      description: "Votxt에서 오디오 및 비디오 전사 워크플로를 진행하기 위한 리소스 센터입니다."
     },
     readMore: "읽기",
     matrixTitle: "콘텐츠 로드맵",
@@ -393,7 +393,7 @@ const contentCopy = {
     pricingHero: {
       eyebrow: "Preços",
       title: "Do teste grátis à transcrição pessoal em alto volume",
-      description: "UniScribe cobre minutos mensais, limites diários, tamanho de arquivo, lotes, falantes, exportações automatizáveis e uma rota clara de upgrade."
+      description: "Votxt cobre minutos mensais, limites diários, tamanho de arquivo, lotes, falantes, exportações automatizáveis e uma rota clara de upgrade."
     },
     perMonth: "/ mês",
     plans: [
@@ -404,20 +404,20 @@ const contentCopy = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Perguntas sobre o workspace UniScribe",
+      title: "Perguntas sobre o workspace Votxt",
       description: "Site, autenticação, painel, fila, IA, exportações, cobrança e localização."
     },
     faqs: [
-      ["O que o UniScribe pode transcrever?", "UniScribe cobre upload, links, gravação, cotas, resumos de IA, mapas mentais, Q&A, tradução e exportações."],
+      ["O que o Votxt pode transcrever?", "Votxt cobre upload, links, gravação, cotas, resumos de IA, mapas mentais, Q&A, tradução e exportações."],
       ["Posso entrar com email ou Google?", "Sim. Você pode acessar o workspace pessoal com email ou uma conta Google."],
       ["Quais formatos posso exportar?", "Você pode exportar Word, CSV, PDF, TXT, SRT e VTT para arquivo, legendas e reutilização de conteúdo."],
-      ["Quantos idiomas são suportados?", "UniScribe suporta transcrição em 63 idiomas e também pode gerar traduções."],
+      ["Quantos idiomas são suportados?", "Votxt suporta transcrição em 63 idiomas e também pode gerar traduções."],
       ["O que existe no painel?", "Cotas, pastas, tarefas, upload de arquivos, links, status, editor, IA e central de exportação."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Guias de transcrição, legendas, resumo e reutilização",
-      description: "Um centro de recursos para fluxos de transcrição de áudio e vídeo com UniScribe."
+      description: "Um centro de recursos para fluxos de transcrição de áudio e vídeo com Votxt."
     },
     readMore: "Ler mais",
     matrixTitle: "Mais recursos de transcrição",
@@ -442,20 +442,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "الأسئلة الشائعة",
-      title: "أسئلة شائعة حول مساحة عمل UniScribe",
+      title: "أسئلة شائعة حول مساحة عمل Votxt",
       description: "إجابات حول الموقع وتسجيل الدخول ولوحة التحكم والطابور وميزات AI والتصدير والفوترة واللغات."
     },
     faqs: [
-      ["ما الذي يمكن أن ينسخه UniScribe؟", "يدعم UniScribe رفع الملفات والروابط والتسجيل والحصص وملخصات AI والخرائط الذهنية والأسئلة والأجوبة والترجمة والتصدير."],
+      ["ما الذي يمكن أن ينسخه Votxt؟", "يدعم Votxt رفع الملفات والروابط والتسجيل والحصص وملخصات AI والخرائط الذهنية والأسئلة والأجوبة والترجمة والتصدير."],
       ["هل يمكنني تسجيل الدخول بالبريد أو Google؟", "نعم. يمكنك فتح مساحة عملك الشخصية باستخدام البريد الإلكتروني أو حساب Google."],
       ["ما صيغ التصدير المتاحة؟", "يمكنك تصدير Word وCSV وPDF وTXT وSRT وVTT للأرشفة والترجمات وإعادة استخدام المحتوى."],
-      ["كم لغة يدعم؟", "يدعم UniScribe النسخ بـ 63 لغة ويمكنه إنشاء ترجمات للنصوص المنجزة."],
+      ["كم لغة يدعم؟", "يدعم Votxt النسخ بـ 63 لغة ويمكنه إنشاء ترجمات للنصوص المنجزة."],
       ["ماذا تتضمن لوحة التحكم؟", "الحصص والمجلدات والمهام ورفع الملفات والروابط والحالة والمحرر وميزات AI ومركز التصدير."]
     ],
     blogHero: {
       eyebrow: "المدونة",
       title: "أدلة النسخ والترجمات والملخصات وإعادة استخدام المحتوى",
-      description: "مركز موارد لسير عمل تحويل الصوت والفيديو إلى نص باستخدام UniScribe."
+      description: "مركز موارد لسير عمل تحويل الصوت والفيديو إلى نص باستخدام Votxt."
     },
     readMore: "اقرأ المزيد",
     matrixTitle: "المزيد من موارد النسخ",
@@ -476,20 +476,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "GYIK",
-      title: "Gyakori kérdések a UniScribe munkaterületről",
+      title: "Gyakori kérdések a Votxt munkaterületről",
       description: "Válaszok webhelyről, bejelentkezésről, irányítópultról, sorról, AI-ról, exportról, számlázásról és nyelvekről."
     },
     faqs: [
-      ["Mit tud átírni a UniScribe?", "Feltöltések, linkek, felvétel, kvóták, AI összefoglalók, gondolattérképek, Q&A, fordítás és export."],
+      ["Mit tud átírni a Votxt?", "Feltöltések, linkek, felvétel, kvóták, AI összefoglalók, gondolattérképek, Q&A, fordítás és export."],
       ["Beléphetek e-maillel vagy Google-lel?", "Igen. Személyes munkaterületedet e-maillel vagy Google-fiókkal is megnyithatod."],
       ["Milyen formátumokba exportálhatok?", "Word, CSV, PDF, TXT, SRT és VTT export használható archiváláshoz, feliratokhoz és újrahasznosításhoz."],
-      ["Hány nyelvet támogat?", "A UniScribe 63 nyelven támogat átírást, és fordítást is tud készíteni."],
+      ["Hány nyelvet támogat?", "A Votxt 63 nyelven támogat átírást, és fordítást is tud készíteni."],
       ["Mi van az irányítópulton?", "Kvóták, mappák, feladatok, fájlfeltöltés, linkek, állapot, szerkesztő, AI és exportközpont."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Átírási, felirat-, összefoglaló- és tartalom-újrahasznosítási útmutatók",
-      description: "Erőforrásközpont hang- és videóátírási munkafolyamatokhoz UniScribe-bal."
+      description: "Erőforrásközpont hang- és videóátírási munkafolyamatokhoz Votxt-bal."
     },
     readMore: "Tovább",
     matrixTitle: "További átírási források",
@@ -510,20 +510,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Pertanyaan umum tentang workspace UniScribe",
+      title: "Pertanyaan umum tentang workspace Votxt",
       description: "Jawaban tentang situs, login, dashboard, antrean, AI, ekspor, penagihan, dan bahasa."
     },
     faqs: [
-      ["Apa yang bisa ditranskripsi UniScribe?", "UniScribe mencakup unggahan, tautan, rekaman, kuota, ringkasan AI, mind map, Q&A, terjemahan, dan ekspor."],
+      ["Apa yang bisa ditranskripsi Votxt?", "Votxt mencakup unggahan, tautan, rekaman, kuota, ringkasan AI, mind map, Q&A, terjemahan, dan ekspor."],
       ["Bisakah masuk dengan email atau Google?", "Bisa. Anda dapat membuka workspace pribadi dengan email atau akun Google."],
       ["Format ekspor apa yang didukung?", "Anda dapat mengekspor Word, CSV, PDF, TXT, SRT, dan VTT untuk arsip, subtitle, dan penggunaan ulang konten."],
-      ["Berapa bahasa yang didukung?", "UniScribe mendukung transkripsi dalam 63 bahasa dan dapat membuat terjemahan."],
+      ["Berapa bahasa yang didukung?", "Votxt mendukung transkripsi dalam 63 bahasa dan dapat membuat terjemahan."],
       ["Apa isi dashboard?", "Kuota, folder, tugas, unggah file, tautan, status, editor, AI, dan pusat ekspor."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Panduan transkripsi, subtitle, ringkasan, dan penggunaan ulang konten",
-      description: "Pusat sumber daya untuk alur kerja transkripsi audio dan video dengan UniScribe."
+      description: "Pusat sumber daya untuk alur kerja transkripsi audio dan video dengan Votxt."
     },
     readMore: "Baca selengkapnya",
     matrixTitle: "Sumber transkripsi lainnya",
@@ -544,20 +544,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Domande frequenti sul workspace UniScribe",
+      title: "Domande frequenti sul workspace Votxt",
       description: "Risposte su sito, accesso, dashboard, coda, AI, esportazione, fatturazione e lingue."
     },
     faqs: [
-      ["Cosa può trascrivere UniScribe?", "UniScribe copre upload, link, registrazione, quote, riepiloghi AI, mappe mentali, Q&A, traduzione ed esportazioni."],
+      ["Cosa può trascrivere Votxt?", "Votxt copre upload, link, registrazione, quote, riepiloghi AI, mappe mentali, Q&A, traduzione ed esportazioni."],
       ["Posso accedere con email o Google?", "Sì. Puoi aprire il workspace personale con email o account Google."],
       ["Quali formati posso esportare?", "Puoi esportare Word, CSV, PDF, TXT, SRT e VTT per archivi, sottotitoli e riuso dei contenuti."],
-      ["Quante lingue sono supportate?", "UniScribe supporta trascrizione in 63 lingue e può generare traduzioni."],
+      ["Quante lingue sono supportate?", "Votxt supporta trascrizione in 63 lingue e può generare traduzioni."],
       ["Cosa include la dashboard?", "Quote, cartelle, attività, upload, link, stato, editor, AI e centro esportazioni."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Guide per trascrizione, sottotitoli, riepiloghi e riuso contenuti",
-      description: "Un centro risorse per workflow di trascrizione audio e video con UniScribe."
+      description: "Un centro risorse per workflow di trascrizione audio e video con Votxt."
     },
     readMore: "Leggi di più",
     matrixTitle: "Altre risorse di trascrizione",
@@ -578,20 +578,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Veelgestelde vragen over de UniScribe-workspace",
+      title: "Veelgestelde vragen over de Votxt-workspace",
       description: "Antwoorden over site, login, dashboard, wachtrij, AI, export, facturatie en talen."
     },
     faqs: [
-      ["Wat kan UniScribe transcriberen?", "UniScribe ondersteunt uploads, links, opnemen, quota, AI-samenvattingen, mindmaps, Q&A, vertaling en exports."],
+      ["Wat kan Votxt transcriberen?", "Votxt ondersteunt uploads, links, opnemen, quota, AI-samenvattingen, mindmaps, Q&A, vertaling en exports."],
       ["Kan ik inloggen met e-mail of Google?", "Ja. Je kunt je persoonlijke workspace openen met e-mail of een Google-account."],
       ["Welke exportformaten zijn er?", "Je kunt Word, CSV, PDF, TXT, SRT en VTT exporteren voor archief, ondertitels en hergebruik."],
-      ["Hoeveel talen worden ondersteund?", "UniScribe ondersteunt transcriptie in 63 talen en kan ook vertalingen maken."],
+      ["Hoeveel talen worden ondersteund?", "Votxt ondersteunt transcriptie in 63 talen en kan ook vertalingen maken."],
       ["Wat bevat het dashboard?", "Quota, mappen, taken, uploads, links, status, editor, AI en exportcentrum."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Gidsen voor transcriptie, ondertitels, samenvattingen en hergebruik",
-      description: "Een kenniscentrum voor audio- en videotranscriptieworkflows met UniScribe."
+      description: "Een kenniscentrum voor audio- en videotranscriptieworkflows met Votxt."
     },
     readMore: "Meer lezen",
     matrixTitle: "Meer transcriptiebronnen",
@@ -612,20 +612,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Najczęstsze pytania o workspace UniScribe",
+      title: "Najczęstsze pytania o workspace Votxt",
       description: "Odpowiedzi o stronie, logowaniu, panelu, kolejce, AI, eksporcie, rozliczeniach i językach."
     },
     faqs: [
-      ["Co może transkrybować UniScribe?", "UniScribe obsługuje upload, linki, nagrywanie, limity, podsumowania AI, mapy myśli, Q&A, tłumaczenie i eksporty."],
+      ["Co może transkrybować Votxt?", "Votxt obsługuje upload, linki, nagrywanie, limity, podsumowania AI, mapy myśli, Q&A, tłumaczenie i eksporty."],
       ["Czy mogę logować się e-mailem lub Google?", "Tak. Możesz otworzyć osobistą przestrzeń przez e-mail albo konto Google."],
       ["Jakie formaty eksportu są dostępne?", "Możesz eksportować Word, CSV, PDF, TXT, SRT i VTT do archiwum, napisów i ponownego użycia treści."],
-      ["Ile języków jest obsługiwanych?", "UniScribe obsługuje transkrypcję w 63 językach i może generować tłumaczenia."],
+      ["Ile języków jest obsługiwanych?", "Votxt obsługuje transkrypcję w 63 językach i może generować tłumaczenia."],
       ["Co zawiera panel?", "Limity, foldery, zadania, upload, linki, status, edytor, AI i centrum eksportu."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Poradniki transkrypcji, napisów, podsumowań i ponownego użycia treści",
-      description: "Centrum zasobów dla workflow audio i wideo w UniScribe."
+      description: "Centrum zasobów dla workflow audio i wideo w Votxt."
     },
     readMore: "Czytaj więcej",
     matrixTitle: "Więcej zasobów transkrypcji",
@@ -646,20 +646,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Частые вопросы о рабочем пространстве UniScribe",
+      title: "Частые вопросы о рабочем пространстве Votxt",
       description: "Ответы о сайте, входе, панели, очереди, AI, экспорте, оплате и языках."
     },
     faqs: [
-      ["Что может расшифровывать UniScribe?", "UniScribe поддерживает загрузки, ссылки, запись, лимиты, AI-сводки, интеллект-карты, Q&A, перевод и экспорт."],
+      ["Что может расшифровывать Votxt?", "Votxt поддерживает загрузки, ссылки, запись, лимиты, AI-сводки, интеллект-карты, Q&A, перевод и экспорт."],
       ["Можно войти по e-mail или Google?", "Да. Вы можете открыть личное рабочее пространство по e-mail или через Google."],
       ["Какие форматы экспорта есть?", "Доступны Word, CSV, PDF, TXT, SRT и VTT для архива, субтитров и повторного использования контента."],
-      ["Сколько языков поддерживается?", "UniScribe поддерживает расшифровку на 63 языках и может создавать переводы."],
+      ["Сколько языков поддерживается?", "Votxt поддерживает расшифровку на 63 языках и может создавать переводы."],
       ["Что есть в панели?", "Лимиты, папки, задачи, загрузка файлов, ссылки, статус, редактор, AI и центр экспорта."]
     ],
     blogHero: {
       eyebrow: "Блог",
       title: "Гайды по расшифровке, субтитрам, сводкам и повторному использованию контента",
-      description: "Центр материалов для рабочих процессов аудио- и видеорасшифровки в UniScribe."
+      description: "Центр материалов для рабочих процессов аудио- и видеорасшифровки в Votxt."
     },
     readMore: "Читать далее",
     matrixTitle: "Больше ресурсов по расшифровке",
@@ -680,20 +680,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "คำถามที่พบบ่อยเกี่ยวกับพื้นที่ทำงาน UniScribe",
+      title: "คำถามที่พบบ่อยเกี่ยวกับพื้นที่ทำงาน Votxt",
       description: "คำตอบเกี่ยวกับเว็บไซต์ การเข้าสู่ระบบ แดชบอร์ด คิว AI การส่งออก การเรียกเก็บเงิน และภาษา"
     },
     faqs: [
-      ["UniScribe ถอดเสียงอะไรได้บ้าง?", "รองรับการอัปโหลด ลิงก์ การบันทึก โควตา สรุป AI แผนผังความคิด Q&A การแปล และการส่งออก"],
+      ["Votxt ถอดเสียงอะไรได้บ้าง?", "รองรับการอัปโหลด ลิงก์ การบันทึก โควตา สรุป AI แผนผังความคิด Q&A การแปล และการส่งออก"],
       ["เข้าสู่ระบบด้วยอีเมลหรือ Google ได้ไหม?", "ได้ คุณสามารถเปิดพื้นที่ทำงานส่วนตัวด้วยอีเมลหรือบัญชี Google"],
       ["ส่งออกเป็นรูปแบบใดได้บ้าง?", "ส่งออก Word, CSV, PDF, TXT, SRT และ VTT สำหรับเก็บถาวร คำบรรยาย และนำเนื้อหากลับมาใช้ใหม่"],
-      ["รองรับกี่ภาษา?", "UniScribe รองรับการถอดเสียง 63 ภาษา และสร้างคำแปลได้"],
+      ["รองรับกี่ภาษา?", "Votxt รองรับการถอดเสียง 63 ภาษา และสร้างคำแปลได้"],
       ["แดชบอร์ดมีอะไรบ้าง?", "โควตา โฟลเดอร์ งาน อัปโหลดไฟล์ ลิงก์ สถานะ เครื่องมือแก้ไข AI และศูนย์ส่งออก"]
     ],
     blogHero: {
       eyebrow: "บล็อก",
       title: "คู่มือการถอดเสียง คำบรรยาย สรุป และการนำเนื้อหากลับมาใช้ใหม่",
-      description: "ศูนย์ทรัพยากรสำหรับเวิร์กโฟลว์ถอดเสียงเสียงและวิดีโอด้วย UniScribe"
+      description: "ศูนย์ทรัพยากรสำหรับเวิร์กโฟลว์ถอดเสียงเสียงและวิดีโอด้วย Votxt"
     },
     readMore: "อ่านเพิ่มเติม",
     matrixTitle: "แหล่งข้อมูลการถอดเสียงเพิ่มเติม",
@@ -714,20 +714,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "SSS",
-      title: "UniScribe çalışma alanı hakkında sık sorular",
+      title: "Votxt çalışma alanı hakkında sık sorular",
       description: "Site, giriş, panel, kuyruk, AI, dışa aktarma, faturalama ve diller hakkında yanıtlar."
     },
     faqs: [
-      ["UniScribe neleri transkribe edebilir?", "Yüklemeler, bağlantılar, kayıt, kota, AI özetleri, zihin haritaları, Q&A, çeviri ve dışa aktarma desteklenir."],
+      ["Votxt neleri transkribe edebilir?", "Yüklemeler, bağlantılar, kayıt, kota, AI özetleri, zihin haritaları, Q&A, çeviri ve dışa aktarma desteklenir."],
       ["E-posta veya Google ile giriş yapabilir miyim?", "Evet. Kişisel çalışma alanını e-posta veya Google hesabıyla açabilirsin."],
       ["Hangi formatlara dışa aktarabilirim?", "Arşiv, altyazı ve içerik yeniden kullanımı için Word, CSV, PDF, TXT, SRT ve VTT dışa aktarılabilir."],
-      ["Kaç dil destekleniyor?", "UniScribe 63 dilde transkripsiyon destekler ve çeviri oluşturabilir."],
+      ["Kaç dil destekleniyor?", "Votxt 63 dilde transkripsiyon destekler ve çeviri oluşturabilir."],
       ["Panelde neler var?", "Kotalar, klasörler, görevler, dosya yükleme, bağlantılar, durum, editör, AI ve dışa aktarma merkezi."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Transkripsiyon, altyazı, özet ve içerik yeniden kullanım rehberleri",
-      description: "UniScribe ile ses ve video transkripsiyon iş akışları için kaynak merkezi."
+      description: "Votxt ile ses ve video transkripsiyon iş akışları için kaynak merkezi."
     },
     readMore: "Devamını oku",
     matrixTitle: "Daha fazla transkripsiyon kaynağı",
@@ -748,20 +748,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Поширені питання про робочий простір UniScribe",
+      title: "Поширені питання про робочий простір Votxt",
       description: "Відповіді про сайт, вхід, панель, чергу, AI, експорт, оплату та мови."
     },
     faqs: [
-      ["Що може транскрибувати UniScribe?", "UniScribe підтримує завантаження, посилання, запис, ліміти, AI-підсумки, ментальні карти, Q&A, переклад і експорти."],
+      ["Що може транскрибувати Votxt?", "Votxt підтримує завантаження, посилання, запис, ліміти, AI-підсумки, ментальні карти, Q&A, переклад і експорти."],
       ["Чи можна увійти через e-mail або Google?", "Так. Ви можете відкрити особистий простір через e-mail або Google-акаунт."],
       ["Які формати експорту доступні?", "Доступні Word, CSV, PDF, TXT, SRT і VTT для архіву, субтитрів і повторного використання контенту."],
-      ["Скільки мов підтримується?", "UniScribe підтримує транскрипцію 63 мовами і може створювати переклади."],
+      ["Скільки мов підтримується?", "Votxt підтримує транскрипцію 63 мовами і може створювати переклади."],
       ["Що є в панелі?", "Ліміти, папки, задачі, завантаження файлів, посилання, статус, редактор, AI і центр експорту."]
     ],
     blogHero: {
       eyebrow: "Блог",
       title: "Гайди з транскрипції, субтитрів, підсумків і повторного використання контенту",
-      description: "Центр ресурсів для аудіо- та відеотранскрипції з UniScribe."
+      description: "Центр ресурсів для аудіо- та відеотранскрипції з Votxt."
     },
     readMore: "Читати далі",
     matrixTitle: "Більше ресурсів з транскрипції",
@@ -782,20 +782,20 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "Câu hỏi thường gặp về workspace UniScribe",
+      title: "Câu hỏi thường gặp về workspace Votxt",
       description: "Trả lời về website, đăng nhập, dashboard, hàng đợi, AI, xuất tệp, thanh toán và ngôn ngữ."
     },
     faqs: [
-      ["UniScribe có thể chép lời gì?", "UniScribe hỗ trợ tải lên, liên kết, ghi âm, hạn mức, tóm tắt AI, sơ đồ tư duy, Q&A, dịch và xuất tệp."],
+      ["Votxt có thể chép lời gì?", "Votxt hỗ trợ tải lên, liên kết, ghi âm, hạn mức, tóm tắt AI, sơ đồ tư duy, Q&A, dịch và xuất tệp."],
       ["Có thể đăng nhập bằng email hoặc Google không?", "Có. Bạn có thể mở workspace cá nhân bằng email hoặc tài khoản Google."],
       ["Có thể xuất định dạng nào?", "Bạn có thể xuất Word, CSV, PDF, TXT, SRT và VTT để lưu trữ, làm phụ đề và tái sử dụng nội dung."],
-      ["Hỗ trợ bao nhiêu ngôn ngữ?", "UniScribe hỗ trợ chép lời 63 ngôn ngữ và có thể tạo bản dịch."],
+      ["Hỗ trợ bao nhiêu ngôn ngữ?", "Votxt hỗ trợ chép lời 63 ngôn ngữ và có thể tạo bản dịch."],
       ["Dashboard có gì?", "Hạn mức, thư mục, tác vụ, tải tệp, liên kết, trạng thái, trình chỉnh sửa, AI và trung tâm xuất tệp."]
     ],
     blogHero: {
       eyebrow: "Blog",
       title: "Hướng dẫn chép lời, phụ đề, tóm tắt và tái sử dụng nội dung",
-      description: "Trung tâm tài nguyên cho workflow chép lời audio và video với UniScribe."
+      description: "Trung tâm tài nguyên cho workflow chép lời audio và video với Votxt."
     },
     readMore: "Đọc thêm",
     matrixTitle: "Thêm tài nguyên chép lời",
@@ -816,14 +816,14 @@ const contentCopy20 = {
     ],
     faqHero: {
       eyebrow: "FAQ",
-      title: "關於 UniScribe 轉寫工作區的常見問題",
+      title: "關於 Votxt 轉寫工作區的常見問題",
       description: "涵蓋官網、登入、儀表板、佇列、AI 洞察、匯出和國際化能力。"
     },
     faqs: [
-      ["UniScribe 可以完成哪些轉寫工作？", "UniScribe 涵蓋檔案上傳、連結轉寫、錄音、儀表板額度、AI 摘要、心智圖、問答、翻譯和匯出。"],
+      ["Votxt 可以完成哪些轉寫工作？", "Votxt 涵蓋檔案上傳、連結轉寫、錄音、儀表板額度、AI 摘要、心智圖、問答、翻譯和匯出。"],
       ["可以用電子郵件或 Google 登入嗎？", "可以。你可以使用電子郵件帳號或 Google 帳號進入個人轉寫工作區。"],
       ["支援哪些匯出格式？", "任務完成後可以匯出 Word、CSV、PDF、TXT、SRT 和 VTT，方便歸檔、字幕製作和內容復用。"],
-      ["支援多少種語言？", "UniScribe 支援 63 種語言的轉寫，並可為完成的轉寫生成翻譯。"],
+      ["支援多少種語言？", "Votxt 支援 63 種語言的轉寫，並可為完成的轉寫生成翻譯。"],
       ["儀表板有哪些模組？", "儀表板包含額度、資料夾、任務列表、上傳檔案、貼上連結、轉寫狀態、編輯器、AI 洞察和匯出中心。"]
     ],
     blogHero: {
@@ -1306,7 +1306,7 @@ export function PricingPage() {
                   {ui.modeLabels[item]}
                   {item === "one-time" ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src="https://cdn.uniscribe.co/stripe-crypto.svg" alt={ui.stripeCrypto} title={ui.stripeCrypto} className="h-4 w-auto dark:invert dark:brightness-0" />
+                    <img src="https://cdn.votxt.co/stripe-crypto.svg" alt={ui.stripeCrypto} title={ui.stripeCrypto} className="h-4 w-auto dark:invert dark:brightness-0" />
                   ) : null}
                   {item === "annual" ? <span className="ml-1 inline-flex rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold leading-3 text-white">{ui.annualBadge}</span> : null}
                 </button>

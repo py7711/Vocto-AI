@@ -1,6 +1,6 @@
-# UniScribe Dashboard Page Topology
+# Votxt Dashboard Page Topology
 
-Target: https://www.uniscribe.co/dashboard
+Target: https://www.votxt.co/dashboard
 Captured after email/password login on 2026-06-29.
 
 ## Desktop Layout
@@ -88,5 +88,5 @@ Captured after email/password login on 2026-06-29.
 9. OpenAPI docs page
    - Uses the public marketing header and footer.
    - Main layout is a long documentation article with a left sticky table of contents and right content column.
-   - Hero heading: `UniScribe OpenAPI Documentation (Beta)`.
+   - Hero heading: `Votxt OpenAPI Documentation (Beta)`.
    - Sections include overview, base URL, API key authentication, file upload workflow, detailed endpoints with request/response examples, status values, webhook notifications, error handling, supported formats, language support, integration examples, best practices, and support.

@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Hang és videó ingyenes online szöveggé alakítása",
-    "description": "A UniScribe lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít."
+    "description": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Hang és videó valóban használható szöveggé.",
     "upload": "Feltöltés",
     "uploadFile": "Fájl feltöltése",
@@ -30,12 +30,12 @@
     "completed": "Kész",
     "failed": "Sikertelen",
     "headline": "Hang és videó szöveggé alakítása",
-    "subheadline": "A UniScribe lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít.",
+    "subheadline": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít.",
     "formats": "11 formátum támogatása",
     "languages": "63 nyelv támogatása",
     "exportCount": "Export 6 formátumban",
     "localUploadHint": "Hang: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Videó: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "A UniScribe használatával elfogadod a Szolgáltatási feltételeket és az Adatvédelmi szabályzatot.",
+    "terms": "A Votxt használatával elfogadod a Szolgáltatási feltételeket és az Adatvédelmi szabályzatot.",
     "ready": "Kész",
     "save": "Mentés",
     "workspace": "Munkaterület",

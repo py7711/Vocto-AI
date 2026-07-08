@@ -139,7 +139,7 @@ function svgFor(cover) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
   <title id="title">${cover.title}</title>
-  <desc id="desc">UniScribe 博客封面：${cover.title}</desc>
+  <desc id="desc">Votxt 博客封面：${cover.title}</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#f1f0ff"/>

@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/workspace/Workspace.tsx`
-- Screenshot: `docs/design-references/uniscribe.co/dashboard-desktop.png`
+- Screenshot: `docs/design-references/votxt.co/dashboard-desktop.png`
 - Interaction model: default browsing mode plus click-driven bulk mode.
 
 ## Live Content

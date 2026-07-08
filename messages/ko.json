@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "무료 온라인 음성 텍스트 변환기",
-    "description": "UniScribe는 오디오, 비디오, YouTube 링크를 전사, 요약, 마인드맵, 질문, 번역, 내보내기로 변환합니다."
+    "description": "Votxt는 오디오, 비디오, YouTube 링크를 전사, 요약, 마인드맵, 질문, 번역, 내보내기로 변환합니다."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "오디오와 비디오를 쓸모 있는 텍스트로.",
     "upload": "업로드",
     "uploadFile": "파일 업로드",
@@ -36,7 +36,7 @@
     "languages": "63개 언어",
     "exportCount": "5가지 내보내기",
     "localUploadHint": "오디오: aac, flac, m4a, mp3, opus, wav, webm. 비디오: mkv, mov, mp4, webm, wmv.",
-    "terms": "UniScribe를 사용하면 서비스 약관과 개인정보 처리방침에 동의하게 됩니다.",
+    "terms": "Votxt를 사용하면 서비스 약관과 개인정보 처리방침에 동의하게 됩니다.",
     "ready": "준비됨",
     "save": "저장",
     "workspace": "작업 공간",

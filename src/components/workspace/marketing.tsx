@@ -57,7 +57,7 @@ type PricingPlan = {
   features: PricingFeature[];
 };
 
-const asset = (name: string) => `/uniscribe-assets/${name}`;
+const asset = (name: string) => `/votxt-assets/${name}`;
 
 const converterLinks = [
   ["Speech to Text", "l/speech-to-text"],
@@ -171,26 +171,26 @@ const localizedMarketingSections: Record<string, {convertTitle: string; featureT
 };
 
 const localizedMarketingUi: Record<string, {bestPracticesTitle: string; moreInformation: string; reviewsText: string; reviewsTitle: string; showMore: string}> = {
-  ar: {bestPracticesTitle: "أفضل ممارسات تفريغ الصوت والفيديو", moreInformation: "مزيد من المعلومات", reviewsText: "ساعد UniScribe المستخدمين على تحويل التسجيلات القصيرة والطويلة إلى نصوص قابلة للعمل.", reviewsTitle: "ماذا يقول مستخدمونا", showMore: "عرض المزيد"},
-  de: {bestPracticesTitle: "Best Practices für Audio- und Video-Transkription", moreInformation: "Weitere Informationen", reviewsText: "UniScribe hilft bei kurzen Sprachnotizen ebenso wie bei langen Aufnahmen.", reviewsTitle: "Was unsere Nutzer sagen", showMore: "Mehr anzeigen"},
-  en: {bestPracticesTitle: "Best Practices for Audio & Video Transcription", moreInformation: "More information", reviewsText: "UniScribe has helped people transcribe 52,272,840 minutes of audio and video, from short voice notes to long-form recordings.", reviewsTitle: "What Our Users Say", showMore: "Show More"},
-  es: {bestPracticesTitle: "Buenas prácticas para transcribir audio y video", moreInformation: "Más información", reviewsText: "UniScribe ayuda a convertir notas de voz cortas y grabaciones largas en texto útil.", reviewsTitle: "Lo que dicen nuestros usuarios", showMore: "Ver más"},
-  fr: {bestPracticesTitle: "Bonnes pratiques de transcription audio et vidéo", moreInformation: "Plus d'informations", reviewsText: "UniScribe aide à transformer notes vocales et longs enregistrements en texte exploitable.", reviewsTitle: "Ce que disent nos utilisateurs", showMore: "Voir plus"},
-  hu: {bestPracticesTitle: "Hang- és videóátírási bevált gyakorlatok", moreInformation: "További információ", reviewsText: "A UniScribe rövid hangjegyzetekből és hosszú felvételekből is használható szöveget készít.", reviewsTitle: "Mit mondanak a felhasználók", showMore: "Továbbiak"},
-  id: {bestPracticesTitle: "Praktik terbaik transkripsi audio dan video", moreInformation: "Informasi selengkapnya", reviewsText: "UniScribe membantu mengubah catatan suara pendek dan rekaman panjang menjadi teks yang siap dipakai.", reviewsTitle: "Apa kata pengguna kami", showMore: "Tampilkan lagi"},
-  it: {bestPracticesTitle: "Buone pratiche per trascrivere audio e video", moreInformation: "Maggiori informazioni", reviewsText: "UniScribe aiuta a trasformare note vocali brevi e registrazioni lunghe in testo utilizzabile.", reviewsTitle: "Cosa dicono gli utenti", showMore: "Mostra altro"},
-  ja: {bestPracticesTitle: "音声・動画文字起こしのベストプラクティス", moreInformation: "詳細情報", reviewsText: "UniScribe は短い音声メモから長時間の録音まで、使いやすいテキスト化を支援します。", reviewsTitle: "ユーザーの声", showMore: "もっと見る"},
-  ko: {bestPracticesTitle: "오디오 및 비디오 전사 모범 사례", moreInformation: "자세히 보기", reviewsText: "UniScribe는 짧은 음성 메모부터 긴 녹음까지 바로 쓸 수 있는 텍스트로 바꿔 줍니다.", reviewsTitle: "사용자 후기", showMore: "더 보기"},
-  nl: {bestPracticesTitle: "Best practices voor audio- en videotranscriptie", moreInformation: "Meer informatie", reviewsText: "UniScribe helpt korte spraaknotities en lange opnames om te zetten in bruikbare tekst.", reviewsTitle: "Wat gebruikers zeggen", showMore: "Meer tonen"},
-  pl: {bestPracticesTitle: "Dobre praktyki transkrypcji audio i wideo", moreInformation: "Więcej informacji", reviewsText: "UniScribe pomaga zamieniać krótkie notatki głosowe i długie nagrania w użyteczny tekst.", reviewsTitle: "Co mówią użytkownicy", showMore: "Pokaż więcej"},
-  pt: {bestPracticesTitle: "Boas práticas para transcrição de áudio e vídeo", moreInformation: "Mais informações", reviewsText: "UniScribe ajuda a transformar notas de voz curtas e gravações longas em texto útil.", reviewsTitle: "O que os usuários dizem", showMore: "Ver mais"},
-  ru: {bestPracticesTitle: "Лучшие практики расшифровки аудио и видео", moreInformation: "Подробнее", reviewsText: "UniScribe помогает превращать короткие голосовые заметки и длинные записи в полезный текст.", reviewsTitle: "Что говорят пользователи", showMore: "Показать больше"},
-  th: {bestPracticesTitle: "แนวทางที่ดีสำหรับการถอดเสียงและวิดีโอ", moreInformation: "ข้อมูลเพิ่มเติม", reviewsText: "UniScribe ช่วยเปลี่ยนบันทึกเสียงสั้นและไฟล์ยาวให้เป็นข้อความที่ใช้งานได้", reviewsTitle: "เสียงจากผู้ใช้", showMore: "ดูเพิ่มเติม"},
-  tr: {bestPracticesTitle: "Ses ve video transkripsiyonu için iyi uygulamalar", moreInformation: "Daha fazla bilgi", reviewsText: "UniScribe kısa ses notlarını ve uzun kayıtları kullanışlı metne dönüştürmeye yardımcı olur.", reviewsTitle: "Kullanıcılarımız ne söylüyor", showMore: "Daha fazla göster"},
-  uk: {bestPracticesTitle: "Найкращі практики транскрипції аудіо й відео", moreInformation: "Докладніше", reviewsText: "UniScribe допомагає перетворювати короткі голосові нотатки й довгі записи на корисний текст.", reviewsTitle: "Що кажуть користувачі", showMore: "Показати більше"},
-  vi: {bestPracticesTitle: "Thực hành tốt khi phiên âm audio và video", moreInformation: "Thông tin thêm", reviewsText: "UniScribe giúp biến ghi chú thoại ngắn và bản ghi dài thành văn bản dễ sử dụng.", reviewsTitle: "Người dùng nói gì", showMore: "Xem thêm"},
-  zh: {bestPracticesTitle: "音视频转写最佳实践", moreInformation: "更多信息", reviewsText: "UniScribe 已帮助用户把短语音和长录音转成可直接使用的文字。", reviewsTitle: "用户评价", showMore: "查看更多"},
-  "zh-TW": {bestPracticesTitle: "音影片轉寫最佳實踐", moreInformation: "更多資訊", reviewsText: "UniScribe 已協助使用者把短語音和長錄音轉成可直接使用的文字。", reviewsTitle: "使用者評價", showMore: "查看更多"}
+  ar: {bestPracticesTitle: "أفضل ممارسات تفريغ الصوت والفيديو", moreInformation: "مزيد من المعلومات", reviewsText: "ساعد Votxt المستخدمين على تحويل التسجيلات القصيرة والطويلة إلى نصوص قابلة للعمل.", reviewsTitle: "ماذا يقول مستخدمونا", showMore: "عرض المزيد"},
+  de: {bestPracticesTitle: "Best Practices für Audio- und Video-Transkription", moreInformation: "Weitere Informationen", reviewsText: "Votxt hilft bei kurzen Sprachnotizen ebenso wie bei langen Aufnahmen.", reviewsTitle: "Was unsere Nutzer sagen", showMore: "Mehr anzeigen"},
+  en: {bestPracticesTitle: "Best Practices for Audio & Video Transcription", moreInformation: "More information", reviewsText: "Votxt has helped people transcribe 52,272,840 minutes of audio and video, from short voice notes to long-form recordings.", reviewsTitle: "What Our Users Say", showMore: "Show More"},
+  es: {bestPracticesTitle: "Buenas prácticas para transcribir audio y video", moreInformation: "Más información", reviewsText: "Votxt ayuda a convertir notas de voz cortas y grabaciones largas en texto útil.", reviewsTitle: "Lo que dicen nuestros usuarios", showMore: "Ver más"},
+  fr: {bestPracticesTitle: "Bonnes pratiques de transcription audio et vidéo", moreInformation: "Plus d'informations", reviewsText: "Votxt aide à transformer notes vocales et longs enregistrements en texte exploitable.", reviewsTitle: "Ce que disent nos utilisateurs", showMore: "Voir plus"},
+  hu: {bestPracticesTitle: "Hang- és videóátírási bevált gyakorlatok", moreInformation: "További információ", reviewsText: "A Votxt rövid hangjegyzetekből és hosszú felvételekből is használható szöveget készít.", reviewsTitle: "Mit mondanak a felhasználók", showMore: "Továbbiak"},
+  id: {bestPracticesTitle: "Praktik terbaik transkripsi audio dan video", moreInformation: "Informasi selengkapnya", reviewsText: "Votxt membantu mengubah catatan suara pendek dan rekaman panjang menjadi teks yang siap dipakai.", reviewsTitle: "Apa kata pengguna kami", showMore: "Tampilkan lagi"},
+  it: {bestPracticesTitle: "Buone pratiche per trascrivere audio e video", moreInformation: "Maggiori informazioni", reviewsText: "Votxt aiuta a trasformare note vocali brevi e registrazioni lunghe in testo utilizzabile.", reviewsTitle: "Cosa dicono gli utenti", showMore: "Mostra altro"},
+  ja: {bestPracticesTitle: "音声・動画文字起こしのベストプラクティス", moreInformation: "詳細情報", reviewsText: "Votxt は短い音声メモから長時間の録音まで、使いやすいテキスト化を支援します。", reviewsTitle: "ユーザーの声", showMore: "もっと見る"},
+  ko: {bestPracticesTitle: "오디오 및 비디오 전사 모범 사례", moreInformation: "자세히 보기", reviewsText: "Votxt는 짧은 음성 메모부터 긴 녹음까지 바로 쓸 수 있는 텍스트로 바꿔 줍니다.", reviewsTitle: "사용자 후기", showMore: "더 보기"},
+  nl: {bestPracticesTitle: "Best practices voor audio- en videotranscriptie", moreInformation: "Meer informatie", reviewsText: "Votxt helpt korte spraaknotities en lange opnames om te zetten in bruikbare tekst.", reviewsTitle: "Wat gebruikers zeggen", showMore: "Meer tonen"},
+  pl: {bestPracticesTitle: "Dobre praktyki transkrypcji audio i wideo", moreInformation: "Więcej informacji", reviewsText: "Votxt pomaga zamieniać krótkie notatki głosowe i długie nagrania w użyteczny tekst.", reviewsTitle: "Co mówią użytkownicy", showMore: "Pokaż więcej"},
+  pt: {bestPracticesTitle: "Boas práticas para transcrição de áudio e vídeo", moreInformation: "Mais informações", reviewsText: "Votxt ajuda a transformar notas de voz curtas e gravações longas em texto útil.", reviewsTitle: "O que os usuários dizem", showMore: "Ver mais"},
+  ru: {bestPracticesTitle: "Лучшие практики расшифровки аудио и видео", moreInformation: "Подробнее", reviewsText: "Votxt помогает превращать короткие голосовые заметки и длинные записи в полезный текст.", reviewsTitle: "Что говорят пользователи", showMore: "Показать больше"},
+  th: {bestPracticesTitle: "แนวทางที่ดีสำหรับการถอดเสียงและวิดีโอ", moreInformation: "ข้อมูลเพิ่มเติม", reviewsText: "Votxt ช่วยเปลี่ยนบันทึกเสียงสั้นและไฟล์ยาวให้เป็นข้อความที่ใช้งานได้", reviewsTitle: "เสียงจากผู้ใช้", showMore: "ดูเพิ่มเติม"},
+  tr: {bestPracticesTitle: "Ses ve video transkripsiyonu için iyi uygulamalar", moreInformation: "Daha fazla bilgi", reviewsText: "Votxt kısa ses notlarını ve uzun kayıtları kullanışlı metne dönüştürmeye yardımcı olur.", reviewsTitle: "Kullanıcılarımız ne söylüyor", showMore: "Daha fazla göster"},
+  uk: {bestPracticesTitle: "Найкращі практики транскрипції аудіо й відео", moreInformation: "Докладніше", reviewsText: "Votxt допомагає перетворювати короткі голосові нотатки й довгі записи на корисний текст.", reviewsTitle: "Що кажуть користувачі", showMore: "Показати більше"},
+  vi: {bestPracticesTitle: "Thực hành tốt khi phiên âm audio và video", moreInformation: "Thông tin thêm", reviewsText: "Votxt giúp biến ghi chú thoại ngắn và bản ghi dài thành văn bản dễ sử dụng.", reviewsTitle: "Người dùng nói gì", showMore: "Xem thêm"},
+  zh: {bestPracticesTitle: "音视频转写最佳实践", moreInformation: "更多信息", reviewsText: "Votxt 已帮助用户把短语音和长录音转成可直接使用的文字。", reviewsTitle: "用户评价", showMore: "查看更多"},
+  "zh-TW": {bestPracticesTitle: "音影片轉寫最佳實踐", moreInformation: "更多資訊", reviewsText: "Votxt 已協助使用者把短語音和長錄音轉成可直接使用的文字。", reviewsTitle: "使用者評價", showMore: "查看更多"}
 };
 
 const reviews = [
@@ -271,11 +271,11 @@ const faqs = [
   ["Can I try the service for free?", "Yes. The Free plan includes 120 minutes per month, up to 3 files per day, 30 minutes per file, standard transcription, translation, exports, and limited AI insights."],
   ["Which audio/video formats do you support?", "Audio formats include aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, and wma. Video formats include 3gp, mkv, mov, mp4, mpg, ts, webm, and wmv."],
   ["Can I upload large files?", "Paid plans allow files up to 10 hours long and 5 GB, with up to 50 files uploaded at a time."],
-  ["Can I export my transcript?", "Yes. UniScribe supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
-  ["Which languages does UniScribe support for transcription?", "UniScribe supports transcription in 63 languages."],
+  ["Can I export my transcript?", "Yes. Votxt supports Word, CSV, PDF, TXT, SRT, and VTT export formats."],
+  ["Which languages does Votxt support for transcription?", "Votxt supports transcription in 63 languages."],
   ["How soon can I expect my transcription results?", "Most files finish quickly. The exact time depends on file duration, size, provider, and queue load."],
-  ["Are my payments secure with UniScribe?", "Payments are handled through secure checkout and subscription billing flows, with card and crypto payment support through Stripe."],
-  ["How does UniScribe protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],
+  ["Are my payments secure with Votxt?", "Payments are handled through secure checkout and subscription billing flows, with card and crypto payment support through Stripe."],
+  ["How does Votxt protect the confidentiality and security of my data?", "Media and transcription access is scoped to your account, and paid plans can avoid media retention limits."],
   ["When will I be billed?", "Subscription plans are billed monthly or yearly depending on the option you choose."],
   ["What happens if I cancel my subscription?", "You keep access for the paid period, and the subscription does not renew afterward."],
   ["Can I get a refund?", "Refund handling follows the refund policy linked from the footer."],
@@ -454,7 +454,7 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
         </div>
         <div className="mx-auto mt-10 columns-1 gap-5 md:columns-2 lg:columns-3">
           {reviews.map(([initials, name, text]) => (
-            <a key={`${initials}-${name}`} href="https://www.trustpilot.com/review/uniscribe.co" className="mb-5 inline-block w-full break-inside-avoid rounded-lg border border-slate-200 bg-card p-6 text-left shadow-sm transition hover:shadow-md">
+            <a key={`${initials}-${name}`} href="https://www.trustpilot.com/review/votxt.co" className="mb-5 inline-block w-full break-inside-avoid rounded-lg border border-slate-200 bg-card p-6 text-left shadow-sm transition hover:shadow-md">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{initials}</span>
                 <div>

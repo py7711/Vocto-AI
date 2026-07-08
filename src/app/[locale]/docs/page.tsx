@@ -14,7 +14,7 @@ export function generateMetadata({params}: {params: {locale: string}}): Metadata
 }
 
 const toc = [
-  ["UniScribe OpenAPI Documentation (Beta)", "uniscribe-openapi-documentation-beta"],
+  ["Votxt OpenAPI Documentation (Beta)", "votxt-openapi-documentation-beta"],
   ["Overview", "overview"],
   ["Base URL", "base-url"],
   ["Authentication", "authentication"],
@@ -155,14 +155,14 @@ type DocsText = {
 
 const docsTextByLocale: Record<Locale, DocsText> = {
   ar: {
-    metaTitle: "وثائق UniScribe OpenAPI",
-    metaDescription: "راجع أساسيات UniScribe OpenAPI للرفع والتفريغ والتصدير وحالة المهام.",
+    metaTitle: "وثائق Votxt OpenAPI",
+    metaDescription: "راجع أساسيات Votxt OpenAPI للرفع والتفريغ والتصدير وحالة المهام.",
     tocTitle: "محتويات API",
-    title: "وثائق UniScribe OpenAPI",
+    title: "وثائق Votxt OpenAPI",
     betaLabel: "إصدار تجريبي",
-    betaNotice: "واجهة UniScribe OpenAPI في مرحلة تجريبية. اختبر التكامل في بيئة تطوير قبل الاستخدام الإنتاجي.",
+    betaNotice: "واجهة Votxt OpenAPI في مرحلة تجريبية. اختبر التكامل في بيئة تطوير قبل الاستخدام الإنتاجي.",
     overview: "نظرة عامة",
-    overviewText: "تتيح لك UniScribe OpenAPI إضافة تفريغ الصوت والفيديو إلى تطبيقاتك وسير العمل الآلي.",
+    overviewText: "تتيح لك Votxt OpenAPI إضافة تفريغ الصوت والفيديو إلى تطبيقاتك وسير العمل الآلي.",
     workflowText: "ارفع ملفاً أو استخدم رابط ملف خارجي، ثم أنشئ مهمة تفريغ وتابع حالتها.",
     resultsText: "بعد اكتمال المهمة يمكنك تصدير النصوص والترجمات والبيانات المنظمة بعدة صيغ.",
     baseUrl: "عنوان URL الأساسي",
@@ -179,7 +179,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "التصدير",
     formats: "الصيغ",
     languages: "اللغات",
-    languagesText: "يدعم UniScribe مجموعة واسعة من لغات التفريغ. استخدم رمز اللغة في الطلب.",
+    languagesText: "يدعم Votxt مجموعة واسعة من لغات التفريغ. استخدم رمز اللغة في الطلب.",
     support: "الدعم",
     endpoint: "المسار",
     method: "الطريقة",
@@ -194,14 +194,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "فشل"
   },
   de: {
-    metaTitle: "UniScribe OpenAPI-Dokumentation",
-    metaDescription: "Grundlagen der UniScribe OpenAPI fur Uploads, Transkription, Exporte und Aufgabenstatus.",
+    metaTitle: "Votxt OpenAPI-Dokumentation",
+    metaDescription: "Grundlagen der Votxt OpenAPI fur Uploads, Transkription, Exporte und Aufgabenstatus.",
     tocTitle: "API-Inhalt",
-    title: "UniScribe OpenAPI-Dokumentation",
+    title: "Votxt OpenAPI-Dokumentation",
     betaLabel: "Beta",
-    betaNotice: "Die UniScribe OpenAPI ist in der Beta-Phase. Teste Integrationen vor dem Produktiveinsatz in einer Entwicklungsumgebung.",
+    betaNotice: "Die Votxt OpenAPI ist in der Beta-Phase. Teste Integrationen vor dem Produktiveinsatz in einer Entwicklungsumgebung.",
     overview: "Uberblick",
-    overviewText: "Mit der UniScribe OpenAPI kannst du Audio- und Videotranskription in Apps und Automationen integrieren.",
+    overviewText: "Mit der Votxt OpenAPI kannst du Audio- und Videotranskription in Apps und Automationen integrieren.",
     workflowText: "Lade eine Datei hoch oder nutze eine externe Datei-URL, erstelle danach eine Transkriptionsaufgabe und prufe den Status.",
     resultsText: "Nach Abschluss kannst du Transkripte, Untertitel und strukturierte Daten in mehreren Formaten exportieren.",
     baseUrl: "Basis-URL",
@@ -218,7 +218,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exporte",
     formats: "Formate",
     languages: "Sprachen",
-    languagesText: "UniScribe unterstutzt viele Transkriptionssprachen. Verwende den Sprachcode in deiner Anfrage.",
+    languagesText: "Votxt unterstutzt viele Transkriptionssprachen. Verwende den Sprachcode in deiner Anfrage.",
     support: "Support",
     endpoint: "Endpunkt",
     method: "Methode",
@@ -233,14 +233,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Fehlgeschlagen"
   },
   en: {
-    metaTitle: "UniScribe OpenAPI Documentation",
-    metaDescription: "Learn the UniScribe OpenAPI basics for uploads, transcription, exports, and task status.",
+    metaTitle: "Votxt OpenAPI Documentation",
+    metaDescription: "Learn the Votxt OpenAPI basics for uploads, transcription, exports, and task status.",
     tocTitle: "API contents",
-    title: "UniScribe OpenAPI Documentation",
+    title: "Votxt OpenAPI Documentation",
     betaLabel: "Beta",
-    betaNotice: "The UniScribe OpenAPI is currently in beta. Test integrations in development before production use.",
+    betaNotice: "The Votxt OpenAPI is currently in beta. Test integrations in development before production use.",
     overview: "Overview",
-    overviewText: "The UniScribe OpenAPI lets you integrate audio and video transcription into apps and automation workflows.",
+    overviewText: "The Votxt OpenAPI lets you integrate audio and video transcription into apps and automation workflows.",
     workflowText: "Upload a file or use an external file URL, then create a transcription task and check its status.",
     resultsText: "After completion, export transcripts, subtitles, and structured data in multiple formats.",
     baseUrl: "Base URL",
@@ -257,7 +257,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exports",
     formats: "Formats",
     languages: "Languages",
-    languagesText: "UniScribe supports many transcription languages. Pass the language code in your request.",
+    languagesText: "Votxt supports many transcription languages. Pass the language code in your request.",
     support: "Support",
     endpoint: "Endpoint",
     method: "Method",
@@ -272,14 +272,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Failed"
   },
   es: {
-    metaTitle: "Documentacion de UniScribe OpenAPI",
-    metaDescription: "Consulta los conceptos basicos de UniScribe OpenAPI para cargas, transcripcion, exportaciones y estado de tareas.",
+    metaTitle: "Documentacion de Votxt OpenAPI",
+    metaDescription: "Consulta los conceptos basicos de Votxt OpenAPI para cargas, transcripcion, exportaciones y estado de tareas.",
     tocTitle: "Contenido de API",
-    title: "Documentacion de UniScribe OpenAPI",
+    title: "Documentacion de Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI esta en beta. Prueba la integracion en desarrollo antes de usarla en produccion.",
+    betaNotice: "Votxt OpenAPI esta en beta. Prueba la integracion en desarrollo antes de usarla en produccion.",
     overview: "Resumen",
-    overviewText: "UniScribe OpenAPI permite integrar transcripcion de audio y video en aplicaciones y automatizaciones.",
+    overviewText: "Votxt OpenAPI permite integrar transcripcion de audio y video en aplicaciones y automatizaciones.",
     workflowText: "Sube un archivo o usa una URL externa, crea una tarea de transcripcion y consulta su estado.",
     resultsText: "Al finalizar, exporta transcripciones, subtitulos y datos estructurados en varios formatos.",
     baseUrl: "URL base",
@@ -296,7 +296,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exportaciones",
     formats: "Formatos",
     languages: "Idiomas",
-    languagesText: "UniScribe admite muchos idiomas de transcripcion. Envia el codigo de idioma en la solicitud.",
+    languagesText: "Votxt admite muchos idiomas de transcripcion. Envia el codigo de idioma en la solicitud.",
     support: "Soporte",
     endpoint: "Endpoint",
     method: "Metodo",
@@ -311,14 +311,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Error"
   },
   fr: {
-    metaTitle: "Documentation UniScribe OpenAPI",
-    metaDescription: "Retrouvez les bases de UniScribe OpenAPI pour l'import, la transcription, les exports et le suivi des taches.",
+    metaTitle: "Documentation Votxt OpenAPI",
+    metaDescription: "Retrouvez les bases de Votxt OpenAPI pour l'import, la transcription, les exports et le suivi des taches.",
     tocTitle: "Sommaire API",
-    title: "Documentation UniScribe OpenAPI",
+    title: "Documentation Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI est en beta. Testez vos integrations en developpement avant la production.",
+    betaNotice: "Votxt OpenAPI est en beta. Testez vos integrations en developpement avant la production.",
     overview: "Apercu",
-    overviewText: "UniScribe OpenAPI permet d'ajouter la transcription audio et video a vos applications et automatisations.",
+    overviewText: "Votxt OpenAPI permet d'ajouter la transcription audio et video a vos applications et automatisations.",
     workflowText: "Importez un fichier ou utilisez une URL externe, creez une tache de transcription puis suivez son etat.",
     resultsText: "Une fois terminee, exportez les transcriptions, sous-titres et donnees structurees dans plusieurs formats.",
     baseUrl: "URL de base",
@@ -335,7 +335,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exports",
     formats: "Formats",
     languages: "Langues",
-    languagesText: "UniScribe prend en charge de nombreuses langues de transcription. Transmettez le code langue dans la requete.",
+    languagesText: "Votxt prend en charge de nombreuses langues de transcription. Transmettez le code langue dans la requete.",
     support: "Support",
     endpoint: "Point d'acces",
     method: "Methode",
@@ -350,14 +350,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Echec"
   },
   hu: {
-    metaTitle: "UniScribe OpenAPI dokumentacio",
-    metaDescription: "UniScribe OpenAPI alapok feltolteshez, atirashoz, exportokhoz es feladatallapothoz.",
+    metaTitle: "Votxt OpenAPI dokumentacio",
+    metaDescription: "Votxt OpenAPI alapok feltolteshez, atirashoz, exportokhoz es feladatallapothoz.",
     tocTitle: "API tartalom",
-    title: "UniScribe OpenAPI dokumentacio",
+    title: "Votxt OpenAPI dokumentacio",
     betaLabel: "Beta",
-    betaNotice: "A UniScribe OpenAPI jelenleg beta. Eles hasznalat elott fejlesztoi kornyezetben teszteld az integraciot.",
+    betaNotice: "A Votxt OpenAPI jelenleg beta. Eles hasznalat elott fejlesztoi kornyezetben teszteld az integraciot.",
     overview: "Attekintes",
-    overviewText: "A UniScribe OpenAPI-val hang- es videotranszkripciot epithetsz alkalmazasokba es automatizmusokba.",
+    overviewText: "A Votxt OpenAPI-val hang- es videotranszkripciot epithetsz alkalmazasokba es automatizmusokba.",
     workflowText: "Tolts fel fajlt vagy hasznalj kulso fajl URL-t, majd hozz letre atirasi feladatot es ellenorizd az allapotat.",
     resultsText: "Befejezes utan tobb formatumban exportalhatsz atiratokat, feliratokat es strukturalt adatokat.",
     baseUrl: "Alap URL",
@@ -374,7 +374,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exportok",
     formats: "Formatumok",
     languages: "Nyelvek",
-    languagesText: "A UniScribe sok atirasi nyelvet tamogat. Add meg a nyelvkodot a keresben.",
+    languagesText: "A Votxt sok atirasi nyelvet tamogat. Add meg a nyelvkodot a keresben.",
     support: "Tamogatas",
     endpoint: "Vegpont",
     method: "Metodus",
@@ -389,14 +389,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Sikertelen"
   },
   id: {
-    metaTitle: "Dokumentasi UniScribe OpenAPI",
-    metaDescription: "Pelajari dasar UniScribe OpenAPI untuk unggahan, transkripsi, ekspor, dan status tugas.",
+    metaTitle: "Dokumentasi Votxt OpenAPI",
+    metaDescription: "Pelajari dasar Votxt OpenAPI untuk unggahan, transkripsi, ekspor, dan status tugas.",
     tocTitle: "Isi API",
-    title: "Dokumentasi UniScribe OpenAPI",
+    title: "Dokumentasi Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI masih beta. Uji integrasi di lingkungan pengembangan sebelum produksi.",
+    betaNotice: "Votxt OpenAPI masih beta. Uji integrasi di lingkungan pengembangan sebelum produksi.",
     overview: "Ringkasan",
-    overviewText: "UniScribe OpenAPI membantu menambahkan transkripsi audio dan video ke aplikasi serta otomatisasi.",
+    overviewText: "Votxt OpenAPI membantu menambahkan transkripsi audio dan video ke aplikasi serta otomatisasi.",
     workflowText: "Unggah file atau gunakan URL file eksternal, lalu buat tugas transkripsi dan periksa statusnya.",
     resultsText: "Setelah selesai, ekspor transkrip, subtitle, dan data terstruktur dalam berbagai format.",
     baseUrl: "URL dasar",
@@ -413,7 +413,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Ekspor",
     formats: "Format",
     languages: "Bahasa",
-    languagesText: "UniScribe mendukung banyak bahasa transkripsi. Kirim kode bahasa dalam permintaan.",
+    languagesText: "Votxt mendukung banyak bahasa transkripsi. Kirim kode bahasa dalam permintaan.",
     support: "Dukungan",
     endpoint: "Endpoint",
     method: "Metode",
@@ -428,14 +428,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Gagal"
   },
   it: {
-    metaTitle: "Documentazione UniScribe OpenAPI",
-    metaDescription: "Scopri le basi di UniScribe OpenAPI per caricamenti, trascrizione, esportazioni e stato attivita.",
+    metaTitle: "Documentazione Votxt OpenAPI",
+    metaDescription: "Scopri le basi di Votxt OpenAPI per caricamenti, trascrizione, esportazioni e stato attivita.",
     tocTitle: "Contenuti API",
-    title: "Documentazione UniScribe OpenAPI",
+    title: "Documentazione Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI e in beta. Prova le integrazioni in sviluppo prima dell'uso in produzione.",
+    betaNotice: "Votxt OpenAPI e in beta. Prova le integrazioni in sviluppo prima dell'uso in produzione.",
     overview: "Panoramica",
-    overviewText: "UniScribe OpenAPI integra trascrizione audio e video in applicazioni e automazioni.",
+    overviewText: "Votxt OpenAPI integra trascrizione audio e video in applicazioni e automazioni.",
     workflowText: "Carica un file o usa un URL esterno, poi crea un'attivita di trascrizione e controlla lo stato.",
     resultsText: "Al termine, esporta trascritti, sottotitoli e dati strutturati in piu formati.",
     baseUrl: "URL base",
@@ -452,7 +452,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Esportazioni",
     formats: "Formati",
     languages: "Lingue",
-    languagesText: "UniScribe supporta molte lingue di trascrizione. Passa il codice lingua nella richiesta.",
+    languagesText: "Votxt supporta molte lingue di trascrizione. Passa il codice lingua nella richiesta.",
     support: "Supporto",
     endpoint: "Endpoint",
     method: "Metodo",
@@ -467,14 +467,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Non riuscito"
   },
   ja: {
-    metaTitle: "UniScribe OpenAPI ドキュメント",
-    metaDescription: "アップロード、文字起こし、エクスポート、タスク状態のための UniScribe OpenAPI 基本ガイドです。",
+    metaTitle: "Votxt OpenAPI ドキュメント",
+    metaDescription: "アップロード、文字起こし、エクスポート、タスク状態のための Votxt OpenAPI 基本ガイドです。",
     tocTitle: "API 目次",
-    title: "UniScribe OpenAPI ドキュメント",
+    title: "Votxt OpenAPI ドキュメント",
     betaLabel: "ベータ",
-    betaNotice: "UniScribe OpenAPI は現在ベータ版です。本番利用前に開発環境で統合をテストしてください。",
+    betaNotice: "Votxt OpenAPI は現在ベータ版です。本番利用前に開発環境で統合をテストしてください。",
     overview: "概要",
-    overviewText: "UniScribe OpenAPI で、音声と動画の文字起こしをアプリや自動化ワークフローに組み込めます。",
+    overviewText: "Votxt OpenAPI で、音声と動画の文字起こしをアプリや自動化ワークフローに組み込めます。",
     workflowText: "ファイルをアップロードするか外部ファイル URL を使い、文字起こしタスクを作成して状態を確認します。",
     resultsText: "完了後は、文字起こし、字幕、構造化データを複数の形式でエクスポートできます。",
     baseUrl: "ベース URL",
@@ -491,7 +491,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "エクスポート",
     formats: "形式",
     languages: "言語",
-    languagesText: "UniScribe は多くの文字起こし言語に対応しています。リクエストに言語コードを渡してください。",
+    languagesText: "Votxt は多くの文字起こし言語に対応しています。リクエストに言語コードを渡してください。",
     support: "サポート",
     endpoint: "エンドポイント",
     method: "メソッド",
@@ -506,14 +506,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "失敗"
   },
   ko: {
-    metaTitle: "UniScribe OpenAPI 문서",
-    metaDescription: "업로드, 전사, 내보내기, 작업 상태를 위한 UniScribe OpenAPI 기본 안내입니다.",
+    metaTitle: "Votxt OpenAPI 문서",
+    metaDescription: "업로드, 전사, 내보내기, 작업 상태를 위한 Votxt OpenAPI 기본 안내입니다.",
     tocTitle: "API 목차",
-    title: "UniScribe OpenAPI 문서",
+    title: "Votxt OpenAPI 문서",
     betaLabel: "베타",
-    betaNotice: "UniScribe OpenAPI는 현재 베타입니다. 운영 환경에 사용하기 전에 개발 환경에서 통합을 테스트하세요.",
+    betaNotice: "Votxt OpenAPI는 현재 베타입니다. 운영 환경에 사용하기 전에 개발 환경에서 통합을 테스트하세요.",
     overview: "개요",
-    overviewText: "UniScribe OpenAPI로 오디오 및 비디오 전사를 앱과 자동화 워크플로에 통합할 수 있습니다.",
+    overviewText: "Votxt OpenAPI로 오디오 및 비디오 전사를 앱과 자동화 워크플로에 통합할 수 있습니다.",
     workflowText: "파일을 업로드하거나 외부 파일 URL을 사용한 뒤 전사 작업을 만들고 상태를 확인합니다.",
     resultsText: "완료 후 전사문, 자막, 구조화 데이터를 여러 형식으로 내보낼 수 있습니다.",
     baseUrl: "기본 URL",
@@ -530,7 +530,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "내보내기",
     formats: "형식",
     languages: "언어",
-    languagesText: "UniScribe는 다양한 전사 언어를 지원합니다. 요청에 언어 코드를 전달하세요.",
+    languagesText: "Votxt는 다양한 전사 언어를 지원합니다. 요청에 언어 코드를 전달하세요.",
     support: "지원",
     endpoint: "엔드포인트",
     method: "메서드",
@@ -545,14 +545,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "실패"
   },
   nl: {
-    metaTitle: "UniScribe OpenAPI-documentatie",
-    metaDescription: "Leer de basis van UniScribe OpenAPI voor uploads, transcriptie, exports en taakstatus.",
+    metaTitle: "Votxt OpenAPI-documentatie",
+    metaDescription: "Leer de basis van Votxt OpenAPI voor uploads, transcriptie, exports en taakstatus.",
     tocTitle: "API-inhoud",
-    title: "UniScribe OpenAPI-documentatie",
+    title: "Votxt OpenAPI-documentatie",
     betaLabel: "Beta",
-    betaNotice: "De UniScribe OpenAPI is in beta. Test integraties in ontwikkeling voordat je productie gebruikt.",
+    betaNotice: "De Votxt OpenAPI is in beta. Test integraties in ontwikkeling voordat je productie gebruikt.",
     overview: "Overzicht",
-    overviewText: "Met UniScribe OpenAPI integreer je audio- en videotranscriptie in apps en automatiseringen.",
+    overviewText: "Met Votxt OpenAPI integreer je audio- en videotranscriptie in apps en automatiseringen.",
     workflowText: "Upload een bestand of gebruik een externe bestands-URL, maak daarna een transcriptietaak en controleer de status.",
     resultsText: "Na voltooiing exporteer je transcripties, ondertitels en gestructureerde data in meerdere formaten.",
     baseUrl: "Basis-URL",
@@ -569,7 +569,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exports",
     formats: "Formaten",
     languages: "Talen",
-    languagesText: "UniScribe ondersteunt veel transcriptietalen. Geef de taalcode mee in je request.",
+    languagesText: "Votxt ondersteunt veel transcriptietalen. Geef de taalcode mee in je request.",
     support: "Support",
     endpoint: "Endpoint",
     method: "Methode",
@@ -584,14 +584,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Mislukt"
   },
   pl: {
-    metaTitle: "Dokumentacja UniScribe OpenAPI",
-    metaDescription: "Poznaj podstawy UniScribe OpenAPI dla przesylania plikow, transkrypcji, eksportow i statusu zadan.",
+    metaTitle: "Dokumentacja Votxt OpenAPI",
+    metaDescription: "Poznaj podstawy Votxt OpenAPI dla przesylania plikow, transkrypcji, eksportow i statusu zadan.",
     tocTitle: "Spis API",
-    title: "Dokumentacja UniScribe OpenAPI",
+    title: "Dokumentacja Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI jest w wersji beta. Przetestuj integracje w srodowisku deweloperskim przed produkcja.",
+    betaNotice: "Votxt OpenAPI jest w wersji beta. Przetestuj integracje w srodowisku deweloperskim przed produkcja.",
     overview: "Przeglad",
-    overviewText: "UniScribe OpenAPI pozwala dodac transkrypcje audio i wideo do aplikacji oraz automatyzacji.",
+    overviewText: "Votxt OpenAPI pozwala dodac transkrypcje audio i wideo do aplikacji oraz automatyzacji.",
     workflowText: "Przeslij plik albo uzyj zewnetrznego URL pliku, utworz zadanie transkrypcji i sprawdz jego status.",
     resultsText: "Po zakonczeniu wyeksportuj transkrypcje, napisy i dane strukturalne w wielu formatach.",
     baseUrl: "Bazowy URL",
@@ -608,7 +608,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Eksporty",
     formats: "Formaty",
     languages: "Jezyki",
-    languagesText: "UniScribe obsluguje wiele jezykow transkrypcji. Przekaz kod jezyka w zadaniu.",
+    languagesText: "Votxt obsluguje wiele jezykow transkrypcji. Przekaz kod jezyka w zadaniu.",
     support: "Wsparcie",
     endpoint: "Endpoint",
     method: "Metoda",
@@ -623,14 +623,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Niepowodzenie"
   },
   pt: {
-    metaTitle: "Documentacao da UniScribe OpenAPI",
-    metaDescription: "Veja os fundamentos da UniScribe OpenAPI para uploads, transcricao, exportacoes e status de tarefas.",
+    metaTitle: "Documentacao da Votxt OpenAPI",
+    metaDescription: "Veja os fundamentos da Votxt OpenAPI para uploads, transcricao, exportacoes e status de tarefas.",
     tocTitle: "Conteudo da API",
-    title: "Documentacao da UniScribe OpenAPI",
+    title: "Documentacao da Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "A UniScribe OpenAPI esta em beta. Teste integracoes em desenvolvimento antes de usar em producao.",
+    betaNotice: "A Votxt OpenAPI esta em beta. Teste integracoes em desenvolvimento antes de usar em producao.",
     overview: "Visao geral",
-    overviewText: "A UniScribe OpenAPI integra transcricao de audio e video em apps e fluxos de automacao.",
+    overviewText: "A Votxt OpenAPI integra transcricao de audio e video em apps e fluxos de automacao.",
     workflowText: "Envie um arquivo ou use uma URL externa, crie uma tarefa de transcricao e acompanhe o status.",
     resultsText: "Depois de concluir, exporte transcricoes, legendas e dados estruturados em varios formatos.",
     baseUrl: "URL base",
@@ -647,7 +647,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Exportacoes",
     formats: "Formatos",
     languages: "Idiomas",
-    languagesText: "A UniScribe oferece suporte a muitos idiomas de transcricao. Envie o codigo do idioma na requisicao.",
+    languagesText: "A Votxt oferece suporte a muitos idiomas de transcricao. Envie o codigo do idioma na requisicao.",
     support: "Suporte",
     endpoint: "Endpoint",
     method: "Metodo",
@@ -662,14 +662,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Falhou"
   },
   ru: {
-    metaTitle: "Документация UniScribe OpenAPI",
-    metaDescription: "Основы UniScribe OpenAPI для загрузки файлов, транскрибации, экспорта и статуса задач.",
+    metaTitle: "Документация Votxt OpenAPI",
+    metaDescription: "Основы Votxt OpenAPI для загрузки файлов, транскрибации, экспорта и статуса задач.",
     tocTitle: "Содержание API",
-    title: "Документация UniScribe OpenAPI",
+    title: "Документация Votxt OpenAPI",
     betaLabel: "Бета",
-    betaNotice: "UniScribe OpenAPI сейчас в бета-версии. Проверьте интеграцию в среде разработки перед продакшеном.",
+    betaNotice: "Votxt OpenAPI сейчас в бета-версии. Проверьте интеграцию в среде разработки перед продакшеном.",
     overview: "Обзор",
-    overviewText: "UniScribe OpenAPI позволяет встроить транскрибацию аудио и видео в приложения и автоматизации.",
+    overviewText: "Votxt OpenAPI позволяет встроить транскрибацию аудио и видео в приложения и автоматизации.",
     workflowText: "Загрузите файл или используйте внешний URL, затем создайте задачу транскрибации и проверьте статус.",
     resultsText: "После завершения экспортируйте текст, субтитры и структурированные данные в нескольких форматах.",
     baseUrl: "Базовый URL",
@@ -686,7 +686,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Экспорт",
     formats: "Форматы",
     languages: "Языки",
-    languagesText: "UniScribe поддерживает много языков транскрибации. Передайте код языка в запросе.",
+    languagesText: "Votxt поддерживает много языков транскрибации. Передайте код языка в запросе.",
     support: "Поддержка",
     endpoint: "Эндпоинт",
     method: "Метод",
@@ -701,14 +701,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Ошибка"
   },
   th: {
-    metaTitle: "เอกสาร UniScribe OpenAPI",
-    metaDescription: "เรียนรู้พื้นฐาน UniScribe OpenAPI สำหรับอัปโหลด ถอดเสียง ส่งออก และสถานะงาน",
+    metaTitle: "เอกสาร Votxt OpenAPI",
+    metaDescription: "เรียนรู้พื้นฐาน Votxt OpenAPI สำหรับอัปโหลด ถอดเสียง ส่งออก และสถานะงาน",
     tocTitle: "สารบัญ API",
-    title: "เอกสาร UniScribe OpenAPI",
+    title: "เอกสาร Votxt OpenAPI",
     betaLabel: "เบต้า",
-    betaNotice: "UniScribe OpenAPI ยังอยู่ในรุ่นเบต้า โปรดทดสอบการเชื่อมต่อในสภาพแวดล้อมพัฒนาก่อนใช้งานจริง",
+    betaNotice: "Votxt OpenAPI ยังอยู่ในรุ่นเบต้า โปรดทดสอบการเชื่อมต่อในสภาพแวดล้อมพัฒนาก่อนใช้งานจริง",
     overview: "ภาพรวม",
-    overviewText: "UniScribe OpenAPI ช่วยเพิ่มการถอดเสียงจากเสียงและวิดีโอในแอปและเวิร์กโฟลว์อัตโนมัติ",
+    overviewText: "Votxt OpenAPI ช่วยเพิ่มการถอดเสียงจากเสียงและวิดีโอในแอปและเวิร์กโฟลว์อัตโนมัติ",
     workflowText: "อัปโหลดไฟล์หรือใช้ URL ไฟล์ภายนอก จากนั้นสร้างงานถอดเสียงและตรวจสอบสถานะ",
     resultsText: "เมื่อเสร็จแล้ว คุณสามารถส่งออกข้อความถอดเสียง คำบรรยาย และข้อมูลแบบมีโครงสร้างได้หลายรูปแบบ",
     baseUrl: "URL พื้นฐาน",
@@ -725,7 +725,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "ส่งออก",
     formats: "รูปแบบ",
     languages: "ภาษา",
-    languagesText: "UniScribe รองรับภาษาถอดเสียงจำนวนมาก ให้ส่งรหัสภาษาในคำขอ",
+    languagesText: "Votxt รองรับภาษาถอดเสียงจำนวนมาก ให้ส่งรหัสภาษาในคำขอ",
     support: "ซัพพอร์ต",
     endpoint: "Endpoint",
     method: "เมธอด",
@@ -740,14 +740,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "ล้มเหลว"
   },
   tr: {
-    metaTitle: "UniScribe OpenAPI Dokumantasyonu",
-    metaDescription: "Yukleme, transkripsiyon, disa aktarma ve gorev durumu icin UniScribe OpenAPI temelleri.",
+    metaTitle: "Votxt OpenAPI Dokumantasyonu",
+    metaDescription: "Yukleme, transkripsiyon, disa aktarma ve gorev durumu icin Votxt OpenAPI temelleri.",
     tocTitle: "API icerigi",
-    title: "UniScribe OpenAPI Dokumantasyonu",
+    title: "Votxt OpenAPI Dokumantasyonu",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI beta asamasindadir. Uretimden once entegrasyonlari gelistirme ortaminda test edin.",
+    betaNotice: "Votxt OpenAPI beta asamasindadir. Uretimden once entegrasyonlari gelistirme ortaminda test edin.",
     overview: "Genel bakis",
-    overviewText: "UniScribe OpenAPI ile ses ve video transkripsiyonunu uygulamalara ve otomasyonlara entegre edebilirsiniz.",
+    overviewText: "Votxt OpenAPI ile ses ve video transkripsiyonunu uygulamalara ve otomasyonlara entegre edebilirsiniz.",
     workflowText: "Bir dosya yukleyin veya harici dosya URL'si kullanin, sonra transkripsiyon gorevi olusturup durumunu kontrol edin.",
     resultsText: "Tamamlandiktan sonra metinleri, altyazilari ve yapilandirilmis verileri birden cok formatta disa aktarabilirsiniz.",
     baseUrl: "Temel URL",
@@ -764,7 +764,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Disa aktarma",
     formats: "Formatlar",
     languages: "Diller",
-    languagesText: "UniScribe bircok transkripsiyon dilini destekler. Istekte dil kodunu gonderin.",
+    languagesText: "Votxt bircok transkripsiyon dilini destekler. Istekte dil kodunu gonderin.",
     support: "Destek",
     endpoint: "Endpoint",
     method: "Metot",
@@ -779,14 +779,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Basarisiz"
   },
   uk: {
-    metaTitle: "Документація UniScribe OpenAPI",
-    metaDescription: "Основи UniScribe OpenAPI для завантаження файлів, транскрибації, експорту й статусу завдань.",
+    metaTitle: "Документація Votxt OpenAPI",
+    metaDescription: "Основи Votxt OpenAPI для завантаження файлів, транскрибації, експорту й статусу завдань.",
     tocTitle: "Зміст API",
-    title: "Документація UniScribe OpenAPI",
+    title: "Документація Votxt OpenAPI",
     betaLabel: "Бета",
-    betaNotice: "UniScribe OpenAPI зараз у бета-версії. Перевірте інтеграції в середовищі розробки перед продакшеном.",
+    betaNotice: "Votxt OpenAPI зараз у бета-версії. Перевірте інтеграції в середовищі розробки перед продакшеном.",
     overview: "Огляд",
-    overviewText: "UniScribe OpenAPI дає змогу вбудувати транскрибацію аудіо й відео в застосунки та автоматизації.",
+    overviewText: "Votxt OpenAPI дає змогу вбудувати транскрибацію аудіо й відео в застосунки та автоматизації.",
     workflowText: "Завантажте файл або використайте зовнішній URL, створіть завдання транскрибації й перевіряйте статус.",
     resultsText: "Після завершення експортуйте транскрипти, субтитри та структуровані дані в кількох форматах.",
     baseUrl: "Базовий URL",
@@ -803,7 +803,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Експорт",
     formats: "Формати",
     languages: "Мови",
-    languagesText: "UniScribe підтримує багато мов транскрибації. Передайте код мови в запиті.",
+    languagesText: "Votxt підтримує багато мов транскрибації. Передайте код мови в запиті.",
     support: "Підтримка",
     endpoint: "Ендпоінт",
     method: "Метод",
@@ -818,14 +818,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Помилка"
   },
   vi: {
-    metaTitle: "Tài liệu UniScribe OpenAPI",
-    metaDescription: "Tìm hiểu UniScribe OpenAPI cho tải lên, chuyển văn bản, xuất dữ liệu và trạng thái tác vụ.",
+    metaTitle: "Tài liệu Votxt OpenAPI",
+    metaDescription: "Tìm hiểu Votxt OpenAPI cho tải lên, chuyển văn bản, xuất dữ liệu và trạng thái tác vụ.",
     tocTitle: "Mục lục API",
-    title: "Tài liệu UniScribe OpenAPI",
+    title: "Tài liệu Votxt OpenAPI",
     betaLabel: "Beta",
-    betaNotice: "UniScribe OpenAPI đang ở bản beta. Hãy kiểm thử tích hợp trong môi trường phát triển trước khi dùng sản xuất.",
+    betaNotice: "Votxt OpenAPI đang ở bản beta. Hãy kiểm thử tích hợp trong môi trường phát triển trước khi dùng sản xuất.",
     overview: "Tổng quan",
-    overviewText: "UniScribe OpenAPI giúp tích hợp chuyển văn bản âm thanh và video vào ứng dụng hoặc quy trình tự động.",
+    overviewText: "Votxt OpenAPI giúp tích hợp chuyển văn bản âm thanh và video vào ứng dụng hoặc quy trình tự động.",
     workflowText: "Tải tệp lên hoặc dùng URL tệp bên ngoài, sau đó tạo tác vụ chuyển văn bản và kiểm tra trạng thái.",
     resultsText: "Khi hoàn tất, xuất bản ghi, phụ đề và dữ liệu có cấu trúc ở nhiều định dạng.",
     baseUrl: "URL gốc",
@@ -842,7 +842,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "Xuất dữ liệu",
     formats: "Định dạng",
     languages: "Ngôn ngữ",
-    languagesText: "UniScribe hỗ trợ nhiều ngôn ngữ chuyển văn bản. Hãy truyền mã ngôn ngữ trong yêu cầu.",
+    languagesText: "Votxt hỗ trợ nhiều ngôn ngữ chuyển văn bản. Hãy truyền mã ngôn ngữ trong yêu cầu.",
     support: "Hỗ trợ",
     endpoint: "Endpoint",
     method: "Phương thức",
@@ -857,14 +857,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "Thất bại"
   },
   zh: {
-    metaTitle: "UniScribe OpenAPI 文档",
-    metaDescription: "了解 UniScribe OpenAPI 的上传、转写、导出和任务状态基础用法。",
+    metaTitle: "Votxt OpenAPI 文档",
+    metaDescription: "了解 Votxt OpenAPI 的上传、转写、导出和任务状态基础用法。",
     tocTitle: "API 目录",
-    title: "UniScribe OpenAPI 文档",
+    title: "Votxt OpenAPI 文档",
     betaLabel: "Beta 版本",
-    betaNotice: "UniScribe OpenAPI 目前处于 Beta 阶段。请先在开发环境中测试集成，再用于生产环境。",
+    betaNotice: "Votxt OpenAPI 目前处于 Beta 阶段。请先在开发环境中测试集成，再用于生产环境。",
     overview: "概览",
-    overviewText: "UniScribe OpenAPI 可将音频和视频转写能力集成到应用、工作流和自动化工具中。",
+    overviewText: "Votxt OpenAPI 可将音频和视频转写能力集成到应用、工作流和自动化工具中。",
     workflowText: "你可以上传文件或使用外部文件 URL，然后创建转写任务并查询处理状态。",
     resultsText: "任务完成后，可将转写文本、字幕和结构化数据导出为多种格式。",
     baseUrl: "基础 URL",
@@ -881,7 +881,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "导出",
     formats: "格式",
     languages: "语言",
-    languagesText: "UniScribe 支持多种转写语言。请在请求中传入对应语言代码。",
+    languagesText: "Votxt 支持多种转写语言。请在请求中传入对应语言代码。",
     support: "支持",
     endpoint: "端点",
     method: "方法",
@@ -896,14 +896,14 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     failed: "失败"
   },
   "zh-TW": {
-    metaTitle: "UniScribe OpenAPI 文件",
-    metaDescription: "了解 UniScribe OpenAPI 的上傳、轉寫、匯出與任務狀態基礎用法。",
+    metaTitle: "Votxt OpenAPI 文件",
+    metaDescription: "了解 Votxt OpenAPI 的上傳、轉寫、匯出與任務狀態基礎用法。",
     tocTitle: "API 目錄",
-    title: "UniScribe OpenAPI 文件",
+    title: "Votxt OpenAPI 文件",
     betaLabel: "Beta 版本",
-    betaNotice: "UniScribe OpenAPI 目前處於 Beta 階段。請先在開發環境測試整合，再用於正式環境。",
+    betaNotice: "Votxt OpenAPI 目前處於 Beta 階段。請先在開發環境測試整合，再用於正式環境。",
     overview: "概覽",
-    overviewText: "UniScribe OpenAPI 可將音訊與影片轉寫能力整合到應用程式、工作流程與自動化工具中。",
+    overviewText: "Votxt OpenAPI 可將音訊與影片轉寫能力整合到應用程式、工作流程與自動化工具中。",
     workflowText: "你可以上傳檔案或使用外部檔案 URL，接著建立轉寫任務並查詢處理狀態。",
     resultsText: "任務完成後，可將轉寫文字、字幕與結構化資料匯出為多種格式。",
     baseUrl: "基礎 URL",
@@ -920,7 +920,7 @@ const docsTextByLocale: Record<Locale, DocsText> = {
     exports: "匯出",
     formats: "格式",
     languages: "語言",
-    languagesText: "UniScribe 支援多種轉寫語言。請在請求中傳入對應語言代碼。",
+    languagesText: "Votxt 支援多種轉寫語言。請在請求中傳入對應語言代碼。",
     support: "支援",
     endpoint: "端點",
     method: "方法",
@@ -951,7 +951,7 @@ function CodeBlock({children}: {children: string}) {
 function BaseUrlBlock() {
   return (
     <pre className="overflow-visible whitespace-pre font-mono text-base leading-6 text-ink">
-      <code className="rounded border border-violet/20 bg-violet/10 px-1.5 py-0.5 text-sm leading-5 text-ink/80">https://api.uniscribe.co</code>
+      <code className="rounded border border-violet/20 bg-violet/10 px-1.5 py-0.5 text-sm leading-5 text-ink/80">https://api.votxt.co</code>
     </pre>
   );
 }
@@ -1051,7 +1051,7 @@ function LocalizedDocsPage({locale}: {locale: Locale}) {
             </details>
 
             <header>
-              <h1 id="uniscribe-openapi-documentation-beta" className="border-b border-violet pb-2 text-2xl font-bold leading-8 text-ink md:text-3xl md:leading-9">{docs.title}</h1>
+              <h1 id="votxt-openapi-documentation-beta" className="border-b border-violet pb-2 text-2xl font-bold leading-8 text-ink md:text-3xl md:leading-9">{docs.title}</h1>
               <blockquote className="mt-6 border-l-4 border-violet/15 pl-4 text-base italic leading-[26px] text-ink/80">
                 <strong className="font-bold text-ink">{docs.betaLabel}</strong> {docs.betaNotice}
               </blockquote>
@@ -1154,7 +1154,7 @@ X-API-Key: your_api_key
 
             <DocSection id="support" title={docs.support} className="md:-mt-4">
               <ul className="list-disc space-y-1 pl-5">
-                <li><a href="mailto:hi@uniscribe.co" className="font-semibold text-violet underline underline-offset-2">hi@uniscribe.co</a></li>
+                <li><a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a></li>
                 <li><a href="https://discord.gg/RJTaS28UWU" className="font-semibold text-violet underline underline-offset-2">Discord</a></li>
               </ul>
             </DocSection>
@@ -1198,14 +1198,14 @@ export default function DocsPage({params}: {params: {locale: string}}) {
             </nav>
           </details>
           <header>
-            <h1 id="uniscribe-openapi-documentation-beta" className="border-b border-violet pb-2 text-2xl font-bold leading-8 text-ink md:text-3xl md:leading-9">UniScribe OpenAPI Documentation (Beta)</h1>
+            <h1 id="votxt-openapi-documentation-beta" className="border-b border-violet pb-2 text-2xl font-bold leading-8 text-ink md:text-3xl md:leading-9">Votxt OpenAPI Documentation (Beta)</h1>
             <blockquote className="mt-6 border-l-4 border-violet/15 pl-4 text-base italic leading-[26px] text-ink/80">
               <strong className="font-bold text-ink">⚠️ Beta Version Notice</strong> This API is currently in beta. Features and endpoints may change without notice. We recommend testing thoroughly in development environments before production use. Please report any issues or feedback to our support team.
             </blockquote>
           </header>
 
           <DocSection id="overview" title="Overview">
-            <p>The UniScribe OpenAPI provides programmatic access to our transcription services, enabling you to integrate audio and video transcription into your workflows, applications, and automation tools like n8n, Zapier, and Make.</p>
+            <p>The Votxt OpenAPI provides programmatic access to our transcription services, enabling you to integrate audio and video transcription into your workflows, applications, and automation tools like n8n, Zapier, and Make.</p>
           </DocSection>
 
           <DocSection id="base-url" title="Base URL" className="md:-mt-4">
@@ -1218,7 +1218,7 @@ export default function DocsPage({params}: {params: {locale: string}}) {
             <CodeBlock>{`X-API-Key: your_api_key_here`}</CodeBlock>
             <DocHeading id="getting-your-api-key">Getting Your API Key</DocHeading>
             <ol className="list-decimal list-outside space-y-2 pl-5 md:ml-6 md:pl-0">
-              <li>Log in to your UniScribe account.</li>
+              <li>Log in to your Votxt account.</li>
               <li>Navigate to Settings → API Keys.</li>
               <li>Click &quot;Create New Key&quot;.</li>
               <li>Copy and securely store your API key.</li>
@@ -1520,7 +1520,7 @@ X-API-Key: your_api_key
           </DocSection>
 
           <DocSection id="webhook-notifications" title="Webhook Notifications">
-            <p>When you provide a <code>webhook_url</code>, UniScribe will send HTTP POST notifications to your endpoint when transcription completes or fails.</p>
+            <p>When you provide a <code>webhook_url</code>, Votxt will send HTTP POST notifications to your endpoint when transcription completes or fails.</p>
             <DocHeading id="webhook-events">Webhook Events</DocHeading>
             <DocSubHeading id="transcription-completed">Transcription Completed</DocSubHeading>
             <CodeBlock>{`{
@@ -1556,13 +1556,13 @@ X-API-Key: your_api_key
             <ul className="list-disc space-y-1 pl-5">
               <li>Your webhook endpoint must respond with HTTP 2xx status code</li>
               <li>Timeout: 30 seconds</li>
-              <li>Include User-Agent: UniScribe-Webhook/1.0 header</li>
+              <li>Include User-Agent: Votxt-Webhook/1.0 header</li>
             </ul>
           </DocSection>
 
           <DocSection id="error-handling" title="Error Handling">
             <DocHeading id="understanding-different-types-of-errors">Understanding Different Types of Errors</DocHeading>
-            <p>UniScribe API distinguishes between two types of errors that require different handling approaches:</p>
+            <p>Votxt API distinguishes between two types of errors that require different handling approaches:</p>
             <DocSubHeading id="1-api-call-errors">1. API Call Errors</DocSubHeading>
             <p>These occur when the API request itself fails (authentication, validation, system errors, etc.). The response will have <code>success: false</code>:</p>
             <CodeBlock>{`{
@@ -1644,7 +1644,7 @@ X-API-Key: your_api_key
             <ul className="list-disc space-y-1 pl-5">
               <li>Default: 60 requests per minute, 1000 requests per day</li>
               <li>Rate limits are per API key</li>
-              <li>Higher limits can be discussed and adjusted based on your usage requirements. Contact <a href="mailto:hi@uniscribe.co" className="font-semibold text-violet underline underline-offset-2">hi@uniscribe.co</a> if you need a higher limit</li>
+              <li>Higher limits can be discussed and adjusted based on your usage requirements. Contact <a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a> if you need a higher limit</li>
               <li>Exceeded limits return HTTP 429 with retry information</li>
             </ul>
           </DocSection>
@@ -1655,7 +1655,7 @@ X-API-Key: your_api_key
               <li>Video: {videoFormats.join(", ")} (audio will be extracted)</li>
             </ul>
             <DocHeading id="language-support">Language Support</DocHeading>
-            <p>UniScribe supports 63 languages. Complete list of supported language codes:</p>
+            <p>Votxt supports 63 languages. Complete list of supported language codes:</p>
             <DataTable headers={["Language", "Code", "Language", "Code", "Language", "Code"]} rows={languageRows.map((row) => [...row])} tallRows={[2, 4, 6, 20]} />
           </DocSection>
 
@@ -1666,7 +1666,7 @@ X-API-Key: your_api_key
                 <strong>HTTP Request Node:</strong>
                 <ul className="mt-1 list-disc space-y-1 pl-5">
                   <li>Method: POST</li>
-                  <li>URL: https://api.uniscribe.co/api/v1/transcriptions</li>
+                  <li>URL: https://api.votxt.co/api/v1/transcriptions</li>
                   <li>Headers: X-API-Key: your_api_key</li>
                   <li>Body: JSON with file_url, optional filename, and webhook_url</li>
                 </ul>
@@ -1684,7 +1684,7 @@ X-API-Key: your_api_key
 
 # Create transcription
 response = requests.post(
-    'https://api.uniscribe.co/api/v1/transcriptions',
+    'https://api.votxt.co/api/v1/transcriptions',
     headers={'X-API-Key': 'your_api_key'},
     json={
         'file_url': 'https://example.com/audio.mp3',
@@ -1699,14 +1699,14 @@ transcription_id = transcription['data']['id']
 
 # Check status
 status_response = requests.get(
-    f'https://api.uniscribe.co/api/v1/transcriptions/{transcription_id}/status',
+    f'https://api.votxt.co/api/v1/transcriptions/{transcription_id}/status',
     headers={'X-API-Key': 'your_api_key'}
 )
 
 print(status_response.json())`}</CodeBlock>
             <DocHeading id="curl-examples">cURL Examples</DocHeading>
             <CodeBlock>{`# 1. Get upload URLs
-curl -X POST https://api.uniscribe.co/api/v1/files/upload-url \\
+curl -X POST https://api.votxt.co/api/v1/files/upload-url \\
   -H "X-API-Key: your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1722,7 +1722,7 @@ curl -X PUT "https://r2.cloudflare.com/bucket/12345-abc123.mp3?X-Amz-Signature=.
   --data-binary @audio.mp3
 
 # 3. Create transcription using file_key
-curl -X POST https://api.uniscribe.co/api/v1/transcriptions \\
+curl -X POST https://api.votxt.co/api/v1/transcriptions \\
   -H "X-API-Key: your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1732,7 +1732,7 @@ curl -X POST https://api.uniscribe.co/api/v1/transcriptions \\
   }'
 
 # Alternative: Create transcription from external URL
-curl -X POST https://api.uniscribe.co/api/v1/transcriptions \\
+curl -X POST https://api.votxt.co/api/v1/transcriptions \\
   -H "X-API-Key: your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1743,7 +1743,7 @@ curl -X POST https://api.uniscribe.co/api/v1/transcriptions \\
   }'
 
 # Get transcription results
-curl -X GET https://api.uniscribe.co/api/v1/transcriptions/1234567890 \\
+curl -X GET https://api.votxt.co/api/v1/transcriptions/1234567890 \\
   -H "X-API-Key: your_api_key"`}</CodeBlock>
           </DocSection>
 
@@ -1784,7 +1784,7 @@ curl -X GET https://api.uniscribe.co/api/v1/transcriptions/1234567890 \\
 
           <DocSection id="support" title="Support" className="md:-mt-4">
             <ul className="list-disc space-y-1 pl-5">
-              <li>Support Email: <a href="mailto:hi@uniscribe.co" className="font-semibold text-violet underline underline-offset-2">hi@uniscribe.co</a></li>
+              <li>Support Email: <a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a></li>
               <li>Discord: <a href="https://discord.gg/RJTaS28UWU" className="font-semibold text-violet underline underline-offset-2">https://discord.gg/RJTaS28UWU</a></li>
             </ul>
             <p>For technical questions or integration assistance, please contact our support team.</p>

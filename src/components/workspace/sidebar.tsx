@@ -76,7 +76,7 @@ function applyWorkspaceTheme(theme: WorkspaceTheme) {
 
 function readStoredWorkspaceTheme(): WorkspaceTheme | null {
   try {
-    const value = window.localStorage.getItem("uniscribe-theme");
+    const value = window.localStorage.getItem("votxt-theme");
     return value === "Light" || value === "Dark" || value === "System" ? value : null;
   } catch {
     return null;
@@ -85,7 +85,7 @@ function readStoredWorkspaceTheme(): WorkspaceTheme | null {
 
 function storeWorkspaceTheme(theme: WorkspaceTheme) {
   try {
-    window.localStorage.setItem("uniscribe-theme", theme);
+    window.localStorage.setItem("votxt-theme", theme);
   } catch {
     // Best-effort preference persistence only.
   }
@@ -173,7 +173,7 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
   const displayName = user?.name || copy.anonymousUser;
   const email = user?.email || copy.loginSyncHint;
   const avatarUrl = user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl || null;
-  const supportEmail = "hi@uniscribe.co";
+  const supportEmail = "hi@votxt.co";
 
   async function signOut() {
     await fetch("/api/auth/logout", {method: "POST"}).catch(() => undefined);
@@ -458,7 +458,7 @@ export function WorkspaceSidebar({
   return (
     <aside className="flex h-screen min-h-0 min-w-0 flex-col gap-5 overflow-y-auto bg-white px-4 py-4">
       <a href={`/${locale}/dashboard`} className="flex h-[44px] items-center">
-        <BrandLogo alt="UniScribe" width={238} height={52} className="h-auto w-[154px]" />
+        <BrandLogo alt="Votxt" width={238} height={52} className="h-auto w-[154px]" />
       </a>
 
       <section className="h-[204.5px] min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-[#f7f7ff] px-4 py-4 shadow-soft">

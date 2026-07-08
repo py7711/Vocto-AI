@@ -84,12 +84,12 @@ async function renderExport(input: {
     const buffer = await renderToBuffer(
       createElement(
         Document,
-        {title: input.transcript.mediaTask.originalName || "UniScribe Transcript", author: "UniScribe"},
+        {title: input.transcript.mediaTask.originalName || "Votxt Transcript", author: "Votxt"},
         createElement(
           Page,
           {size: "A4", style: styles.page},
-          createElement(Text, {style: styles.title}, input.transcript.mediaTask.originalName || "UniScribe Transcript"),
-          createElement(Text, {style: styles.meta}, input.transcript.mediaTask.provider || "UniScribe"),
+          createElement(Text, {style: styles.title}, input.transcript.mediaTask.originalName || "Votxt Transcript"),
+          createElement(Text, {style: styles.meta}, input.transcript.mediaTask.provider || "Votxt"),
           ...text.split(/\n{2,}/).map((paragraph, index) => createElement(Text, {key: index, style: styles.paragraph}, paragraph))
         )
       )
@@ -101,7 +101,7 @@ async function renderExport(input: {
     return new Uint8Array(
       await renderDocx(exportTranscript, {
         ...input.options,
-        title: input.transcript.mediaTask.originalName || "UniScribe Transcript",
+        title: input.transcript.mediaTask.originalName || "Votxt Transcript",
         meta: input.transcript.mediaTask.provider || undefined
       })
     );
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
     for (const taskId of input.taskIds) {
       const transcript = byTaskId.get(taskId);
       if (!transcript) continue;
-      const baseName = safeName(transcript.mediaTask.originalName || `uniscribe-${taskId}`);
+      const baseName = safeName(transcript.mediaTask.originalName || `votxt-${taskId}`);
       const suffix = input.content === "original" ? "" : `-${input.content}${input.target ? `-${input.target}` : ""}`;
       const name = uniqueName(`${baseName}${suffix}.${input.format}`, used, taskId);
       entries.push({
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
     }
 
     const archive = createZip(entries);
-    const fileName = `uniscribe-batch-${new Date().toISOString().slice(0, 10)}-${input.format}.zip`;
+    const fileName = `votxt-batch-${new Date().toISOString().slice(0, 10)}-${input.format}.zip`;
     return new Response(new Uint8Array(archive), {
       headers: {
         "Content-Type": "application/zip",

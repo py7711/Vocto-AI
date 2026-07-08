@@ -1,6 +1,6 @@
-# UniScribe 部署文档
+# Votxt 部署文档
 
-本文档说明如何把 UniScribe 部署到 Vercel，并给出云服务商独立部署方案。所有配置说明均为中文，便于交付和运维。
+本文档说明如何把 Votxt 部署到 Vercel，并给出云服务商独立部署方案。所有配置说明均为中文，便于交付和运维。
 
 ## 1. 部署架构
 
@@ -20,9 +20,9 @@
 ### 2.1 基础变量
 
 ```bash
-DATABASE_URL="mysql://USER:PASSWORD@HOST:4000/uniscribe?sslaccept=strict"
+DATABASE_URL="mysql://USER:PASSWORD@HOST:4000/votxt?sslaccept=strict"
 REDIS_URL="rediss://default:PASSWORD@HOST.upstash.io:6379"
-TRANSCRIBE_QUEUE="uniscribe-transcribe"
+TRANSCRIBE_QUEUE="votxt-transcribe"
 NEXT_PUBLIC_APP_URL="https://你的域名"
 AUTH_SECRET="至少 32 位的随机字符串"
 ```
@@ -35,7 +35,7 @@ AUTH_SECRET="至少 32 位的随机字符串"
 R2_ACCOUNT_ID=""
 R2_ACCESS_KEY_ID=""
 R2_SECRET_ACCESS_KEY=""
-R2_BUCKET="uniscribe-media"
+R2_BUCKET="votxt-media"
 R2_PUBLIC_BASE_URL="https://media.example.com"
 ```
 
@@ -109,7 +109,7 @@ https://你的域名/api/billing/webhook
 ### 2.7 认证与邮件变量
 
 ```bash
-EMAIL_FROM="UniScribe <no-reply@example.com>"
+EMAIL_FROM="Votxt <no-reply@example.com>"
 
 # SMTP 发信（如 Spacemail），优先于 Resend 使用
 SMTP_HOST="mail.spacemail.com"
@@ -232,7 +232,7 @@ pnpm run worker
 6. 推荐使用 PM2：
 
 ```bash
-pm2 start "pnpm run worker" --name uniscribe-worker
+pm2 start "pnpm run worker" --name votxt-worker
 pm2 save
 ```
 
@@ -280,7 +280,7 @@ Worker 容器必须能访问 Redis、数据库、R2 和所有 AI 服务商。
 - Stripe Webhook 回调地址指向 `/api/billing/webhook`，并订阅支付会话与订阅事件。
 - `/api/upload/generate-signed-url` 在 R2 配置后可返回上传 URL；`/api/uploads` 作为旧工作台兼容别名保留。
 - `/api/tasks` 在 Redis 和数据库配置后可创建任务，也可返回当前个人账号历史任务列表。
-- Worker 能消费 `TRANSCRIBE_QUEUE` 配置的队列，默认是 `uniscribe-transcribe`。
+- Worker 能消费 `TRANSCRIBE_QUEUE` 配置的队列，默认是 `votxt-transcribe`。
 - Groq、Deepgram、AssemblyAI 至少配置一个。
 - DeepL 或 DeepSeek 至少配置一个翻译服务。
 - deepseek-v4、Gemini、Groq 至少配置一个 AI 洞察服务。

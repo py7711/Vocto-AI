@@ -109,7 +109,7 @@ async function buildPayload(taskType: SingleInsightTaskType, text: string, local
     const compactedSegments = compactSegments(segments);
     return generateJsonWithFallback(
       {
-        system: "你是 UniScribe 音视频转文字产品的摘要引擎。你会收到分段转写文本，每段包含 start/end（单位：秒）与 text。只返回严格 JSON，字段必须包含 overview、bullets 和 takeaways。每个 bullet 和 takeaway 必须在 timestamps 中给出其依据的音频起止时间（start/end 秒），时间要对应到传入分段的真实时间范围，方便用户点击跳转到对应音频位置。",
+        system: "你是 Votxt 音视频转文字产品的摘要引擎。你会收到分段转写文本，每段包含 start/end（单位：秒）与 text。只返回严格 JSON，字段必须包含 overview、bullets 和 takeaways。每个 bullet 和 takeaway 必须在 timestamps 中给出其依据的音频起止时间（start/end 秒），时间要对应到传入分段的真实时间范围，方便用户点击跳转到对应音频位置。",
         user: {
           locale,
           summaryTemplate,
@@ -127,7 +127,7 @@ async function buildPayload(taskType: SingleInsightTaskType, text: string, local
   if (taskType === "mind_map") {
     return generateJsonWithFallback(
       {
-        system: "你是 UniScribe 音视频转文字产品的思维导图引擎。只返回严格 JSON，字段必须包含 label 和 children。",
+        system: "你是 Votxt 音视频转文字产品的思维导图引擎。只返回严格 JSON，字段必须包含 label 和 children。",
         user: {
           locale,
           transcript: text.slice(0, 24000),
@@ -140,7 +140,7 @@ async function buildPayload(taskType: SingleInsightTaskType, text: string, local
 
   return generateJsonWithFallback(
     {
-      system: "你是 UniScribe 音视频转文字产品的问答引擎。只返回严格 JSON 数组，每项包含 question 和 answer。",
+      system: "你是 Votxt 音视频转文字产品的问答引擎。只返回严格 JSON 数组，每项包含 question 和 answer。",
       user: {
         locale,
         transcript: text.slice(0, 24000),

@@ -49,7 +49,7 @@ export class GroqWhisperProvider implements TranscriptionProvider {
       throw new Error(`无法为 Groq 拉取媒体文件：${response.status}`);
     }
     const blob = await response.blob();
-    const file = new File([blob], "uniscribe-audio.mp3", {type: blob.type || "audio/mpeg"});
+    const file = new File([blob], "votxt-audio.mp3", {type: blob.type || "audio/mpeg"});
     return transcribeGroqFile(file, input.language);
   }
 

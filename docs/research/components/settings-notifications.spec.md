@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/settings-page.tsx`
-- Screenshot: `docs/design-references/uniscribe.co/settings-desktop.png`
+- Screenshot: `docs/design-references/votxt.co/settings-desktop.png`
 - Interaction model: local click-driven switches inside a static settings card.
 
 ## DOM Structure

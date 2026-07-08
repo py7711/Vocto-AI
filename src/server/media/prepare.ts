@@ -437,7 +437,7 @@ export async function prepareTaskAudioAsset(input: {
     };
   }
 
-  const directory = await mkdtemp(join(tmpdir(), "uniscribe-media-"));
+  const directory = await mkdtemp(join(tmpdir(), "votxt-media-"));
   const stem = safeMediaStem(input.originalName, input.taskId);
   const sourcePath = join(directory, "source");
   const audioPath = join(directory, "audio.mp3");
@@ -546,7 +546,7 @@ export async function chunkAudioForFallback(input: {
   durationSeconds?: number;
   directory: string;
 }> {
-  const directory = await mkdtemp(join(tmpdir(), "uniscribe-fallback-"));
+  const directory = await mkdtemp(join(tmpdir(), "votxt-fallback-"));
   const audioPath = join(directory, "audio.mp3");
 
   // 下载完成后返回 directory 交给调用方在转写结束后清理；但下载/切片过程中任何一步出错都要
@@ -730,7 +730,7 @@ export async function listYoutubeSubtitles(url: string) {
 }
 
 export async function downloadYoutubeSubtitle(url: string, languageCode: string, format: "srt" | "vtt" = "srt") {
-  const directory = await mkdtemp(join(tmpdir(), "uniscribe-subs-"));
+  const directory = await mkdtemp(join(tmpdir(), "votxt-subs-"));
   try {
     await runYtDlp([
       "--skip-download",

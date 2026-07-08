@@ -73,10 +73,10 @@ async function deliver(endpoint: {id: string; teamId: string; url: string; secre
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "user-agent": "UniScribe-Webhook/1.0",
-        "x-uniscribe-event": event,
-        "x-uniscribe-delivery": delivery.id,
-        "x-uniscribe-signature": `sha256=${signature}`
+        "user-agent": "Votxt-Webhook/1.0",
+        "x-votxt-event": event,
+        "x-votxt-delivery": delivery.id,
+        "x-votxt-signature": `sha256=${signature}`
       },
       body,
       signal: AbortSignal.timeout(10_000)

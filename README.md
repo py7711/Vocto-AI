@@ -1,6 +1,6 @@
-# UniScribe
+# Votxt
 
-UniScribe 是一个基于 Next.js 的个人 AI 音视频转写工作区，专注于上传、公开视频链接、浏览器录音、转写、摘要、思维导图、问答、翻译、公开分享和多格式导出。
+Votxt 是一个基于 Next.js 的个人 AI 音视频转写工作区，专注于上传、公开视频链接、浏览器录音、转写、摘要、思维导图、问答、翻译、公开分享和多格式导出。
 
 ## 技术栈
 
@@ -61,7 +61,7 @@ pnpm run prisma:push
 
 SQL 文件说明和字段长度优化原则见 [prisma/sql/README.md](./prisma/sql/README.md)。
 
-QA 测试账号为 `qa@uniscribe.local`，原始密码为 `aa123456`。浏览器登录时会提交 `sha256(uniscribe-password-v1:${password})` 格式的 `passwordCredential`，SQL 种子数据保存的是该 credential 的 scrypt 哈希。修改认证算法或测试密码后，请运行：
+QA 测试账号为 `qa@votxt.local`，原始密码为 `aa123456`。浏览器登录时会提交 `sha256(votxt-password-v1:${password})` 格式的 `passwordCredential`，SQL 种子数据保存的是该 credential 的 scrypt 哈希。修改认证算法或测试密码后，请运行：
 
 ```bash
 pnpm run auth:seed:check

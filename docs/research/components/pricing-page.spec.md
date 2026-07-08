@@ -4,7 +4,7 @@
 - Target files: `src/components/content-pages.tsx`, `src/components/pricing-actions.tsx`
 - Routes: `/en/pricing`, `/en/faq`
 - Interaction model: click-driven billing tabs and click-driven FAQ accordion.
-- Verified target URL: `https://www.uniscribe.co/pricing` on 2026-07-01.
+- Verified target URL: `https://www.votxt.co/pricing` on 2026-07-01.
 
 ## Desktop Layout, 1280x720
 - Public marketing header remains fixed at the top; pricing content starts below it with `main` padding-top `80px`.
@@ -18,7 +18,7 @@
 - Container: `display: grid`, `grid-template-columns: 168px 168px 168px`, width `512px`, height `40px`, x `384`, y `260`.
 - Background: `rgb(241, 245, 249)`, border `0`, border-radius `6px`, padding `4px`.
 - Tab buttons: width `168px`, height `32px`, padding `6px 12px`, font `14px/20px`, weight `500`, border-radius `4px`.
-- `One-Time` includes a `16px` square `https://cdn.uniscribe.co/stripe-crypto.svg` image with alt/title `Crypto payments powered by Stripe`, using a 4px gap after the text. This makes the accessible tab name read like `One-Time Crypto payments powered by Stripe`.
+- `One-Time` includes a `16px` square `https://cdn.votxt.co/stripe-crypto.svg` image with alt/title `Crypto payments powered by Stripe`, using a 4px gap after the text. This makes the accessible tab name read like `One-Time Crypto payments powered by Stripe`.
 - Annual is selected by default. Selected button background is `rgb(255, 255, 255)`, color `rgb(2, 8, 23)`, shadow `0 1px 2px rgba(0,0,0,.05)`.
 - Annual label contains a red `Save 40%` badge.
 

@@ -1,13 +1,13 @@
 # Brand Logo Specification
 
 ## Overview
-- **Target files:** `public/uniscribe-logo.svg`, `public/uniscribe-logo-dark.svg`, `src/components/brand-logo.tsx`
+- **Target files:** `public/votxt-logo.svg`, `public/votxt-logo-dark.svg`, `src/components/brand-logo.tsx`
 - **Interaction model:** static, theme-driven via `.dark`
 
 ## Target Evidence
 - Target home header logo link contains two images:
-  - light: `https://cdn.uniscribe.co/logo.svg`
-  - dark: `https://cdn.uniscribe.co/logo_darkmode.svg`
+  - light: `https://cdn.votxt.co/logo.svg`
+  - dark: `https://cdn.votxt.co/logo_darkmode.svg`
 - Target markup uses `width="180"` and `height="45"` on both images.
 - Target light image natural size is `1181x276`; at 1280px desktop it renders at `180px` by `42.0625px`.
 - Target dark image natural size is `1101x172` and is hidden in light mode with `class="hidden dark:block"`.
@@ -15,8 +15,8 @@
 
 ## Local Implementation
 - `BrandLogo` renders the same two-image light/dark structure:
-  - `/uniscribe-logo.svg` with `dark:hidden`
-  - `/uniscribe-logo-dark.svg` with `hidden dark:block`
+  - `/votxt-logo.svg` with `dark:hidden`
+  - `/votxt-logo-dark.svg` with `hidden dark:block`
 - Default dimensions are `width=180`, `height=45` to match target markup and preserve the target light-mode rendered height under Tailwind image preflight.
 - Existing calibrated call-site sizing is preserved with optional `width`, `height`, and `className`.
 
@@ -29,8 +29,8 @@
 - Workspace sidebar: target sidebar-calibrated `154px` rendered width preserved.
 
 ## Assets
-- `public/uniscribe-logo.svg`: downloaded from target CDN `logo.svg`.
-- `public/uniscribe-logo-dark.svg`: downloaded from target CDN `logo_darkmode.svg`.
+- `public/votxt-logo.svg`: downloaded from target CDN `logo.svg`.
+- `public/votxt-logo-dark.svg`: downloaded from target CDN `logo_darkmode.svg`.
 
 ## Responsive Behavior
 - Header placement and mobile menu behavior are specified in `openapi-docs.spec.md` and `BEHAVIORS.md`.

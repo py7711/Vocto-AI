@@ -952,7 +952,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       }
       const blob = await response.blob();
       const disposition = response.headers.get("Content-Disposition") || "";
-      const fileName = disposition.match(/filename="([^"]+)"/)?.[1] ?? `uniscribe-batch-${batchExportFormat}.zip`;
+      const fileName = disposition.match(/filename="([^"]+)"/)?.[1] ?? `votxt-batch-${batchExportFormat}.zip`;
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -1456,7 +1456,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
         const blob = new Blob(recordedChunksRef.current, {type: "audio/webm"});
-        selectFile(new File([blob], `uniscribe-recording-${Date.now()}.webm`, {type: "audio/webm"}));
+        selectFile(new File([blob], `votxt-recording-${Date.now()}.webm`, {type: "audio/webm"}));
         setNotice(copy.recordingReady);
       };
       recorder.start();

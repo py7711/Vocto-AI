@@ -36,7 +36,7 @@ type ShareCopy = {
 
 const shareCopy: Record<Locale, ShareCopy> = {
   ar: {
-    eyebrow: "مشاركة UniScribe",
+    eyebrow: "مشاركة Votxt",
     fallbackTitle: "نص مشترك",
     accessed: (count: number) => `${count} مشاهدة`,
     back: "رجوع",
@@ -58,7 +58,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "لا توجد مقاطع بطوابع زمنية حتى الآن."
   },
   de: {
-    eyebrow: "UniScribe-Freigabe",
+    eyebrow: "Votxt-Freigabe",
     fallbackTitle: "Geteiltes Transkript",
     accessed: (count: number) => `${count} Aufruf${count === 1 ? "" : "e"}`,
     back: "Zurück",
@@ -80,7 +80,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Noch keine Segmente mit Zeitstempel verfügbar."
   },
   en: {
-    eyebrow: "UniScribe Share",
+    eyebrow: "Votxt Share",
     fallbackTitle: "Shared transcription",
     accessed: (count: number) => `${count} view${count === 1 ? "" : "s"}`,
     back: "Back",
@@ -102,7 +102,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "No timestamped segments are available yet."
   },
   es: {
-    eyebrow: "Compartir UniScribe",
+    eyebrow: "Compartir Votxt",
     fallbackTitle: "Transcripción compartida",
     accessed: (count: number) => `${count} vista${count === 1 ? "" : "s"}`,
     back: "Volver",
@@ -124,7 +124,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Aún no hay segmentos con marca de tiempo."
   },
   fr: {
-    eyebrow: "Partage UniScribe",
+    eyebrow: "Partage Votxt",
     fallbackTitle: "Transcription partagée",
     accessed: (count: number) => `${count} vue${count === 1 ? "" : "s"}`,
     back: "Retour",
@@ -146,7 +146,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Aucun segment horodaté n'est encore disponible."
   },
   hu: {
-    eyebrow: "UniScribe megosztás",
+    eyebrow: "Votxt megosztás",
     fallbackTitle: "Megosztott átirat",
     accessed: (count: number) => `${count} megtekintés`,
     back: "Vissza",
@@ -168,7 +168,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Még nincsenek időbélyeges szegmensek."
   },
   id: {
-    eyebrow: "Bagikan UniScribe",
+    eyebrow: "Bagikan Votxt",
     fallbackTitle: "Transkripsi bersama",
     accessed: (count: number) => `${count} tayangan`,
     back: "Kembali",
@@ -190,7 +190,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Belum ada segmen bertanda waktu."
   },
   it: {
-    eyebrow: "Condivisione UniScribe",
+    eyebrow: "Condivisione Votxt",
     fallbackTitle: "Trascrizione condivisa",
     accessed: (count: number) => `${count} visualizzazioni`,
     back: "Indietro",
@@ -212,7 +212,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Non sono ancora disponibili segmenti con timestamp."
   },
   ja: {
-    eyebrow: "UniScribe 共有",
+    eyebrow: "Votxt 共有",
     fallbackTitle: "共有された文字起こし",
     accessed: (count: number) => `${count} 回表示`,
     back: "戻る",
@@ -234,7 +234,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "タイムスタンプ付きセグメントはまだありません。"
   },
   ko: {
-    eyebrow: "UniScribe 공유",
+    eyebrow: "Votxt 공유",
     fallbackTitle: "공유된 전사",
     accessed: (count: number) => `${count}회 조회`,
     back: "뒤로",
@@ -256,7 +256,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "아직 타임스탬프 세그먼트가 없습니다."
   },
   nl: {
-    eyebrow: "UniScribe delen",
+    eyebrow: "Votxt delen",
     fallbackTitle: "Gedeelde transcriptie",
     accessed: (count: number) => `${count} weergave${count === 1 ? "" : "n"}`,
     back: "Terug",
@@ -278,7 +278,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Er zijn nog geen segmenten met tijdstempel."
   },
   pl: {
-    eyebrow: "Udostępnienie UniScribe",
+    eyebrow: "Udostępnienie Votxt",
     fallbackTitle: "Udostępniona transkrypcja",
     accessed: (count: number) => `${count} wyświetleń`,
     back: "Wstecz",
@@ -300,7 +300,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Brak dostępnych segmentów ze znacznikami czasu."
   },
   pt: {
-    eyebrow: "Compartilhamento UniScribe",
+    eyebrow: "Compartilhamento Votxt",
     fallbackTitle: "Transcrição compartilhada",
     accessed: (count: number) => `${count} visualizaç${count === 1 ? "ão" : "ões"}`,
     back: "Voltar",
@@ -322,7 +322,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Ainda não há segmentos com timestamp."
   },
   ru: {
-    eyebrow: "Поделиться UniScribe",
+    eyebrow: "Поделиться Votxt",
     fallbackTitle: "Общая расшифровка",
     accessed: (count: number) => `${count} просмотров`,
     back: "Назад",
@@ -344,7 +344,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Сегменты с таймкодами пока недоступны."
   },
   th: {
-    eyebrow: "แชร์ UniScribe",
+    eyebrow: "แชร์ Votxt",
     fallbackTitle: "ถอดเสียงที่แชร์",
     accessed: (count: number) => `${count} การดู`,
     back: "กลับ",
@@ -366,7 +366,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "ยังไม่มีช่วงเวลาพร้อมเวลา"
   },
   tr: {
-    eyebrow: "UniScribe paylaşımı",
+    eyebrow: "Votxt paylaşımı",
     fallbackTitle: "Paylaşılan transkripsiyon",
     accessed: (count: number) => `${count} görüntüleme`,
     back: "Geri",
@@ -388,7 +388,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Henüz zaman damgalı bölüm yok."
   },
   uk: {
-    eyebrow: "Поширення UniScribe",
+    eyebrow: "Поширення Votxt",
     fallbackTitle: "Поширена транскрипція",
     accessed: (count: number) => `${count} переглядів`,
     back: "Назад",
@@ -410,7 +410,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Сегменти з часовими мітками ще недоступні."
   },
   vi: {
-    eyebrow: "Chia sẻ UniScribe",
+    eyebrow: "Chia sẻ Votxt",
     fallbackTitle: "Bản chép lời được chia sẻ",
     accessed: (count: number) => `${count} lượt xem`,
     back: "Quay lại",
@@ -432,7 +432,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "Chưa có phân đoạn có dấu thời gian."
   },
   zh: {
-    eyebrow: "UniScribe 分享",
+    eyebrow: "Votxt 分享",
     fallbackTitle: "共享转写",
     accessed: (count: number) => `已访问 ${count} 次`,
     back: "返回",
@@ -454,7 +454,7 @@ const shareCopy: Record<Locale, ShareCopy> = {
     noSegments: "该分享暂未包含时间戳分段。"
   },
   "zh-TW": {
-    eyebrow: "UniScribe 分享",
+    eyebrow: "Votxt 分享",
     fallbackTitle: "共享轉寫",
     accessed: (count: number) => `已瀏覽 ${count} 次`,
     back: "返回",
@@ -552,7 +552,7 @@ export async function SharePage({locale, token}: {locale: string; token: string}
           <div className="min-w-0">
             <h1 className="break-words text-2xl font-black leading-tight text-ink md:text-3xl">{title}</h1>
             <p className="mt-3 text-sm leading-6 text-ink/60">
-              {task.provider || "UniScribe"} · {task.detectedLanguage || task.language || copy.autoLanguage} · {copy.accessed(share.accessCount)}
+              {task.provider || "Votxt"} · {task.detectedLanguage || task.language || copy.autoLanguage} · {copy.accessed(share.accessCount)}
             </p>
           </div>
           <div className="flex items-center gap-1 rounded-md border border-ink/10 bg-paper/60 px-3 py-2 text-xs font-black text-ink/55">

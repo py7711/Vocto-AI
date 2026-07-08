@@ -66,7 +66,7 @@ function jsonData(value: unknown) {
 }
 
 export function renderMindMapXmind(input: {title: string; node: MindMapExportNode}) {
-  const sheetId = "sheet-uniscribe-mind-map";
+  const sheetId = "sheet-votxt-mind-map";
   const content = [
     {
       id: sheetId,
@@ -79,7 +79,7 @@ export function renderMindMapXmind(input: {title: string; node: MindMapExportNod
   ];
   const metadata = {
     creator: {
-      name: "UniScribe",
+      name: "Votxt",
       version: "0.1.0"
     },
     activeSheetId: sheetId

@@ -19,7 +19,7 @@ export type TranscribeJob = {
   youtubeFallback?: boolean;
 };
 
-export const TRANSCRIBE_QUEUE = env.TRANSCRIBE_QUEUE || "uniscribe-transcribe";
+export const TRANSCRIBE_QUEUE = env.TRANSCRIBE_QUEUE || "votxt-transcribe";
 
 let transcribeQueue: Queue<TranscribeJob> | undefined;
 

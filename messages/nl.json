@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Audio en video gratis online naar tekst converteren",
-    "description": "Met UniScribe upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten."
+    "description": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Audio en video naar tekst waar je echt iets aan hebt.",
     "upload": "Uploaden",
     "uploadFile": "Bestand uploaden",
@@ -30,12 +30,12 @@
     "completed": "Voltooid",
     "failed": "Mislukt",
     "headline": "Converteer Audio & Video naar Tekst",
-    "subheadline": "Met UniScribe upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten.",
+    "subheadline": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten.",
     "formats": "Ondersteunt 11 formaten",
     "languages": "Ondersteunt 63 talen",
     "exportCount": "Exporteer in 6 formaten",
     "localUploadHint": "Audio: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Video: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "Door UniScribe te gebruiken ga je akkoord met onze Servicevoorwaarden en Privacyverklaring.",
+    "terms": "Door Votxt te gebruiken ga je akkoord met onze Servicevoorwaarden en Privacyverklaring.",
     "ready": "Klaar",
     "save": "Opslaan",
     "workspace": "Werkruimte",

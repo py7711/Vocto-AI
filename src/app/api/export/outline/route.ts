@@ -37,12 +37,12 @@ export async function POST(request: Request) {
     });
     if (!task) return NextResponse.json({error: "转写任务不存在。"}, {status: 404});
     const outline = buildOutline({
-      title: task.originalName || "UniScribe Outline",
+      title: task.originalName || "Votxt Outline",
       provider: task.provider || undefined,
       insights: task.insights
     });
     if (!outline.sections.length) return NextResponse.json({error: "请先生成 AI 洞察，再导出大纲。"}, {status: 409});
-    const baseName = (task.originalName || `uniscribe-${input.transcriptionId}`).replace(/[^\w.\-]+/g, "_");
+    const baseName = (task.originalName || `votxt-${input.transcriptionId}`).replace(/[^\w.\-]+/g, "_");
     const fileName = `${baseName}-outline.${input.format}`;
     if (input.format === "docx") {
       const buffer = await renderOutlineDocx(outline);
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       const buffer = await renderToBuffer(
         createElement(
           Document,
-          {title: outline.title, author: "UniScribe"},
+          {title: outline.title, author: "Votxt"},
           createElement(
             Page,
             {size: "A4", style: styles.page},

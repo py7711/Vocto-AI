@@ -4,7 +4,14 @@ import path from "node:path";
 const publicDir = "public";
 const searchRoots = ["src", "docs", "messages"];
 const searchFiles = ["README.md", "product-doc.md", "next.config.mjs", "package.json"];
-const conventionAssets = new Set(["/favicon.svg", "/uniscribe-logo.svg"]);
+const conventionAssets = new Set([
+  "/favicon.svg",
+  "/votxt-logo.svg",
+  "/votxt-logo-dark.svg",
+  "/votxt-assets/arrow.svg",
+  "/blog/mp3-to-srt-online-free/cover.svg",
+  "/blog/mp4-to-text-online-free/cover.svg"
+]);
 const textExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".md", ".json", ".css", ".html"]);
 
 function walkFiles(dir) {

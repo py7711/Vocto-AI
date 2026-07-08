@@ -8,7 +8,7 @@ import {jsonSafe} from "@/lib/json";
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   const copy = getWorkspaceCopy(params.locale);
   return {
-    title: `${copy.settings} | UniScribe`
+    title: `${copy.settings} | Votxt`
   };
 }
 

@@ -1,12 +1,13 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {isPasswordCredential, setSessionCookie, verifyPasswordCredential} from "@/lib/auth";
+import {isPasswordCredential, setSessionCookie, verifyPasswordCredentials} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {prisma} from "@/lib/prisma";
 
 const loginSchema = z.object({
   email: z.string().email(),
   passwordCredential: z.string().refine(isPasswordCredential),
+  legacyPasswordCredential: z.string().refine(isPasswordCredential).optional(),
   locale: z.string().default("en")
 });
 
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       select: {id: true, email: true, name: true, role: true, passwordHash: true}
     });
 
-    if (!user || !(await verifyPasswordCredential(input.passwordCredential, user.passwordHash))) {
+    if (!user || !(await verifyPasswordCredentials([input.passwordCredential, input.legacyPasswordCredential], user.passwordHash))) {
       return NextResponse.json({error: authMessage("invalidLogin", input.locale)}, {status: 401});
     }
 

@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/settings-page.tsx`
-- Screenshot: `docs/design-references/uniscribe.co/settings-desktop.png`
+- Screenshot: `docs/design-references/votxt.co/settings-desktop.png`
 - Interaction model: static preference cards with click-driven dropdown menus.
 
 ## DOM Structure

@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Ses ve videoyu ücretsiz çevrim içi metne dönüştür",
-    "description": "UniScribe, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir."
+    "description": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Ses ve video gerçekten kullanılabilir metne dönüşür.",
     "upload": "Yükle",
     "uploadFile": "Dosya Yükle",
@@ -30,12 +30,12 @@
     "completed": "Tamamlandı",
     "failed": "Başarısız",
     "headline": "Ses ve Videoyu Metne Dönüştür",
-    "subheadline": "UniScribe, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir.",
+    "subheadline": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir.",
     "formats": "11 Format Desteği",
     "languages": "63 Dil Desteği",
     "exportCount": "6 Formatta Dışa Aktar",
     "localUploadHint": "Ses: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Video: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "UniScribe kullanarak Hizmet Şartları ve Gizlilik Politikası'nı kabul edersiniz.",
+    "terms": "Votxt kullanarak Hizmet Şartları ve Gizlilik Politikası'nı kabul edersiniz.",
     "ready": "Hazır",
     "save": "Kaydet",
     "workspace": "Çalışma alanı",

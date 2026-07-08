@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Kostenloser Online-Sprache-zu-Text-Konverter",
-    "description": "UniScribe wandelt Audio, Video und YouTube-Links in Transkripte, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte um."
+    "description": "Votxt wandelt Audio, Video und YouTube-Links in Transkripte, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte um."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Audio und Video werden zu nutzbarem Text.",
     "upload": "Hochladen",
     "uploadFile": "Datei hochladen",
@@ -31,12 +31,12 @@
     "completed": "Fertig",
     "failed": "Fehler",
     "headline": "Audio und Video in Text umwandeln",
-    "subheadline": "Dateien hochladen, Links einfügen oder aufnehmen. UniScribe erzeugt editierbare Transkripte, Sprecher, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte.",
+    "subheadline": "Dateien hochladen, Links einfügen oder aufnehmen. Votxt erzeugt editierbare Transkripte, Sprecher, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte.",
     "formats": "11+ Medienformate",
     "languages": "63 Sprachen",
     "exportCount": "5 Exportformate",
     "localUploadHint": "Audio: aac, flac, m4a, mp3, opus, wav, webm. Video: mkv, mov, mp4, webm, wmv.",
-    "terms": "Mit der Nutzung von UniScribe akzeptieren Sie Bedingungen und Datenschutz.",
+    "terms": "Mit der Nutzung von Votxt akzeptieren Sie Bedingungen und Datenschutz.",
     "ready": "Bereit",
     "save": "Speichern",
     "workspace": "Arbeitsbereich",

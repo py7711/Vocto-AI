@@ -4,7 +4,7 @@ import {env} from "@/lib/env";
 import {exchangeDriveCode} from "@/lib/google-drive";
 import {prisma} from "@/lib/prisma";
 
-const stateCookie = "uniscribe_drive_state";
+const stateCookie = "votxt_drive_state";
 
 async function fetchDriveEmail(accessToken: string) {
   const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {

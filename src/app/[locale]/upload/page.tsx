@@ -5,7 +5,7 @@ import {getWorkspaceCopy} from "@/components/workspace/copy";
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   const copy = getWorkspaceCopy(params.locale);
   return {
-    title: `${copy.uploadAFile} | UniScribe`
+    title: `${copy.uploadAFile} | Votxt`
   };
 }
 

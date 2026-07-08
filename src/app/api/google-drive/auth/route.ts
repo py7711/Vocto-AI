@@ -3,7 +3,7 @@ import {createRawToken, getCurrentUser, setSignedStateCookie} from "@/lib/auth";
 import {env} from "@/lib/env";
 import {googleDriveRedirectUri, googleDriveScopes} from "@/lib/google-drive";
 
-const stateCookie = "uniscribe_drive_state";
+const stateCookie = "votxt_drive_state";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();

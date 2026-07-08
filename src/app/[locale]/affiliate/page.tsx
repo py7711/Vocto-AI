@@ -5,7 +5,7 @@ export function generateMetadata({params}: {params: {locale: string}}) {
 
   return {
     title: {
-      absolute: `${copy.title} | UniScribe`
+      absolute: `${copy.title} | Votxt`
     },
     description: copy.description
   };

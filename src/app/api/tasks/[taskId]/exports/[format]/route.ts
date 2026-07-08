@@ -38,7 +38,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
     });
     if (!transcript) return NextResponse.json({error: "转写文本尚未准备好。"}, {status: 404});
 
-    const baseName = (transcript.mediaTask.originalName || `uniscribe-${params.taskId}`).replace(/[^\w.\-]+/g, "_");
+    const baseName = (transcript.mediaTask.originalName || `votxt-${params.taskId}`).replace(/[^\w.\-]+/g, "_");
     const fileName = `${baseName}.${format}`;
 
     if (format === "pdf") {
@@ -46,12 +46,12 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       const buffer = await renderToBuffer(
         createElement(
           Document,
-          {title: baseName, author: "UniScribe"},
+          {title: baseName, author: "Votxt"},
           createElement(
             Page,
             {size: "A4", style: styles.page},
-            createElement(Text, {style: styles.title}, transcript.mediaTask.originalName || "UniScribe Transcript"),
-            createElement(Text, {style: styles.meta}, transcript.mediaTask.provider || "UniScribe"),
+            createElement(Text, {style: styles.title}, transcript.mediaTask.originalName || "Votxt Transcript"),
+            createElement(Text, {style: styles.meta}, transcript.mediaTask.provider || "Votxt"),
             ...text.split(/\n{2,}/).map((paragraph, index) => createElement(Text, {key: index, style: styles.paragraph}, paragraph))
           )
         )
@@ -64,7 +64,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
     if (format === "docx") {
       const buffer = await renderDocx(transcript, {
         ...exportOptions,
-        title: transcript.mediaTask.originalName || "UniScribe Transcript",
+        title: transcript.mediaTask.originalName || "Votxt Transcript",
         meta: transcript.mediaTask.provider || undefined
       });
       return new Response(new Uint8Array(buffer), {

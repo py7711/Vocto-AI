@@ -40,7 +40,7 @@ async function importDriveMediaToStorage(input: {
   accessToken: string;
 }) {
   // Drive 文件不能直接交给转写 worker：access token 会过期，worker 也不应该持有用户云盘权限。
-  // 因此导入阶段先由服务端下载并写入 R2，后续任务只读取 UniScribe 自己的对象地址。
+  // 因此导入阶段先由服务端下载并写入 R2，后续任务只读取 Votxt 自己的对象地址。
   const mediaUrl = driveDownloadUrl(input.file.id, input.accessToken);
   const response = await fetch(mediaUrl, {
     headers: {Authorization: `Bearer ${input.accessToken}`}

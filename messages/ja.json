@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "無料オンライン音声テキスト変換",
-    "description": "UniScribe は音声、動画、YouTube リンクを文字起こし、要約、マインドマップ、Q&A、翻訳、書き出しに変換します。"
+    "description": "Votxt は音声、動画、YouTube リンクを文字起こし、要約、マインドマップ、Q&A、翻訳、書き出しに変換します。"
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "音声と動画を使えるテキストへ。",
     "upload": "アップロード",
     "uploadFile": "ファイルをアップロード",
@@ -36,7 +36,7 @@
     "languages": "63 言語",
     "exportCount": "5 書き出し形式",
     "localUploadHint": "音声: aac, flac, m4a, mp3, opus, wav, webm。動画: mkv, mov, mp4, webm, wmv。",
-    "terms": "UniScribe の利用により利用規約とプライバシーポリシーに同意したものとします。",
+    "terms": "Votxt の利用により利用規約とプライバシーポリシーに同意したものとします。",
     "ready": "準備完了",
     "save": "保存",
     "workspace": "ワークスペース",

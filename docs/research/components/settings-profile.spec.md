@@ -3,7 +3,7 @@
 ## Overview
 - Target file: `src/components/settings-page.tsx`
 - Route: `/en/settings`, active tab `Profile`
-- Target URL: `https://www.uniscribe.co/settings`
+- Target URL: `https://www.votxt.co/settings`
 - Interaction model: logged-in settings workbench with static profile form and a Save action. Target QA was read-only; Save was not clicked.
 
 ## Page Shell

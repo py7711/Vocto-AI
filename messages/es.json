@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Convertidor gratuito de voz a texto en línea",
-    "description": "UniScribe convierte audio, video y enlaces de YouTube en transcripciones, resúmenes, mapas mentales, preguntas, traducciones y exportaciones."
+    "description": "Votxt convierte audio, video y enlaces de YouTube en transcripciones, resúmenes, mapas mentales, preguntas, traducciones y exportaciones."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Audio y video convertidos en texto útil.",
     "upload": "Subir",
     "uploadFile": "Subir archivo",
@@ -31,12 +31,12 @@
     "completed": "Completado",
     "failed": "Error",
     "headline": "Convierte audio y video a texto",
-    "subheadline": "Sube archivos, pega enlaces o graba audio. UniScribe genera transcripciones editables, hablantes, resúmenes, mapas mentales, preguntas, traducciones y exportaciones.",
+    "subheadline": "Sube archivos, pega enlaces o graba audio. Votxt genera transcripciones editables, hablantes, resúmenes, mapas mentales, preguntas, traducciones y exportaciones.",
     "formats": "Más de 11 formatos",
     "languages": "63 idiomas",
     "exportCount": "5 formatos de exportación",
     "localUploadHint": "Audio: aac, flac, m4a, mp3, opus, wav, webm. Video: mkv, mov, mp4, webm, wmv.",
-    "terms": "Al usar UniScribe aceptas los términos y la política de privacidad.",
+    "terms": "Al usar Votxt aceptas los términos y la política de privacidad.",
     "ready": "Listo",
     "save": "Guardar",
     "workspace": "Espacio de trabajo",

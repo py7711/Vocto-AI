@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/workspace/Workspace.tsx`
-- Target URL: `https://www.uniscribe.co/upload`
+- Target URL: `https://www.votxt.co/upload`
 - Local URL: `http://localhost:3000/en/upload`
 - Interaction model: static upload entry page with click-driven dialogs for media links and Google Drive.
 
@@ -173,10 +173,10 @@
 - Target rechecked on 2026-07-02 after login: `/upload` no longer displayed the system update modal in the active browser session. Local parity updated so the shared notice is disabled by default and only appears when `NEXT_PUBLIC_SYSTEM_UPDATE_NOTICE_ENABLED=true`, preserving the target-style UI for future maintenance windows without blocking the current upload workflow.
 - Clicking when disconnected starts Google Drive OAuth.
 - Target observed on 2026-06-30 after clicking `Google Drive` from `/upload`:
-  - Navigates away from `https://www.uniscribe.co/upload` to `https://accounts.google.com/v3/signin/identifier...`.
-  - OAuth URL includes `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, and `redirect_uri=https://api.uniscribe.co/auth/google-drive/callback`.
-  - Google login page title is `登录 - Google 账号` in the inspected browser locale and shows `UniScribe` as the destination app.
-- Target rechecked on 2026-07-02: `/upload` was already past the system-update modal in the current session; clicking `Google Drive` from the desktop action list navigated to `https://accounts.google.com/v3/signin/identifier...` with `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, `response_type=code`, and `redirect_uri=https://api.uniscribe.co/auth/google-drive/callback`. QA stopped at the Google sign-in page and did not authorize Drive access.
+  - Navigates away from `https://www.votxt.co/upload` to `https://accounts.google.com/v3/signin/identifier...`.
+  - OAuth URL includes `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, and `redirect_uri=https://api.votxt.co/auth/google-drive/callback`.
+  - Google login page title is `登录 - Google 账号` in the inspected browser locale and shows `Votxt` as the destination app.
+- Target rechecked on 2026-07-02: `/upload` was already past the system-update modal in the current session; clicking `Google Drive` from the desktop action list navigated to `https://accounts.google.com/v3/signin/identifier...` with `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, `response_type=code`, and `redirect_uri=https://api.votxt.co/auth/google-drive/callback`. QA stopped at the Google sign-in page and did not authorize Drive access.
 - Local parity updated on 2026-06-30:
   - Upload page `Google Drive` now checks connection first.
   - If disconnected, it starts authorization directly instead of opening the `Google Drive Import` dialog first.

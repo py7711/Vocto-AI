@@ -10,7 +10,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "cdn.uniscribe.co"
+        hostname: "cdn.votxt.co"
       }
     ]
   },

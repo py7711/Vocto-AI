@@ -76,7 +76,7 @@ function resolveSourceUrl(input: CompatTaskPayload, sourceType: TranscribeJob["s
   if (input.sourceUrl) return input.sourceUrl;
   if (input.fileUrl) return input.fileUrl;
   if (key?.startsWith("http://") || key?.startsWith("https://")) return key;
-  if (key) return `r2://uniscribe-media/${key}`;
+  if (key) return `r2://votxt-media/${key}`;
   if (sourceType === "YOUTUBE") throw new Error("请提供 YouTube 链接。");
   throw new Error("请提供媒体链接或已上传文件 ID。");
 }

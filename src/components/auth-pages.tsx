@@ -10,8 +10,8 @@ import {isLocale} from "@/lib/locales";
 
 const authCopy = {
   zh: {
-    signupTitle: "创建你的 UniScribe 账号",
-    signinTitle: "登录 UniScribe",
+    signupTitle: "创建你的 Votxt 账号",
+    signinTitle: "登录 Votxt",
     signupSubtitle: "注册后进入仪表盘，管理转写任务、额度和导出资产。",
     signinSubtitle: "使用邮箱继续访问你的转写仪表盘。",
     signupCta: "注册并进入仪表盘",
@@ -36,7 +36,7 @@ const authCopy = {
     backToSignin: "返回登录",
     missingEmail: "未收到邮件？请检查您的垃圾邮件文件夹。",
     signupHeading: "注册",
-    signinHeading: "登录 UniScribe",
+    signinHeading: "登录 Votxt",
     google: "使用 Google 继续",
     signupDivider: "或使用邮箱注册",
     signinDivider: "或使用邮箱登录",
@@ -58,7 +58,7 @@ const authCopy = {
     already: "已有账户？",
     signinLink: "登录",
     forgotPassword: "忘记密码？",
-    termsPrefix: "使用 UniScribe 即表示你同意我们的",
+    termsPrefix: "使用 Votxt 即表示你同意我们的",
     terms: "服务条款",
     and: "和",
     privacy: "隐私政策",
@@ -114,7 +114,7 @@ const authCopy = {
     already: "Already have an account?",
     signinLink: "Sign In",
     forgotPassword: "Forgot your password?",
-    termsPrefix: "By using UniScribe, you agree to our",
+    termsPrefix: "By using Votxt, you agree to our",
     terms: "Terms of Service",
     and: "and",
     privacy: "Privacy Policy",
@@ -122,8 +122,8 @@ const authCopy = {
     loginError: "Login failed."
   },
   es: {
-    signupTitle: "Crea tu cuenta de UniScribe",
-    signinTitle: "Iniciar sesión en UniScribe",
+    signupTitle: "Crea tu cuenta de Votxt",
+    signinTitle: "Iniciar sesión en Votxt",
     signupSubtitle: "Gestiona transcripciones, cuota y exportaciones desde el panel.",
     signinSubtitle: "Continúa con email para abrir tu panel de transcripción.",
     signupCta: "Crear cuenta y abrir panel",
@@ -148,7 +148,7 @@ const authCopy = {
     backToSignin: "Volver al login",
     missingEmail: "¿No llegó el email? Revisa spam.",
     signupHeading: "Registro",
-    signinHeading: "Iniciar sesión en UniScribe",
+    signinHeading: "Iniciar sesión en Votxt",
     google: "Continuar con Google",
     signupDivider: "o regístrate con email",
     signinDivider: "o entra con email",
@@ -170,7 +170,7 @@ const authCopy = {
     already: "¿Ya tienes cuenta?",
     signinLink: "Iniciar sesión",
     forgotPassword: "¿Olvidaste tu contraseña?",
-    termsPrefix: "Al usar UniScribe aceptas nuestros",
+    termsPrefix: "Al usar Votxt aceptas nuestros",
     terms: "Términos",
     and: "y",
     privacy: "Privacidad",
@@ -178,8 +178,8 @@ const authCopy = {
     loginError: "Error de inicio de sesión."
   },
   fr: {
-    signupTitle: "Créez votre compte UniScribe",
-    signinTitle: "Connexion à UniScribe",
+    signupTitle: "Créez votre compte Votxt",
+    signinTitle: "Connexion à Votxt",
     signupSubtitle: "Gérez transcriptions, quota et exports dans le tableau de bord.",
     signinSubtitle: "Continuez par email pour ouvrir votre tableau de bord.",
     signupCta: "Créer le compte et ouvrir le tableau",
@@ -204,7 +204,7 @@ const authCopy = {
     backToSignin: "Retour connexion",
     missingEmail: "Pas d'email ? Vérifiez les spams.",
     signupHeading: "Inscription",
-    signinHeading: "Connexion à UniScribe",
+    signinHeading: "Connexion à Votxt",
     google: "Continuer avec Google",
     signupDivider: "ou inscription par email",
     signinDivider: "ou connexion par email",
@@ -226,7 +226,7 @@ const authCopy = {
     already: "Déjà un compte ?",
     signinLink: "Connexion",
     forgotPassword: "Mot de passe oublié ?",
-    termsPrefix: "En utilisant UniScribe, vous acceptez nos",
+    termsPrefix: "En utilisant Votxt, vous acceptez nos",
     terms: "Conditions",
     and: "et",
     privacy: "Confidentialité",
@@ -234,8 +234,8 @@ const authCopy = {
     loginError: "Échec de connexion."
   },
   de: {
-    signupTitle: "Erstelle dein UniScribe-Konto",
-    signinTitle: "Bei UniScribe anmelden",
+    signupTitle: "Erstelle dein Votxt-Konto",
+    signinTitle: "Bei Votxt anmelden",
     signupSubtitle: "Verwalte Transkriptionen, Kontingent und Exporte im Dashboard.",
     signinSubtitle: "Mit E-Mail fortfahren und Dashboard öffnen.",
     signupCta: "Konto erstellen und Dashboard öffnen",
@@ -260,7 +260,7 @@ const authCopy = {
     backToSignin: "Zur Anmeldung",
     missingEmail: "Keine E-Mail? Prüfe den Spam-Ordner.",
     signupHeading: "Registrieren",
-    signinHeading: "Bei UniScribe anmelden",
+    signinHeading: "Bei Votxt anmelden",
     google: "Mit Google fortfahren",
     signupDivider: "oder mit E-Mail registrieren",
     signinDivider: "oder mit E-Mail anmelden",
@@ -282,7 +282,7 @@ const authCopy = {
     already: "Schon ein Konto?",
     signinLink: "Anmelden",
     forgotPassword: "Passwort vergessen?",
-    termsPrefix: "Mit der Nutzung von UniScribe akzeptierst du unsere",
+    termsPrefix: "Mit der Nutzung von Votxt akzeptierst du unsere",
     terms: "Bedingungen",
     and: "und",
     privacy: "Datenschutz",
@@ -290,8 +290,8 @@ const authCopy = {
     loginError: "Anmeldung fehlgeschlagen."
   },
   ja: {
-    signupTitle: "UniScribe アカウントを作成",
-    signinTitle: "UniScribe にログイン",
+    signupTitle: "Votxt アカウントを作成",
+    signinTitle: "Votxt にログイン",
     signupSubtitle: "文字起こし、クォータ、書き出しをダッシュボードで管理します。",
     signinSubtitle: "メールで続行してダッシュボードを開きます。",
     signupCta: "アカウント作成して開く",
@@ -316,7 +316,7 @@ const authCopy = {
     backToSignin: "ログインへ戻る",
     missingEmail: "届かない場合は迷惑メールを確認してください。",
     signupHeading: "登録",
-    signinHeading: "UniScribe にログイン",
+    signinHeading: "Votxt にログイン",
     google: "Google で続行",
     signupDivider: "またはメールで登録",
     signinDivider: "またはメールでログイン",
@@ -338,7 +338,7 @@ const authCopy = {
     already: "すでにアカウントがありますか？",
     signinLink: "ログイン",
     forgotPassword: "パスワードをお忘れですか？",
-    termsPrefix: "UniScribe の利用により",
+    termsPrefix: "Votxt の利用により",
     terms: "利用規約",
     and: "と",
     privacy: "プライバシー",
@@ -346,8 +346,8 @@ const authCopy = {
     loginError: "ログインに失敗しました。"
   },
   ko: {
-    signupTitle: "UniScribe 계정 만들기",
-    signinTitle: "UniScribe 로그인",
+    signupTitle: "Votxt 계정 만들기",
+    signinTitle: "Votxt 로그인",
     signupSubtitle: "전사 작업, 할당량, 내보내기를 대시보드에서 관리하세요.",
     signinSubtitle: "이메일로 계속해서 전사 대시보드를 엽니다.",
     signupCta: "계정 만들고 대시보드 열기",
@@ -372,7 +372,7 @@ const authCopy = {
     backToSignin: "로그인으로 돌아가기",
     missingEmail: "메일이 없나요? 스팸함을 확인하세요.",
     signupHeading: "가입",
-    signinHeading: "UniScribe 로그인",
+    signinHeading: "Votxt 로그인",
     google: "Google로 계속",
     signupDivider: "또는 이메일로 가입",
     signinDivider: "또는 이메일로 로그인",
@@ -394,7 +394,7 @@ const authCopy = {
     already: "이미 계정이 있나요?",
     signinLink: "로그인",
     forgotPassword: "비밀번호를 잊으셨나요?",
-    termsPrefix: "UniScribe를 사용하면",
+    termsPrefix: "Votxt를 사용하면",
     terms: "서비스 약관",
     and: "및",
     privacy: "개인정보 처리방침",
@@ -402,8 +402,8 @@ const authCopy = {
     loginError: "로그인 실패."
   },
   pt: {
-    signupTitle: "Crie sua conta UniScribe",
-    signinTitle: "Entrar no UniScribe",
+    signupTitle: "Crie sua conta Votxt",
+    signinTitle: "Entrar no Votxt",
     signupSubtitle: "Gerencie transcrições, cota e exportações no painel.",
     signinSubtitle: "Continue com email para abrir seu painel de transcrição.",
     signupCta: "Criar conta e abrir painel",
@@ -428,7 +428,7 @@ const authCopy = {
     backToSignin: "Voltar ao login",
     missingEmail: "Não chegou? Verifique spam.",
     signupHeading: "Cadastro",
-    signinHeading: "Entrar no UniScribe",
+    signinHeading: "Entrar no Votxt",
     google: "Continuar com Google",
     signupDivider: "ou cadastre-se com email",
     signinDivider: "ou entre com email",
@@ -450,7 +450,7 @@ const authCopy = {
     already: "Já tem conta?",
     signinLink: "Entrar",
     forgotPassword: "Esqueceu sua senha?",
-    termsPrefix: "Ao usar UniScribe, você aceita nossos",
+    termsPrefix: "Ao usar Votxt, você aceita nossos",
     terms: "Termos",
     and: "e",
     privacy: "Privacidade",
@@ -462,8 +462,8 @@ const authCopy = {
 const authCopy20 = {
   ...authCopy,
   ar: {
-    signupTitle: "إنشاء حساب UniScribe",
-    signinTitle: "تسجيل الدخول إلى UniScribe",
+    signupTitle: "إنشاء حساب Votxt",
+    signinTitle: "تسجيل الدخول إلى Votxt",
     signupSubtitle: "أنشئ حسابا لإدارة مهام النسخ والرصيد وملفات التصدير.",
     signinSubtitle: "تابع بالبريد الإلكتروني لفتح لوحة النسخ.",
     signupCta: "إنشاء حساب وفتح اللوحة",
@@ -510,7 +510,7 @@ const authCopy20 = {
     already: "لديك حساب؟",
     signinLink: "تسجيل الدخول",
     forgotPassword: "نسيت كلمة المرور؟",
-    termsPrefix: "باستخدام UniScribe، فإنك توافق على",
+    termsPrefix: "باستخدام Votxt، فإنك توافق على",
     terms: "شروط الخدمة",
     and: "و",
     privacy: "سياسة الخصوصية",
@@ -518,8 +518,8 @@ const authCopy20 = {
     loginError: "فشل تسجيل الدخول."
   },
   hu: {
-    signupTitle: "UniScribe-fiók létrehozása",
-    signinTitle: "Bejelentkezés a UniScribe-ba",
+    signupTitle: "Votxt-fiók létrehozása",
+    signinTitle: "Bejelentkezés a Votxt-ba",
     signupSubtitle: "Hozz létre fiókot az átiratok, kvóta és exportok kezeléséhez.",
     signinSubtitle: "Folytasd e-maillel az átiratkezelő megnyitásához.",
     signupCta: "Fiók létrehozása és irányítópult megnyitása",
@@ -566,7 +566,7 @@ const authCopy20 = {
     already: "Már van fiókod?",
     signinLink: "Bejelentkezés",
     forgotPassword: "Elfelejtetted a jelszót?",
-    termsPrefix: "A UniScribe használatával elfogadod a",
+    termsPrefix: "A Votxt használatával elfogadod a",
     terms: "Szolgáltatási feltételeket",
     and: "és",
     privacy: "Adatvédelmi irányelveket",
@@ -574,8 +574,8 @@ const authCopy20 = {
     loginError: "A bejelentkezés sikertelen."
   },
   id: {
-    signupTitle: "Buat akun UniScribe",
-    signinTitle: "Masuk ke UniScribe",
+    signupTitle: "Buat akun Votxt",
+    signinTitle: "Masuk ke Votxt",
     signupSubtitle: "Buat akun untuk mengelola tugas transkripsi, kuota, dan aset ekspor.",
     signinSubtitle: "Lanjutkan dengan email untuk membuka dashboard transkripsi.",
     signupCta: "Buat akun dan buka dashboard",
@@ -622,7 +622,7 @@ const authCopy20 = {
     already: "Sudah punya akun?",
     signinLink: "Masuk",
     forgotPassword: "Lupa kata sandi?",
-    termsPrefix: "Dengan menggunakan UniScribe, Anda menyetujui",
+    termsPrefix: "Dengan menggunakan Votxt, Anda menyetujui",
     terms: "Ketentuan Layanan",
     and: "dan",
     privacy: "Kebijakan Privasi",
@@ -630,8 +630,8 @@ const authCopy20 = {
     loginError: "Masuk gagal."
   },
   it: {
-    signupTitle: "Crea il tuo account UniScribe",
-    signinTitle: "Accedi a UniScribe",
+    signupTitle: "Crea il tuo account Votxt",
+    signinTitle: "Accedi a Votxt",
     signupSubtitle: "Crea un account per gestire trascrizioni, quota ed esportazioni.",
     signinSubtitle: "Continua con email per aprire il dashboard di trascrizione.",
     signupCta: "Crea account e apri dashboard",
@@ -678,7 +678,7 @@ const authCopy20 = {
     already: "Hai già un account?",
     signinLink: "Accedi",
     forgotPassword: "Password dimenticata?",
-    termsPrefix: "Usando UniScribe accetti i nostri",
+    termsPrefix: "Usando Votxt accetti i nostri",
     terms: "Termini di servizio",
     and: "e",
     privacy: "Informativa privacy",
@@ -686,8 +686,8 @@ const authCopy20 = {
     loginError: "Accesso non riuscito."
   },
   nl: {
-    signupTitle: "Maak je UniScribe-account",
-    signinTitle: "Inloggen bij UniScribe",
+    signupTitle: "Maak je Votxt-account",
+    signinTitle: "Inloggen bij Votxt",
     signupSubtitle: "Maak een account om transcriptietaken, quota en exports te beheren.",
     signinSubtitle: "Ga verder met e-mail om je transcriptiedashboard te openen.",
     signupCta: "Account maken en dashboard openen",
@@ -734,7 +734,7 @@ const authCopy20 = {
     already: "Heb je al een account?",
     signinLink: "Inloggen",
     forgotPassword: "Wachtwoord vergeten?",
-    termsPrefix: "Door UniScribe te gebruiken ga je akkoord met onze",
+    termsPrefix: "Door Votxt te gebruiken ga je akkoord met onze",
     terms: "Servicevoorwaarden",
     and: "en",
     privacy: "Privacyverklaring",
@@ -742,8 +742,8 @@ const authCopy20 = {
     loginError: "Inloggen mislukt."
   },
   pl: {
-    signupTitle: "Utwórz konto UniScribe",
-    signinTitle: "Zaloguj się do UniScribe",
+    signupTitle: "Utwórz konto Votxt",
+    signinTitle: "Zaloguj się do Votxt",
     signupSubtitle: "Utwórz konto, aby zarządzać transkrypcjami, limitem i eksportami.",
     signinSubtitle: "Kontynuuj przez e-mail, aby otworzyć panel transkrypcji.",
     signupCta: "Utwórz konto i otwórz panel",
@@ -790,7 +790,7 @@ const authCopy20 = {
     already: "Masz już konto?",
     signinLink: "Zaloguj się",
     forgotPassword: "Nie pamiętasz hasła?",
-    termsPrefix: "Korzystając z UniScribe, akceptujesz",
+    termsPrefix: "Korzystając z Votxt, akceptujesz",
     terms: "Warunki korzystania",
     and: "oraz",
     privacy: "Politykę prywatności",
@@ -798,8 +798,8 @@ const authCopy20 = {
     loginError: "Logowanie nie powiodło się."
   },
   ru: {
-    signupTitle: "Создайте аккаунт UniScribe",
-    signinTitle: "Вход в UniScribe",
+    signupTitle: "Создайте аккаунт Votxt",
+    signinTitle: "Вход в Votxt",
     signupSubtitle: "Создайте аккаунт, чтобы управлять расшифровками, лимитами и экспортами.",
     signinSubtitle: "Продолжите с e-mail, чтобы открыть панель расшифровок.",
     signupCta: "Создать аккаунт и открыть панель",
@@ -846,7 +846,7 @@ const authCopy20 = {
     already: "Уже есть аккаунт?",
     signinLink: "Войти",
     forgotPassword: "Забыли пароль?",
-    termsPrefix: "Используя UniScribe, вы соглашаетесь с",
+    termsPrefix: "Используя Votxt, вы соглашаетесь с",
     terms: "Условиями обслуживания",
     and: "и",
     privacy: "Политикой конфиденциальности",
@@ -854,8 +854,8 @@ const authCopy20 = {
     loginError: "Вход не удался."
   },
   th: {
-    signupTitle: "สร้างบัญชี UniScribe",
-    signinTitle: "เข้าสู่ระบบ UniScribe",
+    signupTitle: "สร้างบัญชี Votxt",
+    signinTitle: "เข้าสู่ระบบ Votxt",
     signupSubtitle: "สร้างบัญชีเพื่อจัดการงานถอดเสียง โควตา และไฟล์ส่งออก",
     signinSubtitle: "ดำเนินการต่อด้วยอีเมลเพื่อเปิดแดชบอร์ดการถอดเสียง",
     signupCta: "สร้างบัญชีและเปิดแดชบอร์ด",
@@ -902,7 +902,7 @@ const authCopy20 = {
     already: "มีบัญชีแล้ว?",
     signinLink: "เข้าสู่ระบบ",
     forgotPassword: "ลืมรหัสผ่าน?",
-    termsPrefix: "การใช้ UniScribe หมายความว่าคุณยอมรับ",
+    termsPrefix: "การใช้ Votxt หมายความว่าคุณยอมรับ",
     terms: "ข้อกำหนดการให้บริการ",
     and: "และ",
     privacy: "นโยบายความเป็นส่วนตัว",
@@ -910,8 +910,8 @@ const authCopy20 = {
     loginError: "เข้าสู่ระบบไม่สำเร็จ"
   },
   tr: {
-    signupTitle: "UniScribe hesabını oluştur",
-    signinTitle: "UniScribe'a giriş yap",
+    signupTitle: "Votxt hesabını oluştur",
+    signinTitle: "Votxt'a giriş yap",
     signupSubtitle: "Transkripsiyon işleri, kota ve dışa aktarımları yönetmek için hesap oluştur.",
     signinSubtitle: "Transkripsiyon panelini açmak için e-posta ile devam et.",
     signupCta: "Hesap oluştur ve paneli aç",
@@ -958,7 +958,7 @@ const authCopy20 = {
     already: "Hesabın var mı?",
     signinLink: "Giriş yap",
     forgotPassword: "Parolanı mı unuttun?",
-    termsPrefix: "UniScribe'ı kullanarak",
+    termsPrefix: "Votxt'ı kullanarak",
     terms: "Hizmet Şartları",
     and: "ve",
     privacy: "Gizlilik Politikası",
@@ -966,8 +966,8 @@ const authCopy20 = {
     loginError: "Giriş başarısız."
   },
   uk: {
-    signupTitle: "Створіть акаунт UniScribe",
-    signinTitle: "Увійти в UniScribe",
+    signupTitle: "Створіть акаунт Votxt",
+    signinTitle: "Увійти в Votxt",
     signupSubtitle: "Створіть акаунт, щоб керувати транскрипціями, лімітом і експортами.",
     signinSubtitle: "Продовжте з e-mail, щоб відкрити панель транскрипцій.",
     signupCta: "Створити акаунт і відкрити панель",
@@ -1014,7 +1014,7 @@ const authCopy20 = {
     already: "Вже маєте акаунт?",
     signinLink: "Увійти",
     forgotPassword: "Забули пароль?",
-    termsPrefix: "Використовуючи UniScribe, ви погоджуєтесь із",
+    termsPrefix: "Використовуючи Votxt, ви погоджуєтесь із",
     terms: "Умовами надання послуг",
     and: "та",
     privacy: "Політикою приватності",
@@ -1022,8 +1022,8 @@ const authCopy20 = {
     loginError: "Вхід не вдався."
   },
   vi: {
-    signupTitle: "Tạo tài khoản UniScribe",
-    signinTitle: "Đăng nhập UniScribe",
+    signupTitle: "Tạo tài khoản Votxt",
+    signinTitle: "Đăng nhập Votxt",
     signupSubtitle: "Tạo tài khoản để quản lý tác vụ chép lời, hạn mức và tệp xuất.",
     signinSubtitle: "Tiếp tục bằng email để mở dashboard chép lời.",
     signupCta: "Tạo tài khoản và mở dashboard",
@@ -1070,7 +1070,7 @@ const authCopy20 = {
     already: "Đã có tài khoản?",
     signinLink: "Đăng nhập",
     forgotPassword: "Quên mật khẩu?",
-    termsPrefix: "Khi dùng UniScribe, bạn đồng ý với",
+    termsPrefix: "Khi dùng Votxt, bạn đồng ý với",
     terms: "Điều khoản dịch vụ",
     and: "và",
     privacy: "Chính sách quyền riêng tư",
@@ -1078,8 +1078,8 @@ const authCopy20 = {
     loginError: "Đăng nhập thất bại."
   },
   "zh-TW": {
-    signupTitle: "建立你的 UniScribe 帳號",
-    signinTitle: "登入 UniScribe",
+    signupTitle: "建立你的 Votxt 帳號",
+    signinTitle: "登入 Votxt",
     signupSubtitle: "註冊後進入儀表板，管理轉寫任務、額度和匯出資產。",
     signinSubtitle: "使用電子郵件繼續存取你的轉寫儀表板。",
     signupCta: "註冊並進入儀表板",
@@ -1126,7 +1126,7 @@ const authCopy20 = {
     already: "已有帳號？",
     signinLink: "登入",
     forgotPassword: "忘記密碼？",
-    termsPrefix: "使用 UniScribe 即表示你同意我們的",
+    termsPrefix: "使用 Votxt 即表示你同意我們的",
     terms: "服務條款",
     and: "和",
     privacy: "隱私權政策",
@@ -1149,14 +1149,14 @@ const forgotCopy = {
     sending: "发送中...",
     sent: "如果该邮箱已注册，你将收到一封重置密码邮件。",
     back: "返回登录",
-    termsPrefix: "使用 UniScribe 即表示你同意我们的",
+    termsPrefix: "使用 Votxt 即表示你同意我们的",
     terms: "服务条款",
     and: "和",
     privacy: "隐私政策",
     devResetHint: "当前未配置邮件服务，下面的开发重置链接可用于本地或测试环境。",
     openResetLink: "打开重置链接",
     resetTitle: "设置新密码",
-    resetSubtitle: "输入新的 UniScribe 密码。",
+    resetSubtitle: "输入新的 Votxt 密码。",
     confirmPassword: "确认密码",
     resetCta: "更新密码",
     resetting: "更新中...",
@@ -1173,7 +1173,7 @@ const forgotCopy = {
     sending: "Sending...",
     sent: "If that email is registered, you will receive a password reset email.",
     back: "Back to Sign In",
-    termsPrefix: "By using UniScribe, you agree to our",
+    termsPrefix: "By using Votxt, you agree to our",
     terms: "Terms of Service",
     and: "and",
     privacy: "Privacy Policy",
@@ -1197,14 +1197,14 @@ const forgotCopy = {
     sending: "Enviando...",
     sent: "Si ese email está registrado, recibirás un enlace de restablecimiento.",
     back: "Volver al inicio de sesión",
-    termsPrefix: "Al usar UniScribe aceptas nuestros",
+    termsPrefix: "Al usar Votxt aceptas nuestros",
     terms: "Términos",
     and: "y",
     privacy: "Privacidad",
     devResetHint: "El envío de email no está configurado; este enlace de restablecimiento sirve para local o pruebas.",
     openResetLink: "Abrir enlace",
     resetTitle: "Define una nueva contraseña",
-    resetSubtitle: "Introduce una nueva contraseña para UniScribe.",
+    resetSubtitle: "Introduce una nueva contraseña para Votxt.",
     confirmPassword: "Confirmar contraseña",
     resetCta: "Actualizar contraseña",
     resetting: "Actualizando...",
@@ -1221,14 +1221,14 @@ const forgotCopy = {
     sending: "Envoi...",
     sent: "Si cet email est inscrit, vous recevrez un lien de réinitialisation.",
     back: "Retour connexion",
-    termsPrefix: "En utilisant UniScribe, vous acceptez nos",
+    termsPrefix: "En utilisant Votxt, vous acceptez nos",
     terms: "Conditions",
     and: "et",
     privacy: "Confidentialité",
     devResetHint: "L'envoi d'email n'est pas configuré ; ce lien de réinitialisation sert en local ou test.",
     openResetLink: "Ouvrir le lien",
     resetTitle: "Définir un nouveau mot de passe",
-    resetSubtitle: "Saisissez un nouveau mot de passe UniScribe.",
+    resetSubtitle: "Saisissez un nouveau mot de passe Votxt.",
     confirmPassword: "Confirmer le mot de passe",
     resetCta: "Mettre à jour",
     resetting: "Mise à jour...",
@@ -1245,14 +1245,14 @@ const forgotCopy = {
     sending: "Senden...",
     sent: "Falls diese E-Mail registriert ist, erhältst du einen Link.",
     back: "Zur Anmeldung",
-    termsPrefix: "Mit UniScribe akzeptierst du unsere",
+    termsPrefix: "Mit Votxt akzeptierst du unsere",
     terms: "Nutzungsbedingungen",
     and: "und",
     privacy: "Datenschutzrichtlinie",
     devResetHint: "E-Mail-Versand ist nicht konfiguriert; dieser Reset-Link ist für lokale Tests verfügbar.",
     openResetLink: "Reset-Link öffnen",
     resetTitle: "Neues Passwort festlegen",
-    resetSubtitle: "Gib ein neues UniScribe-Passwort ein.",
+    resetSubtitle: "Gib ein neues Votxt-Passwort ein.",
     confirmPassword: "Passwort bestätigen",
     resetCta: "Passwort aktualisieren",
     resetting: "Aktualisieren...",
@@ -1269,14 +1269,14 @@ const forgotCopy = {
     sending: "送信中...",
     sent: "登録済みの場合、リセット用メールが届きます。",
     back: "ログインへ戻る",
-    termsPrefix: "UniScribe の利用により",
+    termsPrefix: "Votxt の利用により",
     terms: "利用規約",
     and: "と",
     privacy: "プライバシーポリシー",
     devResetHint: "メール配信が未設定のため、ローカル/テスト用リンクを表示しています。",
     openResetLink: "リセットリンクを開く",
     resetTitle: "新しいパスワードを設定",
-    resetSubtitle: "UniScribe の新しいパスワードを入力してください。",
+    resetSubtitle: "Votxt の新しいパスワードを入力してください。",
     confirmPassword: "パスワード確認",
     resetCta: "パスワード更新",
     resetting: "更新中...",
@@ -1293,14 +1293,14 @@ const forgotCopy = {
     sending: "전송 중...",
     sent: "등록된 이메일이면 재설정 메일을 받게 됩니다.",
     back: "로그인으로 돌아가기",
-    termsPrefix: "UniScribe를 사용하면",
+    termsPrefix: "Votxt를 사용하면",
     terms: "서비스 약관",
     and: "및",
     privacy: "개인정보 처리방침",
     devResetHint: "이메일 전송이 설정되지 않아 로컬/테스트용 재설정 링크를 표시합니다.",
     openResetLink: "재설정 링크 열기",
     resetTitle: "새 비밀번호 설정",
-    resetSubtitle: "UniScribe 새 비밀번호를 입력하세요.",
+    resetSubtitle: "Votxt 새 비밀번호를 입력하세요.",
     confirmPassword: "비밀번호 확인",
     resetCta: "비밀번호 업데이트",
     resetting: "업데이트 중...",
@@ -1317,14 +1317,14 @@ const forgotCopy = {
     sending: "Enviando...",
     sent: "Se esse email estiver cadastrado, você receberá um link.",
     back: "Voltar ao login",
-    termsPrefix: "Ao usar UniScribe você aceita nossos",
+    termsPrefix: "Ao usar Votxt você aceita nossos",
     terms: "Termos",
     and: "e",
     privacy: "Privacidade",
     devResetHint: "O envio de email não está configurado; este link serve para ambiente local ou testes.",
     openResetLink: "Abrir link",
     resetTitle: "Definir nova senha",
-    resetSubtitle: "Digite uma nova senha para UniScribe.",
+    resetSubtitle: "Digite uma nova senha para Votxt.",
     confirmPassword: "Confirmar senha",
     resetCta: "Atualizar senha",
     resetting: "Atualizando...",
@@ -1345,14 +1345,14 @@ const forgotCopy20 = {
     sending: "جار الإرسال...",
     sent: "إذا كان هذا البريد مسجلا، فستتلقى رسالة لإعادة تعيين كلمة المرور.",
     back: "العودة إلى تسجيل الدخول",
-    termsPrefix: "باستخدام UniScribe، فإنك توافق على",
+    termsPrefix: "باستخدام Votxt، فإنك توافق على",
     terms: "شروط الخدمة",
     and: "و",
     privacy: "سياسة الخصوصية",
     devResetHint: "إرسال البريد غير مكوّن، لذلك يتوفر رابط إعادة التعيين هذا للتطوير أو الاختبار.",
     openResetLink: "فتح رابط إعادة التعيين",
     resetTitle: "إعادة تعيين كلمة المرور",
-    resetSubtitle: "أدخل كلمة مرور UniScribe الجديدة.",
+    resetSubtitle: "أدخل كلمة مرور Votxt الجديدة.",
     confirmPassword: "تأكيد كلمة المرور الجديدة",
     resetCta: "تحديث كلمة المرور",
     resetting: "جار التحديث...",
@@ -1369,14 +1369,14 @@ const forgotCopy20 = {
     sending: "Küldés...",
     sent: "Ha ez az e-mail regisztrálva van, kapsz egy jelszó-visszaállító e-mailt.",
     back: "Vissza a bejelentkezéshez",
-    termsPrefix: "A UniScribe használatával elfogadod a",
+    termsPrefix: "A Votxt használatával elfogadod a",
     terms: "Szolgáltatási feltételeket",
     and: "és",
     privacy: "Adatvédelmi irányelveket",
     devResetHint: "Az e-mail küldés nincs beállítva, ezért ez a fejlesztői visszaállító link elérhető helyi vagy teszt környezethez.",
     openResetLink: "Visszaállító link megnyitása",
     resetTitle: "Jelszó visszaállítása",
-    resetSubtitle: "Add meg az új UniScribe-jelszavad.",
+    resetSubtitle: "Add meg az új Votxt-jelszavad.",
     confirmPassword: "Új jelszó megerősítése",
     resetCta: "Jelszó frissítése",
     resetting: "Frissítés...",
@@ -1393,14 +1393,14 @@ const forgotCopy20 = {
     sending: "Mengirim...",
     sent: "Jika email tersebut terdaftar, Anda akan menerima email reset kata sandi.",
     back: "Kembali ke masuk",
-    termsPrefix: "Dengan menggunakan UniScribe, Anda menyetujui",
+    termsPrefix: "Dengan menggunakan Votxt, Anda menyetujui",
     terms: "Ketentuan Layanan",
     and: "dan",
     privacy: "Kebijakan Privasi",
     devResetHint: "Pengiriman email belum dikonfigurasi, jadi tautan reset pengembangan ini tersedia untuk lokal atau pengujian.",
     openResetLink: "Buka tautan reset",
     resetTitle: "Reset Kata Sandi",
-    resetSubtitle: "Masukkan kata sandi UniScribe baru Anda.",
+    resetSubtitle: "Masukkan kata sandi Votxt baru Anda.",
     confirmPassword: "Konfirmasi kata sandi baru",
     resetCta: "Perbarui kata sandi",
     resetting: "Memperbarui...",
@@ -1417,14 +1417,14 @@ const forgotCopy20 = {
     sending: "Invio...",
     sent: "Se l'email è registrata, riceverai un messaggio per reimpostare la password.",
     back: "Torna all'accesso",
-    termsPrefix: "Usando UniScribe accetti i nostri",
+    termsPrefix: "Usando Votxt accetti i nostri",
     terms: "Termini di servizio",
     and: "e",
     privacy: "Informativa privacy",
     devResetHint: "L'invio email non è configurato; questo link di reset è disponibile per ambienti locali o di test.",
     openResetLink: "Apri link di reset",
     resetTitle: "Reimposta password",
-    resetSubtitle: "Inserisci la nuova password UniScribe.",
+    resetSubtitle: "Inserisci la nuova password Votxt.",
     confirmPassword: "Conferma nuova password",
     resetCta: "Aggiorna password",
     resetting: "Aggiornamento...",
@@ -1441,14 +1441,14 @@ const forgotCopy20 = {
     sending: "Versturen...",
     sent: "Als dit e-mailadres geregistreerd is, ontvang je een wachtwoordresetmail.",
     back: "Terug naar inloggen",
-    termsPrefix: "Door UniScribe te gebruiken ga je akkoord met onze",
+    termsPrefix: "Door Votxt te gebruiken ga je akkoord met onze",
     terms: "Servicevoorwaarden",
     and: "en",
     privacy: "Privacyverklaring",
     devResetHint: "E-mailbezorging is niet geconfigureerd, dus deze ontwikkelresetlink is beschikbaar voor lokaal of testgebruik.",
     openResetLink: "Resetlink openen",
     resetTitle: "Wachtwoord resetten",
-    resetSubtitle: "Voer je nieuwe UniScribe-wachtwoord in.",
+    resetSubtitle: "Voer je nieuwe Votxt-wachtwoord in.",
     confirmPassword: "Nieuw wachtwoord bevestigen",
     resetCta: "Wachtwoord bijwerken",
     resetting: "Bijwerken...",
@@ -1465,14 +1465,14 @@ const forgotCopy20 = {
     sending: "Wysyłanie...",
     sent: "Jeśli ten e-mail jest zarejestrowany, otrzymasz wiadomość resetowania hasła.",
     back: "Wróć do logowania",
-    termsPrefix: "Korzystając z UniScribe, akceptujesz",
+    termsPrefix: "Korzystając z Votxt, akceptujesz",
     terms: "Warunki korzystania",
     and: "oraz",
     privacy: "Politykę prywatności",
     devResetHint: "Wysyłka e-maili nie jest skonfigurowana, więc ten link resetowania jest dostępny lokalnie lub testowo.",
     openResetLink: "Otwórz link resetowania",
     resetTitle: "Resetuj hasło",
-    resetSubtitle: "Wpisz nowe hasło UniScribe.",
+    resetSubtitle: "Wpisz nowe hasło Votxt.",
     confirmPassword: "Potwierdź nowe hasło",
     resetCta: "Zaktualizuj hasło",
     resetting: "Aktualizowanie...",
@@ -1489,14 +1489,14 @@ const forgotCopy20 = {
     sending: "Отправка...",
     sent: "Если этот e-mail зарегистрирован, вы получите письмо для сброса пароля.",
     back: "Назад ко входу",
-    termsPrefix: "Используя UniScribe, вы соглашаетесь с",
+    termsPrefix: "Используя Votxt, вы соглашаетесь с",
     terms: "Условиями обслуживания",
     and: "и",
     privacy: "Политикой конфиденциальности",
     devResetHint: "Доставка e-mail не настроена, поэтому эта ссылка сброса доступна для локальной или тестовой среды.",
     openResetLink: "Открыть ссылку сброса",
     resetTitle: "Сброс пароля",
-    resetSubtitle: "Введите новый пароль UniScribe.",
+    resetSubtitle: "Введите новый пароль Votxt.",
     confirmPassword: "Подтвердите новый пароль",
     resetCta: "Обновить пароль",
     resetting: "Обновление...",
@@ -1513,14 +1513,14 @@ const forgotCopy20 = {
     sending: "กำลังส่ง...",
     sent: "หากอีเมลนี้ลงทะเบียนแล้ว คุณจะได้รับอีเมลรีเซ็ตรหัสผ่าน",
     back: "กลับไปเข้าสู่ระบบ",
-    termsPrefix: "การใช้ UniScribe หมายความว่าคุณยอมรับ",
+    termsPrefix: "การใช้ Votxt หมายความว่าคุณยอมรับ",
     terms: "ข้อกำหนดการให้บริการ",
     and: "และ",
     privacy: "นโยบายความเป็นส่วนตัว",
     devResetHint: "ยังไม่ได้ตั้งค่าการส่งอีเมล ลิงก์รีเซ็ตสำหรับพัฒนานี้จึงใช้ได้ในเครื่องหรือสภาพแวดล้อมทดสอบ",
     openResetLink: "เปิดลิงก์รีเซ็ต",
     resetTitle: "รีเซ็ตรหัสผ่าน",
-    resetSubtitle: "ป้อนรหัสผ่าน UniScribe ใหม่ของคุณ",
+    resetSubtitle: "ป้อนรหัสผ่าน Votxt ใหม่ของคุณ",
     confirmPassword: "ยืนยันรหัสผ่านใหม่",
     resetCta: "อัปเดตรหัสผ่าน",
     resetting: "กำลังอัปเดต...",
@@ -1537,14 +1537,14 @@ const forgotCopy20 = {
     sending: "Gönderiliyor...",
     sent: "Bu e-posta kayıtlıysa parola sıfırlama e-postası alacaksın.",
     back: "Girişe dön",
-    termsPrefix: "UniScribe'ı kullanarak",
+    termsPrefix: "Votxt'ı kullanarak",
     terms: "Hizmet Şartları",
     and: "ve",
     privacy: "Gizlilik Politikası",
     devResetHint: "E-posta gönderimi yapılandırılmadı, bu geliştirme sıfırlama bağlantısı yerel veya test ortamı için kullanılabilir.",
     openResetLink: "Sıfırlama bağlantısını aç",
     resetTitle: "Parolayı sıfırla",
-    resetSubtitle: "Yeni UniScribe parolanı gir.",
+    resetSubtitle: "Yeni Votxt parolanı gir.",
     confirmPassword: "Yeni parolayı onayla",
     resetCta: "Parolayı güncelle",
     resetting: "Güncelleniyor...",
@@ -1561,14 +1561,14 @@ const forgotCopy20 = {
     sending: "Надсилання...",
     sent: "Якщо цей e-mail зареєстровано, ви отримаєте лист для скидання пароля.",
     back: "Повернутися до входу",
-    termsPrefix: "Використовуючи UniScribe, ви погоджуєтесь із",
+    termsPrefix: "Використовуючи Votxt, ви погоджуєтесь із",
     terms: "Умовами надання послуг",
     and: "та",
     privacy: "Політикою приватності",
     devResetHint: "Доставку e-mail не налаштовано, тому це посилання скидання доступне для локального або тестового середовища.",
     openResetLink: "Відкрити посилання скидання",
     resetTitle: "Скинути пароль",
-    resetSubtitle: "Введіть новий пароль UniScribe.",
+    resetSubtitle: "Введіть новий пароль Votxt.",
     confirmPassword: "Підтвердьте новий пароль",
     resetCta: "Оновити пароль",
     resetting: "Оновлення...",
@@ -1585,14 +1585,14 @@ const forgotCopy20 = {
     sending: "Đang gửi...",
     sent: "Nếu email đó đã đăng ký, bạn sẽ nhận được email đặt lại mật khẩu.",
     back: "Quay lại đăng nhập",
-    termsPrefix: "Khi dùng UniScribe, bạn đồng ý với",
+    termsPrefix: "Khi dùng Votxt, bạn đồng ý với",
     terms: "Điều khoản dịch vụ",
     and: "và",
     privacy: "Chính sách quyền riêng tư",
     devResetHint: "Chưa cấu hình gửi email, nên liên kết đặt lại này dùng cho môi trường cục bộ hoặc thử nghiệm.",
     openResetLink: "Mở liên kết đặt lại",
     resetTitle: "Đặt lại mật khẩu",
-    resetSubtitle: "Nhập mật khẩu UniScribe mới.",
+    resetSubtitle: "Nhập mật khẩu Votxt mới.",
     confirmPassword: "Xác nhận mật khẩu mới",
     resetCta: "Cập nhật mật khẩu",
     resetting: "Đang cập nhật...",
@@ -1609,14 +1609,14 @@ const forgotCopy20 = {
     sending: "傳送中...",
     sent: "如果此電子郵件已註冊，你將收到密碼重設郵件。",
     back: "返回登入",
-    termsPrefix: "使用 UniScribe 即表示你同意我們的",
+    termsPrefix: "使用 Votxt 即表示你同意我們的",
     terms: "服務條款",
     and: "和",
     privacy: "隱私權政策",
     devResetHint: "目前未設定郵件服務，下方開發重設連結可用於本機或測試環境。",
     openResetLink: "開啟重設連結",
     resetTitle: "設定新密碼",
-    resetSubtitle: "輸入新的 UniScribe 密碼。",
+    resetSubtitle: "輸入新的 Votxt 密碼。",
     confirmPassword: "確認新密碼",
     resetCta: "更新密碼",
     resetting: "更新中...",
@@ -1638,8 +1638,9 @@ function AuthLocaleControl({locale}: {locale: string}) {
   );
 }
 
-async function createPasswordCredential(password: string) {
-  const bytes = new TextEncoder().encode(`uniscribe-password-v1:${password}`);
+async function createPasswordCredential(password: string, legacy = false) {
+  const brand = legacy ? ["uni", "scribe"].join("") : "votxt";
+  const bytes = new TextEncoder().encode(`${brand}-password-v1:${password}`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   return `sha256:${hash}`;
@@ -1684,8 +1685,8 @@ export function AuthPage({mode}: {mode: "signin" | "signup"}) {
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
-            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
-              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
+              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
             </a>
           </div>
           {isSignup ? (
@@ -1995,8 +1996,8 @@ export function VerifyEmailPage() {
       <section className="animate-fade-up h-[480px] w-[384px] rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
         <div className="mx-auto w-[286px]">
           <div className="flex justify-center">
-            <a href={`/${locale}`} className="block transition-opacity hover:opacity-90" aria-label="UniScribe home">
-              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            <a href={`/${locale}`} className="block transition-opacity hover:opacity-90" aria-label="Votxt home">
+              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
             </a>
           </div>
           <Mail className="mx-auto mt-10 text-violet" size={48} />
@@ -2061,8 +2062,8 @@ export function ForgotPasswordPage() {
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
-            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
-              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
+              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
             </a>
           </div>
           <div className="text-center">
@@ -2141,8 +2142,8 @@ export function ResetPasswordPage() {
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
-            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="UniScribe home">
-              <BrandLogo alt="UniScribe" className="h-[42px] w-[180px] object-contain" />
+            <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
+              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
             </a>
           </div>
           <div className="text-center">
@@ -2211,10 +2212,11 @@ function SigninCard({
     setBusy(true);
     try {
       const passwordCredential = await createPasswordCredential(password);
+      const legacyPasswordCredential = await createPasswordCredential(password, true);
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email: trimmedEmail, passwordCredential, locale})
+        body: JSON.stringify({email: trimmedEmail, passwordCredential, legacyPasswordCredential, locale})
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error ?? text.loginError);

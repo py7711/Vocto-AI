@@ -2,7 +2,7 @@
 
 ## Overview
 - **Target file:** `src/app/[locale]/docs/page.tsx`
-- **Target URL:** `https://www.uniscribe.co/docs`
+- **Target URL:** `https://www.votxt.co/docs`
 - **Local URL:** `http://localhost:3000/en/docs`
 - **Captured:** 2026-07-01, desktop viewport 1280x720 and mobile viewport 390x844
 - **Interaction model:** static documentation page with sticky public header and sticky right table of contents
@@ -62,7 +62,7 @@
 - **Mobile 390px:** target hides the desktop right TOC and shows a collapsed `Table of Contents` disclosure above the H1. The collapsed control is about `358px` wide, `44px` high, x `16`, y about `81`, with a slate border, 6px radius, white background, and `14px/20px` semibold label. Article content remains single-column.
 
 ## Text Content
-- H1: `UniScribe OpenAPI Documentation (Beta)`
+- H1: `Votxt OpenAPI Documentation (Beta)`
 - Beta notice begins: `⚠️ Beta Version Notice This API is currently in beta.`
 - First sections: `Overview`, `Base URL`, `Authentication`, `File Upload Workflow`, `Endpoints`.
 

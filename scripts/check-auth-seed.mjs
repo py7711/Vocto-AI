@@ -2,13 +2,13 @@ import {readFileSync} from "node:fs";
 import {createHash, scryptSync} from "node:crypto";
 
 const rawPassword = "aa123456";
-const seedSalt = "uniscribe_seed_salt";
-const expectedCredential = "sha256:4a2cd5cd5f2cd1531e4e97c6852efb529e3e201e8abe60e707e9c639e8ed49dd";
-const expectedHash = "scrypt:uniscribe_seed_salt:77JAoUhIrsHWYj5Ky3sPzgZWxm5oQjsvpfSjNk0wIhslHeg_cIxeGpSf0UfNSvBVkpAtv2Ybifyn6Kq3iTtvWw";
+const seedSalt = "votxt_seed_salt";
+const expectedCredential = "sha256:275f58c01515f678aaa778b32ebdf093439f4704cf697879e904dda804b30f48";
+const expectedHash = "scrypt:votxt_seed_salt:f4W5HcJrdfOMp32MBb2LASjszARbdIf3ba9AEeQzjejcvvxnVWrWevCHfqi3qRX6xtS9RTNyn7hi4cZpOuv2TQ";
 const sqlFiles = ["prisma/sql/all.sql"];
 
 function createPasswordCredential(password) {
-  return `sha256:${createHash("sha256").update(`uniscribe-password-v1:${password}`).digest("hex")}`;
+  return `sha256:${createHash("sha256").update(`votxt-password-v1:${password}`).digest("hex")}`;
 }
 
 const credential = createPasswordCredential(rawPassword);

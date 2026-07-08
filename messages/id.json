@@ -1,10 +1,10 @@
 {
   "meta": {
     "title": "Konversi audio dan video ke teks online gratis",
-    "description": "UniScribe memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. UniScribe juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format."
+    "description": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format."
   },
   "app": {
-    "brand": "UniScribe",
+    "brand": "Votxt",
     "tagline": "Audio dan video menjadi teks yang benar-benar berguna.",
     "upload": "Unggah",
     "uploadFile": "Unggah File",
@@ -30,12 +30,12 @@
     "completed": "Selesai",
     "failed": "Gagal",
     "headline": "Konversi Audio & Video ke Teks",
-    "subheadline": "UniScribe memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. UniScribe juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format.",
+    "subheadline": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format.",
     "formats": "Mendukung 11 Format",
     "languages": "Mendukung 63 Bahasa",
     "exportCount": "Ekspor dalam 6 Format",
     "localUploadHint": "Audio: amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, wav, weba, webm, wma. Video: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv.",
-    "terms": "Dengan menggunakan UniScribe, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.",
+    "terms": "Dengan menggunakan Votxt, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami.",
     "ready": "Siap",
     "save": "Simpan",
     "workspace": "Ruang kerja",

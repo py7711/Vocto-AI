@@ -46,7 +46,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
     }
 
     const outline = buildOutline({
-      title: task.originalName || `uniscribe-${task.id}`,
+      title: task.originalName || `votxt-${task.id}`,
       provider: task.provider,
       insights: task.insights
     });
@@ -54,7 +54,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       return NextResponse.json({error: "请先生成 AI 洞察，再导出大纲。"}, {status: 409});
     }
 
-    const baseName = (task.originalName || `uniscribe-${task.id}`).replace(/[^\w.\-]+/g, "_");
+    const baseName = (task.originalName || `votxt-${task.id}`).replace(/[^\w.\-]+/g, "_");
     const fileName = `${baseName}-outline.${format}`;
 
     if (format === "docx") {
@@ -71,7 +71,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       const buffer = await renderToBuffer(
         createElement(
           Document,
-          {title: outline.title, author: "UniScribe"},
+          {title: outline.title, author: "Votxt"},
           createElement(
             Page,
             {size: "A4", style: styles.page},

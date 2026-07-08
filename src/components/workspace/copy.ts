@@ -1242,26 +1242,26 @@ function workspaceMessageOverrides(locale: Locale) {
     "zh-TW": "或"
   };
   const legalNoticeCopy: Record<Locale, {prefix: string; terms: string; connector: string; privacy: string; suffix: string}> = {
-    ar: {prefix: "باستخدام UniScribe، فإنك توافق على ", terms: "شروط الخدمة", connector: " و", privacy: "سياسة الخصوصية", suffix: "."},
-    de: {prefix: "Mit der Nutzung von UniScribe stimmst du den ", terms: "Nutzungsbedingungen", connector: " und der ", privacy: "Datenschutzerklaerung", suffix: " zu."},
-    en: {prefix: "By using UniScribe, you agree to our ", terms: "Terms of Service", connector: " and ", privacy: "Privacy Policy", suffix: "."},
-    es: {prefix: "Al usar UniScribe, aceptas nuestros ", terms: "Terminos de servicio", connector: " y la ", privacy: "Politica de privacidad", suffix: "."},
-    fr: {prefix: "En utilisant UniScribe, vous acceptez les ", terms: "conditions d'utilisation", connector: " et la ", privacy: "politique de confidentialite", suffix: "."},
-    hu: {prefix: "A UniScribe hasznalataval elfogadod a ", terms: "szolgaltatasi felteteleket", connector: " es az ", privacy: "adatvedelmi szabalyzatot", suffix: "."},
-    id: {prefix: "Dengan menggunakan UniScribe, Anda menyetujui ", terms: "Ketentuan Layanan", connector: " dan ", privacy: "Kebijakan Privasi", suffix: "."},
-    it: {prefix: "Usando UniScribe accetti i ", terms: "Termini di servizio", connector: " e l'", privacy: "Informativa sulla privacy", suffix: "."},
-    ja: {prefix: "UniScribe を使用すると、", terms: "利用規約", connector: "および", privacy: "プライバシーポリシー", suffix: "に同意したものとみなされます。"},
-    ko: {prefix: "UniScribe를 사용하면 ", terms: "서비스 약관", connector: " 및 ", privacy: "개인정보 처리방침", suffix: "에 동의하는 것입니다."},
-    nl: {prefix: "Door UniScribe te gebruiken ga je akkoord met de ", terms: "servicevoorwaarden", connector: " en het ", privacy: "privacybeleid", suffix: "."},
-    pl: {prefix: "Korzystajac z UniScribe akceptujesz ", terms: "warunki korzystania", connector: " oraz ", privacy: "polityke prywatnosci", suffix: "."},
-    pt: {prefix: "Ao usar o UniScribe, voce concorda com os ", terms: "Termos de Servico", connector: " e a ", privacy: "Politica de Privacidade", suffix: "."},
-    ru: {prefix: "Используя UniScribe, вы соглашаетесь с ", terms: "условиями сервиса", connector: " и ", privacy: "политикой конфиденциальности", suffix: "."},
-    th: {prefix: "เมื่อใช้ UniScribe คุณยอมรับ", terms: "ข้อกำหนดการให้บริการ", connector: "และ", privacy: "นโยบายความเป็นส่วนตัว", suffix: ""},
-    tr: {prefix: "UniScribe'i kullanarak ", terms: "Hizmet Sartlari", connector: " ve ", privacy: "Gizlilik Politikasi", suffix: "ni kabul edersiniz."},
-    uk: {prefix: "Використовуючи UniScribe, ви погоджуєтесь з ", terms: "умовами сервісу", connector: " і ", privacy: "політикою конфіденційності", suffix: "."},
-    vi: {prefix: "Khi su dung UniScribe, ban dong y voi ", terms: "Dieu khoan dich vu", connector: " va ", privacy: "Chinh sach quyen rieng tu", suffix: "."},
-    zh: {prefix: "使用 UniScribe 即表示你同意", terms: "服务条款", connector: "和", privacy: "隐私政策", suffix: "。"},
-    "zh-TW": {prefix: "使用 UniScribe 即表示你同意", terms: "服務條款", connector: "和", privacy: "隱私權政策", suffix: "。"}
+    ar: {prefix: "باستخدام Votxt، فإنك توافق على ", terms: "شروط الخدمة", connector: " و", privacy: "سياسة الخصوصية", suffix: "."},
+    de: {prefix: "Mit der Nutzung von Votxt stimmst du den ", terms: "Nutzungsbedingungen", connector: " und der ", privacy: "Datenschutzerklaerung", suffix: " zu."},
+    en: {prefix: "By using Votxt, you agree to our ", terms: "Terms of Service", connector: " and ", privacy: "Privacy Policy", suffix: "."},
+    es: {prefix: "Al usar Votxt, aceptas nuestros ", terms: "Terminos de servicio", connector: " y la ", privacy: "Politica de privacidad", suffix: "."},
+    fr: {prefix: "En utilisant Votxt, vous acceptez les ", terms: "conditions d'utilisation", connector: " et la ", privacy: "politique de confidentialite", suffix: "."},
+    hu: {prefix: "A Votxt hasznalataval elfogadod a ", terms: "szolgaltatasi felteteleket", connector: " es az ", privacy: "adatvedelmi szabalyzatot", suffix: "."},
+    id: {prefix: "Dengan menggunakan Votxt, Anda menyetujui ", terms: "Ketentuan Layanan", connector: " dan ", privacy: "Kebijakan Privasi", suffix: "."},
+    it: {prefix: "Usando Votxt accetti i ", terms: "Termini di servizio", connector: " e l'", privacy: "Informativa sulla privacy", suffix: "."},
+    ja: {prefix: "Votxt を使用すると、", terms: "利用規約", connector: "および", privacy: "プライバシーポリシー", suffix: "に同意したものとみなされます。"},
+    ko: {prefix: "Votxt를 사용하면 ", terms: "서비스 약관", connector: " 및 ", privacy: "개인정보 처리방침", suffix: "에 동의하는 것입니다."},
+    nl: {prefix: "Door Votxt te gebruiken ga je akkoord met de ", terms: "servicevoorwaarden", connector: " en het ", privacy: "privacybeleid", suffix: "."},
+    pl: {prefix: "Korzystajac z Votxt akceptujesz ", terms: "warunki korzystania", connector: " oraz ", privacy: "polityke prywatnosci", suffix: "."},
+    pt: {prefix: "Ao usar o Votxt, voce concorda com os ", terms: "Termos de Servico", connector: " e a ", privacy: "Politica de Privacidade", suffix: "."},
+    ru: {prefix: "Используя Votxt, вы соглашаетесь с ", terms: "условиями сервиса", connector: " и ", privacy: "политикой конфиденциальности", suffix: "."},
+    th: {prefix: "เมื่อใช้ Votxt คุณยอมรับ", terms: "ข้อกำหนดการให้บริการ", connector: "และ", privacy: "นโยบายความเป็นส่วนตัว", suffix: ""},
+    tr: {prefix: "Votxt'i kullanarak ", terms: "Hizmet Sartlari", connector: " ve ", privacy: "Gizlilik Politikasi", suffix: "ni kabul edersiniz."},
+    uk: {prefix: "Використовуючи Votxt, ви погоджуєтесь з ", terms: "умовами сервісу", connector: " і ", privacy: "політикою конфіденційності", suffix: "."},
+    vi: {prefix: "Khi su dung Votxt, ban dong y voi ", terms: "Dieu khoan dich vu", connector: " va ", privacy: "Chinh sach quyen rieng tu", suffix: "."},
+    zh: {prefix: "使用 Votxt 即表示你同意", terms: "服务条款", connector: "和", privacy: "隐私政策", suffix: "。"},
+    "zh-TW": {prefix: "使用 Votxt 即表示你同意", terms: "服務條款", connector: "和", privacy: "隱私權政策", suffix: "。"}
   };
 
   return {
@@ -1946,7 +1946,7 @@ function getWorkspaceDashboardCopy(locale: Locale) {
       generateTranslation: terms.generateTranslation
     },
     appSumoWelcome: {
-      badge: "UniScribe x AppSumo",
+      badge: "Votxt x AppSumo",
       activeTitle: `AppSumo · ${app.ready}`,
       activeText: (plan: string, account: string) => `${plan} · ${account}`,
       steps: [
@@ -2018,7 +2018,7 @@ export const workspaceCopy = {
     noLedger: "还没有用量流水。创建转写任务后会记录预留、结算和释放。",
     usageLoginEmpty: "登录并初始化订阅后会显示个人用量、账期和最近流水。",
     periodUnset: "未设置",
-    whyTitle: "为什么选择 UniScribe",
+    whyTitle: "为什么选择 Votxt",
     useCases: [
       ["学生和课程", "把讲座、网课、公开视频转成可检索笔记。"],
       ["个人会议", "保存会议录音、访谈、培训和语音备忘中的关键内容。"],
@@ -2042,7 +2042,7 @@ export const workspaceCopy = {
     readTasksError: "无法读取转写任务列表。",
     readUsageError: "无法读取用量数据。",
     readTaskError: "无法读取转写任务。",
-    shareTitle: "UniScribe 转写分享",
+    shareTitle: "Votxt 转写分享",
     shareError: "无法创建分享链接。",
     shareDone: "分享链接已创建并复制到剪贴板。",
     insightError: "无法生成 AI 洞察。",
@@ -2090,7 +2090,7 @@ export const workspaceCopy = {
     noLedger: "No usage ledger yet. Creating transcription jobs will record reserve, settle, and release events.",
     usageLoginEmpty: "Sign in and initialize a subscription to see personal usage, billing period, and recent ledger entries.",
     periodUnset: "Not set",
-    whyTitle: "Why UniScribe",
+    whyTitle: "Why Votxt",
     useCases: [
       ["Students and courses", "Turn lectures, online classes, and public videos into searchable notes."],
       ["Personal meetings", "Preserve the key details from meetings, interviews, training, and voice memos."],
@@ -2108,7 +2108,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["Can I try it for free?", "Yes. The Free plan includes monthly minutes, daily file limits, transcript editing, and standard exports."],
       ["Which files are supported?", "Common audio and video formats are supported, including mp3, wav, m4a, flac, mp4, mov, mkv, webm, and wmv."],
-      ["How are speaker labels generated?", "When enabled, UniScribe prioritizes Deepgram or AssemblyAI diarization and falls back to Groq transcription if needed."],
+      ["How are speaker labels generated?", "When enabled, Votxt prioritizes Deepgram or AssemblyAI diarization and falls back to Groq transcription if needed."],
       ["Can I export subtitles?", "Yes. Completed jobs can export SRT and VTT, plus TXT, JSON, and PDF."]
     ],
     needRecording: "Please finish a recording first.",
@@ -2119,7 +2119,7 @@ export const workspaceCopy = {
     readTasksError: "Unable to read transcription tasks.",
     readUsageError: "Unable to read usage data.",
     readTaskError: "Unable to read transcription task.",
-    shareTitle: "UniScribe transcript share",
+    shareTitle: "Votxt transcript share",
     shareError: "Unable to create share link.",
     shareDone: "Share link created and copied to clipboard.",
     insightError: "Unable to generate AI insights.",
@@ -2167,7 +2167,7 @@ export const workspaceCopy = {
     noLedger: "Aún no hay registro de uso. Las tareas de transcripción registrarán reservas, liquidaciones y liberaciones.",
     usageLoginEmpty: "Inicia sesión e inicializa una suscripción para ver tu uso, periodo de facturación y movimientos recientes.",
     periodUnset: "Sin definir",
-    whyTitle: "Por qué UniScribe",
+    whyTitle: "Por qué Votxt",
     useCases: [
       ["Estudiantes y cursos", "Convierte clases, cursos online y videos públicos en notas buscables."],
       ["Reuniones personales", "Conserva los puntos clave de Zoom, entrevistas, formaciones y reuniones con clientes."],
@@ -2185,7 +2185,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["¿Puedo probarlo gratis?", "Sí. El plan gratuito incluye minutos mensuales, límites diarios, edición de transcripción y exportaciones estándar."],
       ["¿Qué archivos admite?", "Admite formatos comunes de audio y video, como mp3, wav, m4a, flac, mp4, mov, mkv, webm y wmv."],
-      ["¿Cómo se generan las etiquetas de hablante?", "Al activarlas, UniScribe prioriza la diarización de Deepgram o AssemblyAI y recurre a Groq si hace falta."],
+      ["¿Cómo se generan las etiquetas de hablante?", "Al activarlas, Votxt prioriza la diarización de Deepgram o AssemblyAI y recurre a Groq si hace falta."],
       ["¿Puedo exportar subtítulos?", "Sí. Las tareas completadas exportan SRT y VTT, además de TXT, JSON y PDF."]
     ],
     needRecording: "Primero termina una grabación.",
@@ -2196,7 +2196,7 @@ export const workspaceCopy = {
     readTasksError: "No se pudieron leer las tareas de transcripción.",
     readUsageError: "No se pudieron leer los datos de uso.",
     readTaskError: "No se pudo leer la tarea de transcripción.",
-    shareTitle: "Compartir transcripción de UniScribe",
+    shareTitle: "Compartir transcripción de Votxt",
     shareError: "No se pudo crear el enlace compartido.",
     shareDone: "Enlace compartido creado y copiado al portapapeles.",
     insightError: "No se pudieron generar insights de IA.",
@@ -2244,7 +2244,7 @@ export const workspaceCopy = {
     noLedger: "Aucun journal d'utilisation pour le moment. Les tâches de transcription enregistreront réservations, validations et libérations.",
     usageLoginEmpty: "Connectez-vous et initialisez un abonnement pour voir votre utilisation, la période de facturation et les mouvements récents.",
     periodUnset: "Non défini",
-    whyTitle: "Pourquoi UniScribe",
+    whyTitle: "Pourquoi Votxt",
     useCases: [
       ["Étudiants et cours", "Transformez conférences, cours en ligne et vidéos publiques en notes consultables."],
       ["Réunions personnelles", "Conservez les détails clés de Zoom, interviews, formations et réunions client."],
@@ -2262,7 +2262,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["Puis-je essayer gratuitement ?", "Oui. Le forfait gratuit inclut des minutes mensuelles, des limites quotidiennes, l'édition de transcription et les exports standard."],
       ["Quels fichiers sont pris en charge ?", "Les formats audio et vidéo courants sont pris en charge, dont mp3, wav, m4a, flac, mp4, mov, mkv, webm et wmv."],
-      ["Comment les intervenants sont-ils identifiés ?", "Une fois activé, UniScribe privilégie Deepgram ou AssemblyAI pour la diarisation, puis bascule vers Groq si nécessaire."],
+      ["Comment les intervenants sont-ils identifiés ?", "Une fois activé, Votxt privilégie Deepgram ou AssemblyAI pour la diarisation, puis bascule vers Groq si nécessaire."],
       ["Puis-je exporter des sous-titres ?", "Oui. Les tâches terminées exportent SRT et VTT, ainsi que TXT, JSON et PDF."]
     ],
     needRecording: "Terminez d'abord un enregistrement.",
@@ -2273,7 +2273,7 @@ export const workspaceCopy = {
     readTasksError: "Impossible de lire les tâches de transcription.",
     readUsageError: "Impossible de lire les données d'utilisation.",
     readTaskError: "Impossible de lire la tâche de transcription.",
-    shareTitle: "Partage de transcription UniScribe",
+    shareTitle: "Partage de transcription Votxt",
     shareError: "Impossible de créer le lien de partage.",
     shareDone: "Lien de partage créé et copié dans le presse-papiers.",
     insightError: "Impossible de générer les analyses IA.",
@@ -2321,7 +2321,7 @@ export const workspaceCopy = {
     noLedger: "Noch kein Nutzungsprotokoll. Transkriptionsaufgaben erfassen Reservierung, Abrechnung und Freigabe.",
     usageLoginEmpty: "Melde dich an und initialisiere ein Abo, um persönliche Nutzung, Abrechnungszeitraum und aktuelle Einträge zu sehen.",
     periodUnset: "Nicht gesetzt",
-    whyTitle: "Warum UniScribe",
+    whyTitle: "Warum Votxt",
     useCases: [
       ["Studierende und Kurse", "Verwandle Vorlesungen, Onlinekurse und öffentliche Videos in durchsuchbare Notizen."],
       ["Persönliche Meetings", "Bewahre wichtige Details aus Zoom-Calls, Interviews, Trainings und Kundengesprächen."],
@@ -2339,7 +2339,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["Kann ich kostenlos testen?", "Ja. Der kostenlose Plan enthält Monatsminuten, Tageslimits, Transkriptbearbeitung und Standardexporte."],
       ["Welche Dateien werden unterstützt?", "Unterstützt werden gängige Audio- und Videoformate wie mp3, wav, m4a, flac, mp4, mov, mkv, webm und wmv."],
-      ["Wie werden Sprecherlabels erzeugt?", "Wenn aktiviert, priorisiert UniScribe Deepgram oder AssemblyAI für Diarisierung und fällt bei Bedarf auf Groq zurück."],
+      ["Wie werden Sprecherlabels erzeugt?", "Wenn aktiviert, priorisiert Votxt Deepgram oder AssemblyAI für Diarisierung und fällt bei Bedarf auf Groq zurück."],
       ["Kann ich Untertitel exportieren?", "Ja. Abgeschlossene Aufgaben können SRT und VTT sowie TXT, JSON und PDF exportieren."]
     ],
     needRecording: "Bitte beende zuerst eine Aufnahme.",
@@ -2350,7 +2350,7 @@ export const workspaceCopy = {
     readTasksError: "Transkriptionsaufgaben konnten nicht gelesen werden.",
     readUsageError: "Nutzungsdaten konnten nicht gelesen werden.",
     readTaskError: "Transkriptionsaufgabe konnte nicht gelesen werden.",
-    shareTitle: "UniScribe-Transkript teilen",
+    shareTitle: "Votxt-Transkript teilen",
     shareError: "Teillink konnte nicht erstellt werden.",
     shareDone: "Teillink erstellt und in die Zwischenablage kopiert.",
     insightError: "KI-Insights konnten nicht erzeugt werden.",
@@ -2398,7 +2398,7 @@ export const workspaceCopy = {
     noLedger: "利用履歴はまだありません。文字起こしタスク作成後に予約、確定、解放が記録されます。",
     usageLoginEmpty: "ログインしてサブスクリプションを初期化すると、個人利用状況、請求期間、最近の履歴が表示されます。",
     periodUnset: "未設定",
-    whyTitle: "UniScribe が選ばれる理由",
+    whyTitle: "Votxt が選ばれる理由",
     useCases: [
       ["学生と授業", "講義、オンライン授業、公開動画を検索可能なノートに変換します。"],
       ["個人の会議", "Zoom、インタビュー、研修、顧客会議の重要ポイントを保存します。"],
@@ -2427,7 +2427,7 @@ export const workspaceCopy = {
     readTasksError: "文字起こしタスク一覧を取得できません。",
     readUsageError: "利用データを取得できません。",
     readTaskError: "文字起こしタスクを取得できません。",
-    shareTitle: "UniScribe 文字起こし共有",
+    shareTitle: "Votxt 文字起こし共有",
     shareError: "共有リンクを作成できません。",
     shareDone: "共有リンクを作成し、クリップボードへコピーしました。",
     insightError: "AI インサイトを生成できません。",
@@ -2475,7 +2475,7 @@ export const workspaceCopy = {
     noLedger: "아직 사용량 내역이 없습니다. 전사 작업 생성 후 예약, 정산, 해제가 기록됩니다.",
     usageLoginEmpty: "로그인하고 구독을 초기화하면 개인 사용량, 청구 기간, 최근 내역을 볼 수 있습니다.",
     periodUnset: "미설정",
-    whyTitle: "UniScribe를 선택하는 이유",
+    whyTitle: "Votxt를 선택하는 이유",
     useCases: [
       ["학생과 강의", "강의, 온라인 수업, 공개 영상을 검색 가능한 노트로 바꿉니다."],
       ["개인 회의", "Zoom, 인터뷰, 교육, 고객 회의의 핵심 내용을 보존합니다."],
@@ -2493,7 +2493,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["무료로 체험할 수 있나요?", "네. 무료 플랜에는 월간 분수, 일일 파일 제한, 전사 편집, 표준 내보내기가 포함됩니다."],
       ["어떤 파일을 지원하나요?", "mp3, wav, m4a, flac, mp4, mov, mkv, webm, wmv 등 일반적인 오디오와 비디오 형식을 지원합니다."],
-      ["화자 라벨은 어떻게 생성되나요?", "활성화하면 UniScribe는 Deepgram 또는 AssemblyAI의 화자 분리를 우선 사용하고 필요 시 Groq로 전환합니다."],
+      ["화자 라벨은 어떻게 생성되나요?", "활성화하면 Votxt는 Deepgram 또는 AssemblyAI의 화자 분리를 우선 사용하고 필요 시 Groq로 전환합니다."],
       ["자막을 내보낼 수 있나요?", "네. 완료된 작업은 SRT, VTT와 함께 TXT, JSON, PDF로 내보낼 수 있습니다."]
     ],
     needRecording: "먼저 녹음을 완료하세요.",
@@ -2504,7 +2504,7 @@ export const workspaceCopy = {
     readTasksError: "전사 작업 목록을 읽을 수 없습니다.",
     readUsageError: "사용량 데이터를 읽을 수 없습니다.",
     readTaskError: "전사 작업을 읽을 수 없습니다.",
-    shareTitle: "UniScribe 전사 공유",
+    shareTitle: "Votxt 전사 공유",
     shareError: "공유 링크를 만들 수 없습니다.",
     shareDone: "공유 링크가 생성되어 클립보드에 복사되었습니다.",
     insightError: "AI 인사이트를 생성할 수 없습니다.",
@@ -2552,7 +2552,7 @@ export const workspaceCopy = {
     noLedger: "Ainda não há histórico de uso. Tarefas de transcrição registrarão reserva, liquidação e liberação.",
     usageLoginEmpty: "Entre e inicialize uma assinatura para ver seu uso, período de cobrança e histórico recente.",
     periodUnset: "Não definido",
-    whyTitle: "Por que UniScribe",
+    whyTitle: "Por que Votxt",
     useCases: [
       ["Estudantes e cursos", "Transforme palestras, aulas online e vídeos públicos em notas pesquisáveis."],
       ["Reuniões pessoais", "Preserve detalhes importantes de Zoom, entrevistas, treinamentos e reuniões com clientes."],
@@ -2570,7 +2570,7 @@ export const workspaceCopy = {
     homeFaqs: [
       ["Posso testar grátis?", "Sim. O plano grátis inclui minutos mensais, limites diários, edição de transcrição e exportações padrão."],
       ["Quais arquivos são suportados?", "Formatos comuns de áudio e vídeo são suportados, incluindo mp3, wav, m4a, flac, mp4, mov, mkv, webm e wmv."],
-      ["Como os rótulos de locutor são gerados?", "Quando ativado, o UniScribe prioriza a diarização da Deepgram ou AssemblyAI e alterna para Groq se necessário."],
+      ["Como os rótulos de locutor são gerados?", "Quando ativado, o Votxt prioriza a diarização da Deepgram ou AssemblyAI e alterna para Groq se necessário."],
       ["Posso exportar legendas?", "Sim. Tarefas concluídas exportam SRT e VTT, além de TXT, JSON e PDF."]
     ],
     needRecording: "Conclua uma gravação primeiro.",
@@ -2581,7 +2581,7 @@ export const workspaceCopy = {
     readTasksError: "Não foi possível ler as tarefas de transcrição.",
     readUsageError: "Não foi possível ler os dados de uso.",
     readTaskError: "Não foi possível ler a tarefa de transcrição.",
-    shareTitle: "Compartilhar transcrição UniScribe",
+    shareTitle: "Compartilhar transcrição Votxt",
     shareError: "Não foi possível criar o link de compartilhamento.",
     shareDone: "Link de compartilhamento criado e copiado para a área de transferência.",
     insightError: "Não foi possível gerar insights de IA.",
@@ -2747,7 +2747,7 @@ export const fallbackMessages: Record<string, string> = {
   recordAudio: "录音",
   headline: "音视频一键转文字",
   subheadline:
-    "上传文件、粘贴视频链接或直接录音。UniScribe 会生成可编辑转写、发言人段落、AI 总结、思维导图、问答、翻译和多格式导出。",
+    "上传文件、粘贴视频链接或直接录音。Votxt 会生成可编辑转写、发言人段落、AI 总结、思维导图、问答、翻译和多格式导出。",
   formats: "支持 11+ 媒体格式",
   languages: "支持 63 种语言",
   exportCount: "支持 5 种导出",
@@ -2761,7 +2761,7 @@ export const fallbackMessages: Record<string, string> = {
   type: "类型",
   folder: "文件夹",
   localUploadHint: "音频: aac, amr, awb, flac, m4a, mka, mp2, mp3, oga, ogg, opus, wav, weba, webm, wma。视频: 3gp, mkv, mov, mp4, mpg, ts, webm, wmv。",
-  terms: "使用 UniScribe 即表示你同意服务条款和隐私政策。",
+  terms: "使用 Votxt 即表示你同意服务条款和隐私政策。",
   ready: "就绪",
   save: "保存",
   workspace: "工作台",

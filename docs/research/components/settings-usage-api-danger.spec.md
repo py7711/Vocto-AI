@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/settings-page.tsx`
-- Screenshot: `docs/design-references/uniscribe.co/settings-desktop.png`
+- Screenshot: `docs/design-references/votxt.co/settings-desktop.png`
 - Interaction model: static settings cards with click-driven billing, API docs/pricing navigation, and account delete confirmation.
 
 ## DOM Structure
@@ -214,7 +214,7 @@
 - `Buy now`
 - `API Key Management`
 - `Beta`
-- `Manage your API keys for accessing the UniScribe API`
+- `Manage your API keys for accessing the Votxt API`
 - `View API Documentation`
 - `API access requires an active subscription or LTD plan`
 - `Upgrade your plan to access API management features`

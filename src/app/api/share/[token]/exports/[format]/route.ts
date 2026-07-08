@@ -41,9 +41,9 @@ export async function GET(request: Request, {params}: {params: {token: string; f
     }
 
     const exportOptions = parseExportOptions(new URL(request.url));
-    const baseName = (task.originalName || `uniscribe-share-${share.id}`).replace(/[^\w.\-]+/g, "_");
+    const baseName = (task.originalName || `votxt-share-${share.id}`).replace(/[^\w.\-]+/g, "_");
     const fileName = `${baseName}.${format}`;
-    const title = task.originalName || share.title || "UniScribe Transcript";
+    const title = task.originalName || share.title || "Votxt Transcript";
     const meta = task.provider || undefined;
 
     if (format === "pdf") {
@@ -51,7 +51,7 @@ export async function GET(request: Request, {params}: {params: {token: string; f
       const buffer = await renderToBuffer(
         createElement(
           Document,
-          {title, author: "UniScribe"},
+          {title, author: "Votxt"},
           createElement(
             Page,
             {size: "A4", style: styles.page},

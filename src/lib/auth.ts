@@ -7,10 +7,10 @@ import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 
 const scrypt = promisify(scryptCallback);
-const sessionCookieName = "uniscribe_session";
-const oauthStateCookieName = "uniscribe_oauth_state";
+const sessionCookieName = "votxt_session";
+const oauthStateCookieName = "votxt_oauth_state";
 const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
-// 前端不会直接提交明文密码，而是提交 sha256(uniscribe-password-v1:${password})。
+// 前端不会直接提交明文密码，而是提交 sha256(votxt-password-v1:${password})。
 // 后端再对这个 credential 做 scrypt 入库，避免数据库中出现可直接用于登录表单的明文等价值材料。
 const passwordCredentialPattern = /^sha256:[a-f0-9]{64}$/;
 
@@ -78,7 +78,7 @@ export function isPasswordCredential(value: string) {
 }
 
 function createPasswordCredential(password: string) {
-  return `sha256:${createHash("sha256").update(`uniscribe-password-v1:${password}`).digest("hex")}`;
+  return `sha256:${createHash("sha256").update(`votxt-password-v1:${password}`).digest("hex")}`;
 }
 
 export async function hashPasswordCredential(passwordCredential: string) {
@@ -97,6 +97,15 @@ export async function hashRawPassword(password: string) {
 export async function verifyPasswordCredential(passwordCredential: string, storedHash: string | null | undefined) {
   if (!isPasswordCredential(passwordCredential)) return false;
   return verifyPassword(passwordCredential, storedHash);
+}
+
+export async function verifyPasswordCredentials(passwordCredentials: Array<string | null | undefined>, storedHash: string | null | undefined) {
+  for (const passwordCredential of passwordCredentials) {
+    if (passwordCredential && await verifyPasswordCredential(passwordCredential, storedHash)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export async function setSessionCookie(userId: string) {

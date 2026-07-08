@@ -3,7 +3,7 @@
 ## Overview
 - Target file: `src/components/auth-pages.tsx`
 - Routes: `/en/auth/signup`, `/en/auth/forgot-password`, `/en/auth/reset-password`
-- Target URLs: `https://www.uniscribe.co/auth/signup`, `https://www.uniscribe.co/auth/forgot-password`, `https://www.uniscribe.co/auth/reset-password`
+- Target URLs: `https://www.votxt.co/auth/signup`, `https://www.votxt.co/auth/forgot-password`, `https://www.votxt.co/auth/reset-password`
 - Interaction model: form-driven auth flows. Target inspection was read-only; no target signup, reset request, or password reset was submitted.
 
 ## Shared Target Shell

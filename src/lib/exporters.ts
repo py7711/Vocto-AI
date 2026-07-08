@@ -184,7 +184,7 @@ export function renderJson(transcript: Transcript) {
 }
 
 export function renderMarkdown(transcript: Transcript, options: ExportOptions = {}) {
-  const title = options.title || "UniScribe Transcript";
+  const title = options.title || "Votxt Transcript";
   const head = options.meta ? `# ${title}\n\n_${options.meta}_\n` : `# ${title}\n`;
   const list = segments(transcript);
 
@@ -225,7 +225,7 @@ export function renderCsv(transcript: Transcript, options: ExportOptions = {}) {
 
 export async function renderDocx(transcript: Transcript, options: ExportOptions = {}) {
   const children: Paragraph[] = [
-    new Paragraph({text: options.title || "UniScribe Transcript", heading: HeadingLevel.HEADING_1})
+    new Paragraph({text: options.title || "Votxt Transcript", heading: HeadingLevel.HEADING_1})
   ];
 
   if (options.meta) {

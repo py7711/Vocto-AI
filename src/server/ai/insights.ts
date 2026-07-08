@@ -68,7 +68,7 @@ export async function generateInsights(
   const fallbackPayload = fallbackInsights(text, locale, summaryTemplate);
   const {payload, model} = await generateJsonWithFallback(
     {
-      system: "你是 UniScribe 音视频转文字产品的 AI 洞察引擎，帮助用户整理摘要、思维导图和问答。只返回严格 JSON，字段必须包含 summary、mindMap、qa。摘要 bullet 应尽量附带原文时间范围。",
+      system: "你是 Votxt 音视频转文字产品的 AI 洞察引擎，帮助用户整理摘要、思维导图和问答。只返回严格 JSON，字段必须包含 summary、mindMap、qa。摘要 bullet 应尽量附带原文时间范围。",
       user: {
         locale,
         summaryTemplate,

@@ -89,7 +89,7 @@ export function buildOutline(input: {title: string; provider?: string | null; in
   }
 
   return {
-    title: input.title || "UniScribe Outline",
+    title: input.title || "Votxt Outline",
     provider: input.provider ?? null,
     sections
   };

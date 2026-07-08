@@ -21,7 +21,7 @@ export async function generateMetadata({params}: {params: LocaleParams}): Promis
 
   return {
     title: messages.meta?.title ?? "Convert audio and video to text online for free",
-    description: messages.meta?.description ?? "UniScribe lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats.",
+    description: messages.meta?.description ?? "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats.",
     icons: {
       icon: "/favicon.svg"
     }

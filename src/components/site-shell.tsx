@@ -28,7 +28,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV 转 MP3",
     language: "语言",
     transcription: "音视频转文字",
-    footerText: "UniScribe 是面向浏览器的 AI 音视频转写工作台，覆盖上传、链接、录音、转写、摘要、翻译和导出。",
+    footerText: "Votxt 是面向浏览器的 AI 音视频转写工作台，覆盖上传、链接、录音、转写、摘要、翻译和导出。",
     rights: "保留所有权利。"
   },
   en: {
@@ -50,7 +50,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV to MP3",
     language: "Language",
     transcription: "Audio and video to text",
-    footerText: "UniScribe is a browser-based AI transcription workspace for uploads, links, recording, transcripts, summaries, translation, and exports.",
+    footerText: "Votxt is a browser-based AI transcription workspace for uploads, links, recording, transcripts, summaries, translation, and exports.",
     rights: "All rights reserved."
   },
   es: {
@@ -72,7 +72,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV a MP3",
     language: "Idioma",
     transcription: "Audio y video a texto",
-    footerText: "UniScribe es un workspace de transcripción con IA para subidas, enlaces, grabación, texto, resúmenes, traducción y exportación.",
+    footerText: "Votxt es un workspace de transcripción con IA para subidas, enlaces, grabación, texto, resúmenes, traducción y exportación.",
     rights: "Todos los derechos reservados."
   },
   fr: {
@@ -94,7 +94,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV en MP3",
     language: "Langue",
     transcription: "Audio et vidéo en texte",
-    footerText: "UniScribe est un espace de transcription IA pour imports, liens, enregistrements, textes, résumés, traduction et exports.",
+    footerText: "Votxt est un espace de transcription IA pour imports, liens, enregistrements, textes, résumés, traduction et exports.",
     rights: "Tous droits réservés."
   },
   de: {
@@ -116,7 +116,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV zu MP3",
     language: "Sprache",
     transcription: "Audio und Video zu Text",
-    footerText: "UniScribe ist ein KI-Transkriptionsarbeitsbereich für Uploads, Links, Aufnahme, Texte, Zusammenfassungen, Übersetzung und Exporte.",
+    footerText: "Votxt ist ein KI-Transkriptionsarbeitsbereich für Uploads, Links, Aufnahme, Texte, Zusammenfassungen, Übersetzung und Exporte.",
     rights: "Alle Rechte vorbehalten."
   },
   ja: {
@@ -138,7 +138,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV から MP3",
     language: "言語",
     transcription: "音声・動画をテキストへ",
-    footerText: "UniScribe はアップロード、リンク、録音、文字起こし、要約、翻訳、書き出しに対応するブラウザ型AIワークスペースです。",
+    footerText: "Votxt はアップロード、リンク、録音、文字起こし、要約、翻訳、書き出しに対応するブラウザ型AIワークスペースです。",
     rights: "All rights reserved."
   },
   ko: {
@@ -160,7 +160,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV를 MP3로",
     language: "언어",
     transcription: "오디오와 비디오를 텍스트로",
-    footerText: "UniScribe는 업로드, 링크, 녹음, 전사, 요약, 번역, 내보내기를 위한 브라우저 기반 AI 전사 워크스페이스입니다.",
+    footerText: "Votxt는 업로드, 링크, 녹음, 전사, 요약, 번역, 내보내기를 위한 브라우저 기반 AI 전사 워크스페이스입니다.",
     rights: "All rights reserved."
   },
   pt: {
@@ -182,7 +182,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV para MP3",
     language: "Idioma",
     transcription: "Áudio e vídeo para texto",
-    footerText: "UniScribe é um workspace de transcrição com IA para uploads, links, gravação, textos, resumos, tradução e exportações.",
+    footerText: "Votxt é um workspace de transcrição com IA para uploads, links, gravação, textos, resumos, tradução e exportações.",
     rights: "Todos os direitos reservados."
   },
   id: {
@@ -204,7 +204,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV ke MP3",
     language: "Bahasa",
     transcription: "Audio dan video ke teks",
-    footerText: "UniScribe adalah ruang kerja transkripsi AI berbasis browser untuk unggahan, tautan, rekaman, transkrip, ringkasan, terjemahan, dan ekspor.",
+    footerText: "Votxt adalah ruang kerja transkripsi AI berbasis browser untuk unggahan, tautan, rekaman, transkrip, ringkasan, terjemahan, dan ekspor.",
     rights: "Seluruh hak cipta dilindungi."
   },
   ru: {
@@ -226,7 +226,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV в MP3",
     language: "Язык",
     transcription: "Аудио и видео в текст",
-    footerText: "UniScribe — браузерное AI-пространство для загрузок, ссылок, записи, транскриптов, резюме, перевода и экспорта.",
+    footerText: "Votxt — браузерное AI-пространство для загрузок, ссылок, записи, транскриптов, резюме, перевода и экспорта.",
     rights: "Все права защищены."
   },
   vi: {
@@ -248,7 +248,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV sang MP3",
     language: "Ngôn ngữ",
     transcription: "Âm thanh và video sang văn bản",
-    footerText: "UniScribe là không gian làm việc phiên âm AI trên trình duyệt cho tải lên, liên kết, ghi âm, bản chép lời, tóm tắt, dịch và xuất file.",
+    footerText: "Votxt là không gian làm việc phiên âm AI trên trình duyệt cho tải lên, liên kết, ghi âm, bản chép lời, tóm tắt, dịch và xuất file.",
     rights: "Đã đăng ký bản quyền."
   },
   ar: {
@@ -270,7 +270,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "من WAV إلى MP3",
     language: "اللغة",
     transcription: "تحويل الصوت والفيديو إلى نص",
-    footerText: "UniScribe مساحة عمل للنسخ بالذكاء الاصطناعي داخل المتصفح للرفع والروابط والتسجيل والنصوص والملخصات والترجمة والتصدير.",
+    footerText: "Votxt مساحة عمل للنسخ بالذكاء الاصطناعي داخل المتصفح للرفع والروابط والتسجيل والنصوص والملخصات والترجمة والتصدير.",
     rights: "جميع الحقوق محفوظة."
   },
   "zh-TW": {
@@ -292,7 +292,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV 轉 MP3",
     language: "語言",
     transcription: "音訊與影片轉文字",
-    footerText: "UniScribe 是瀏覽器中的 AI 轉寫工作台，支援上傳、連結、錄音、逐字稿、摘要、翻譯與匯出。",
+    footerText: "Votxt 是瀏覽器中的 AI 轉寫工作台，支援上傳、連結、錄音、逐字稿、摘要、翻譯與匯出。",
     rights: "保留所有權利。"
   },
   it: {
@@ -314,7 +314,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV in MP3",
     language: "Lingua",
     transcription: "Audio e video in testo",
-    footerText: "UniScribe è uno spazio di lavoro di trascrizione AI nel browser per caricamenti, link, registrazioni, trascrizioni, riepiloghi, traduzioni ed esportazioni.",
+    footerText: "Votxt è uno spazio di lavoro di trascrizione AI nel browser per caricamenti, link, registrazioni, trascrizioni, riepiloghi, traduzioni ed esportazioni.",
     rights: "Tutti i diritti riservati."
   },
   th: {
@@ -336,7 +336,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV เป็น MP3",
     language: "ภาษา",
     transcription: "เสียงและวิดีโอเป็นข้อความ",
-    footerText: "UniScribe คือพื้นที่ทำงานถอดเสียงด้วย AI บนเบราว์เซอร์ สำหรับอัปโหลด ลิงก์ การบันทึก ถอดเสียง สรุป แปล และส่งออก",
+    footerText: "Votxt คือพื้นที่ทำงานถอดเสียงด้วย AI บนเบราว์เซอร์ สำหรับอัปโหลด ลิงก์ การบันทึก ถอดเสียง สรุป แปล และส่งออก",
     rights: "สงวนลิขสิทธิ์."
   },
   uk: {
@@ -358,7 +358,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV у MP3",
     language: "Мова",
     transcription: "Аудіо й відео в текст",
-    footerText: "UniScribe — браузерний AI-робочий простір для завантажень, посилань, запису, транскриптів, підсумків, перекладу та експорту.",
+    footerText: "Votxt — браузерний AI-робочий простір для завантажень, посилань, запису, транскриптів, підсумків, перекладу та експорту.",
     rights: "Усі права захищено."
   },
   tr: {
@@ -380,7 +380,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV'dan MP3'e",
     language: "Dil",
     transcription: "Ses ve videoyu metne çevir",
-    footerText: "UniScribe; yüklemeler, bağlantılar, kayıt, transkriptler, özetler, çeviri ve dışa aktarma için tarayıcı tabanlı bir AI transkripsiyon çalışma alanıdır.",
+    footerText: "Votxt; yüklemeler, bağlantılar, kayıt, transkriptler, özetler, çeviri ve dışa aktarma için tarayıcı tabanlı bir AI transkripsiyon çalışma alanıdır.",
     rights: "Tüm hakları saklıdır."
   },
   nl: {
@@ -402,7 +402,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV naar MP3",
     language: "Taal",
     transcription: "Audio en video naar tekst",
-    footerText: "UniScribe is een AI-transcriptiewerkruimte in de browser voor uploads, links, opnames, transcripties, samenvattingen, vertaling en exports.",
+    footerText: "Votxt is een AI-transcriptiewerkruimte in de browser voor uploads, links, opnames, transcripties, samenvattingen, vertaling en exports.",
     rights: "Alle rechten voorbehouden."
   },
   pl: {
@@ -424,7 +424,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV na MP3",
     language: "Język",
     transcription: "Audio i wideo na tekst",
-    footerText: "UniScribe to przeglądarkowe środowisko transkrypcji AI do przesyłania plików, linków, nagrań, transkryptów, podsumowań, tłumaczeń i eksportu.",
+    footerText: "Votxt to przeglądarkowe środowisko transkrypcji AI do przesyłania plików, linków, nagrań, transkryptów, podsumowań, tłumaczeń i eksportu.",
     rights: "Wszelkie prawa zastrzeżone."
   },
   hu: {
@@ -446,7 +446,7 @@ const labels: Record<string, Record<string, string>> = {
     wavToMp3: "WAV-ból MP3",
     language: "Nyelv",
     transcription: "Hang és videó szöveggé",
-    footerText: "A UniScribe böngészőalapú AI-átíró munkaterület feltöltésekhez, linkekhez, felvételhez, leiratokhoz, összefoglalókhoz, fordításhoz és exporthoz.",
+    footerText: "A Votxt böngészőalapú AI-átíró munkaterület feltöltésekhez, linkekhez, felvételhez, leiratokhoz, összefoglalókhoz, fordításhoz és exporthoz.",
     rights: "Minden jog fenntartva."
   }
 };
@@ -739,7 +739,7 @@ export function SiteFooter() {
   const base = `/${locale}`;
   const groups = [
     [text.freeTools, [[Link2, text.videoToAudioExtractor, `${base}/tools/video-to-audio-extractor`], [Link2, text.wavToMp3Converter, `${base}/tools/wav-to-mp3-converter`]]],
-    [text.company, [[HelpCircle, text.termsOfService, `${base}/terms-of-service`], [LockKeyhole, text.privacyPolicy, `${base}/privacy-policy`], [CreditCard, text.refundPolicy, `${base}/pricing#faq-refund`], [LockKeyhole, text.securityPrivacy, `${base}/security`], [Users, text.affiliateProgram, `${base}/affiliate`], [Mail, text.support, "mailto:hi@uniscribe.co"]]]
+    [text.company, [[HelpCircle, text.termsOfService, `${base}/terms-of-service`], [LockKeyhole, text.privacyPolicy, `${base}/privacy-policy`], [CreditCard, text.refundPolicy, `${base}/pricing#faq-refund`], [LockKeyhole, text.securityPrivacy, `${base}/security`], [Users, text.affiliateProgram, `${base}/affiliate`], [Mail, text.support, "mailto:hi@votxt.co"]]]
   ] as const;
 
   return (
@@ -752,7 +752,7 @@ export function SiteFooter() {
                 <BrandLogo />
               </a>
               <div className="mt-4 flex space-x-6">
-                <a href="mailto:hi@uniscribe.co" className="text-muted-foreground/60 hover:text-muted-foreground">
+                <a href="mailto:hi@votxt.co" className="text-muted-foreground/60 hover:text-muted-foreground">
                   <span className="sr-only">{text.email}</span>
                   <Mail className="h-6 w-6" />
                 </a>
@@ -780,7 +780,7 @@ export function SiteFooter() {
         </div>
         <div className="mt-8 border-t border-border pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-base text-muted-foreground/60">© {new Date().getFullYear()} VanCode LLC. {text.rights}</p>
+            <p className="text-base text-muted-foreground/60">© 2026 Votxt. All rights reserved.</p>
           </div>
         </div>
       </div>

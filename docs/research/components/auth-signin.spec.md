@@ -3,7 +3,7 @@
 ## Overview
 - Target file: `src/components/auth-pages.tsx`
 - Route: `/en/auth/signin`
-- Target URL: `https://www.uniscribe.co/auth/signin`
+- Target URL: `https://www.votxt.co/auth/signin`
 - Interaction model: form-driven email/password login, Google OAuth link, password visibility toggle, navigation links.
 - Safety: target measurements were read-only; no target login submission was performed during this pass.
 

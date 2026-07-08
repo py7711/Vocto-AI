@@ -188,9 +188,9 @@ const enPosts: BlogPost[] = [
         ]
       },
       {
-        heading: "Where UniScribe fits",
+        heading: "Where Votxt fits",
         body: [
-          "After upload, UniScribe queues the task and falls back across Groq, Deepgram, and AssemblyAI depending on speaker-label requirements.",
+          "After upload, Votxt queues the task and falls back across Groq, Deepgram, and AssemblyAI depending on speaker-label requirements.",
           "Once complete, you can generate summaries, Q&A, translations, exports, and read-only share links."
         ]
       }
@@ -256,7 +256,7 @@ const enPosts: BlogPost[] = [
       {
         heading: "Upload the extracted audio",
         body: [
-          "Once VLC creates the audio file, upload it to UniScribe and choose the spoken language or auto-detect.",
+          "Once VLC creates the audio file, upload it to Votxt and choose the spoken language or auto-detect.",
           "You can then generate summaries, subtitles, translations, and exports from the transcript."
         ]
       }
@@ -290,7 +290,7 @@ const enPosts: BlogPost[] = [
         heading: "Export what you need",
         body: [
           "Use TXT or DOCX for editing, PDF for sharing, and SRT or VTT when you need captions.",
-          "UniScribe keeps the transcript editable so you can clean up proper nouns before exporting."
+          "Votxt keeps the transcript editable so you can clean up proper nouns before exporting."
         ]
       }
     ]
@@ -306,7 +306,7 @@ const enPosts: BlogPost[] = [
     readTime: "5 min",
     sections: [
       {heading: "Start with clear audio", body: ["Upload a clear recording and choose the right language before transcription.", "Cleaner audio produces better timing, punctuation, and subtitle segmentation."]},
-      {heading: "Generate the transcript", body: ["UniScribe turns the recording into editable text with timestamps.", "Review the text before exporting subtitles so names and terms are correct."]},
+      {heading: "Generate the transcript", body: ["Votxt turns the recording into editable text with timestamps.", "Review the text before exporting subtitles so names and terms are correct."]},
       {heading: "Export SRT", body: ["Choose SRT for video editors and most subtitle platforms.", "VTT, TXT, PDF, and other formats are available when you need alternatives."]}
     ]
   },
@@ -320,7 +320,7 @@ const enPosts: BlogPost[] = [
     category: "Video",
     readTime: "6 min",
     sections: [
-      {heading: "Upload the video file", body: ["Direct upload is best when you already have the video on your device.", "UniScribe supports common video formats and exports captions or documents after transcription."]},
+      {heading: "Upload the video file", body: ["Direct upload is best when you already have the video on your device.", "Votxt supports common video formats and exports captions or documents after transcription."]},
       {heading: "Paste a public link", body: ["For public videos, a link workflow avoids manual downloads.", "The transcript can be edited, summarized, translated, and shared."]},
       {heading: "Extract audio first", body: ["Extracting audio can reduce file size before upload.", "This is useful for long videos when the speech track is all you need."]}
     ]
@@ -350,7 +350,7 @@ const enPosts: BlogPost[] = [
     category: "MP3",
     readTime: "5 min",
     sections: [
-      {heading: "Upload MP3", body: ["Start with a clear MP3 recording and select the spoken language.", "UniScribe processes the audio and generates timestamped text."]},
+      {heading: "Upload MP3", body: ["Start with a clear MP3 recording and select the spoken language.", "Votxt processes the audio and generates timestamped text."]},
       {heading: "Edit timing and text", body: ["Review punctuation, names, and any specialized terms.", "Clean text makes subtitle exports easier to use downstream."]},
       {heading: "Download SRT", body: ["Export SRT for editors, courses, and video platforms.", "You can also download VTT, TXT, PDF, DOCX, and CSV."]}
     ]
@@ -568,7 +568,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "ما الخطوة التالية",
     overview: (post) => [`${post.title} يشرح طريقة عملية للتعامل مع ${post.category} بدون تعقيد زائد.`, post.excerpt],
     workflow: () => ["ابدأ بملف واضح، وتحقق من اللغة المنطوقة، ثم اختر إعدادات تحافظ على وضوح الكلام قبل الرفع.", "بعد إنشاء النص، راجع الأسماء والمصطلحات والتوقيتات حتى تصبح النتيجة جاهزة للاستخدام."],
-    next: () => ["استخدم UniScribe لإنتاج النص والملخصات والترجمات وروابط المشاركة، ثم صدّر النتيجة بالتنسيق المناسب لفريقك."]
+    next: () => ["استخدم Votxt لإنتاج النص والملخصات والترجمات وروابط المشاركة، ثم صدّر النتيجة بالتنسيق المناسب لفريقك."]
   },
   de: {
     overviewHeading: "Warum dieses Thema wichtig ist",
@@ -576,7 +576,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Nächster Schritt",
     overview: (post) => `${post.title} zeigt einen praktischen Weg fur ${post.category}, ohne den Workflow unnotig kompliziert zu machen.`.split("\n").concat(post.excerpt),
     workflow: () => ["Beginne mit einer klaren Datei, prufe die gesprochene Sprache und wahle Einstellungen, die Sprache vor dem Upload verstandlich halten.", "Nach der Transkription solltest du Namen, Fachbegriffe und Zeitmarken kurz prufen, damit das Ergebnis direkt nutzbar ist."],
-    next: () => ["Mit UniScribe kannst du Transkript, Zusammenfassung, Ubersetzung, Exporte und private Freigabelinks an einem Ort erstellen."]
+    next: () => ["Mit Votxt kannst du Transkript, Zusammenfassung, Ubersetzung, Exporte und private Freigabelinks an einem Ort erstellen."]
   },
   es: {
     overviewHeading: "Por qué importa",
@@ -584,7 +584,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Qué hacer después",
     overview: (post) => [`${post.title} explica una forma práctica de trabajar con ${post.category} sin complicar el proceso.`, post.excerpt],
     workflow: () => ["Empieza con un archivo claro, confirma el idioma hablado y elige ajustes que mantengan la voz entendible antes de subirlo.", "Después de generar la transcripción, revisa nombres, términos y marcas de tiempo para dejar el resultado listo."],
-    next: () => ["Usa UniScribe para crear transcripciones, resúmenes, traducciones, exportaciones y enlaces privados para compartir."]
+    next: () => ["Usa Votxt para crear transcripciones, resúmenes, traducciones, exportaciones y enlaces privados para compartir."]
   },
   fr: {
     overviewHeading: "Pourquoi c'est important",
@@ -592,7 +592,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Étape suivante",
     overview: (post) => [`${post.title} présente une méthode pratique pour gérer ${post.category} sans alourdir le workflow.`, post.excerpt],
     workflow: () => ["Commencez avec un fichier clair, vérifiez la langue parlée et choisissez des réglages qui gardent la voix intelligible avant l'import.", "Après la transcription, relisez les noms, les termes importants et les horodatages pour obtenir un résultat prêt à partager."],
-    next: () => ["Avec UniScribe, créez le texte, les résumés, les traductions, les exports et les liens de partage privés au même endroit."]
+    next: () => ["Avec Votxt, créez le texte, les résumés, les traductions, les exports et les liens de partage privés au même endroit."]
   },
   hu: {
     overviewHeading: "Miért fontos ez",
@@ -600,7 +600,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Következő lépés",
     overview: (post) => [`A(z) ${post.title} gyakorlati utat mutat a(z) ${post.category} témában, felesleges bonyolítás nélkül.`, post.excerpt],
     workflow: () => ["Kezdj tiszta fájllal, ellenőrizd a beszélt nyelvet, és válassz olyan beállítást, amely feltöltés előtt megőrzi a beszéd érthetőségét.", "Az átirat után nézd át a neveket, szakkifejezéseket és időbélyegeket, hogy a szöveg rögtön használható legyen."],
-    next: () => ["A UniScribe-ben egy helyen készíthetsz átiratot, összefoglalót, fordítást, exportot és privát megosztási linket."]
+    next: () => ["A Votxt-ben egy helyen készíthetsz átiratot, összefoglalót, fordítást, exportot és privát megosztási linket."]
   },
   id: {
     overviewHeading: "Mengapa ini penting",
@@ -608,7 +608,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Langkah berikutnya",
     overview: (post) => [`${post.title} menjelaskan cara praktis menangani ${post.category} tanpa membuat alur kerja menjadi rumit.`, post.excerpt],
     workflow: () => ["Mulai dari file yang jelas, pastikan bahasa yang diucapkan, lalu pilih pengaturan yang menjaga suara tetap mudah dipahami sebelum unggahan.", "Setelah transkripsi dibuat, tinjau nama, istilah penting, dan penanda waktu agar hasilnya siap dipakai."],
-    next: () => ["Gunakan UniScribe untuk membuat transkrip, ringkasan, terjemahan, ekspor, dan tautan berbagi privat dalam satu tempat."]
+    next: () => ["Gunakan Votxt untuk membuat transkrip, ringkasan, terjemahan, ekspor, dan tautan berbagi privat dalam satu tempat."]
   },
   it: {
     overviewHeading: "Perché è importante",
@@ -616,7 +616,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Passaggio successivo",
     overview: (post) => [`${post.title} mostra un modo pratico per gestire ${post.category} senza complicare il flusso di lavoro.`, post.excerpt],
     workflow: () => ["Parti da un file chiaro, controlla la lingua parlata e scegli impostazioni che mantengano la voce comprensibile prima del caricamento.", "Dopo la trascrizione, rivedi nomi, termini e timestamp per rendere il risultato pronto all'uso."],
-    next: () => ["Con UniScribe puoi creare trascrizioni, riepiloghi, traduzioni, esportazioni e link privati di condivisione in un unico posto."]
+    next: () => ["Con Votxt puoi creare trascrizioni, riepiloghi, traduzioni, esportazioni e link privati di condivisione in un unico posto."]
   },
   ja: {
     overviewHeading: "なぜ重要か",
@@ -624,7 +624,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "次のステップ",
     overview: (post) => [`${post.title} は、${post.category} を扱うための実用的な手順をわかりやすくまとめています。`, post.excerpt],
     workflow: () => ["まず聞き取りやすいファイルを用意し、話されている言語を確認して、アップロード前に音声の明瞭さを保つ設定を選びます。", "文字起こし後は、名前、専門用語、タイムスタンプを確認し、共有や編集に使いやすい状態に整えます。"],
-    next: () => ["UniScribe では、文字起こし、要約、翻訳、エクスポート、非公開共有リンクを一つの画面で作成できます。"]
+    next: () => ["Votxt では、文字起こし、要約、翻訳、エクスポート、非公開共有リンクを一つの画面で作成できます。"]
   },
   ko: {
     overviewHeading: "왜 중요한가",
@@ -632,7 +632,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "다음 단계",
     overview: (post) => [`${post.title} 문서는 ${post.category} 작업을 복잡하지 않게 처리하는 실용적인 방법을 설명합니다.`, post.excerpt],
     workflow: () => ["먼저 음성이 또렷한 파일을 준비하고, 말한 언어를 확인한 뒤 업로드 전에 말소리가 잘 유지되는 설정을 선택하세요.", "전사가 끝나면 이름, 전문 용어, 타임스탬프를 확인해 바로 사용할 수 있는 결과로 다듬습니다."],
-    next: () => ["UniScribe에서 전사문, 요약, 번역, 내보내기, 비공개 공유 링크를 한곳에서 만들 수 있습니다."]
+    next: () => ["Votxt에서 전사문, 요약, 번역, 내보내기, 비공개 공유 링크를 한곳에서 만들 수 있습니다."]
   },
   nl: {
     overviewHeading: "Waarom dit belangrijk is",
@@ -640,7 +640,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Volgende stap",
     overview: (post) => [`${post.title} laat een praktische manier zien om met ${post.category} te werken zonder het proces onnodig ingewikkeld te maken.`, post.excerpt],
     workflow: () => ["Begin met een duidelijke opname, controleer de gesproken taal en kies instellingen die spraak goed verstaanbaar houden voor het uploaden.", "Controleer na de transcriptie namen, termen en tijdstempels zodat het resultaat klaar is om te delen of te bewerken."],
-    next: () => ["Met UniScribe maak je transcripties, samenvattingen, vertalingen, exports en prive-deellinks vanuit een werkruimte."]
+    next: () => ["Met Votxt maak je transcripties, samenvattingen, vertalingen, exports en prive-deellinks vanuit een werkruimte."]
   },
   pl: {
     overviewHeading: "Dlaczego to ważne",
@@ -648,7 +648,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Następny krok",
     overview: (post) => [`${post.title} pokazuje praktyczny sposób pracy z tematem ${post.category} bez niepotrzebnego komplikowania procesu.`, post.excerpt],
     workflow: () => ["Zacznij od czytelnego pliku, sprawdź język wypowiedzi i wybierz ustawienia, które zachowują zrozumiałość mowy przed przesłaniem.", "Po transkrypcji przejrzyj nazwy, terminy i znaczniki czasu, aby wynik był gotowy do użycia."],
-    next: () => ["W UniScribe przygotujesz transkrypcję, podsumowania, tłumaczenia, eksporty i prywatne linki udostępniania w jednym miejscu."]
+    next: () => ["W Votxt przygotujesz transkrypcję, podsumowania, tłumaczenia, eksporty i prywatne linki udostępniania w jednym miejscu."]
   },
   pt: {
     overviewHeading: "Por que isso importa",
@@ -656,7 +656,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Próximo passo",
     overview: (post) => [`${post.title} mostra uma forma prática de lidar com ${post.category} sem complicar o fluxo de trabalho.`, post.excerpt],
     workflow: () => ["Comece com um arquivo claro, confirme o idioma falado e escolha configurações que preservem a voz antes do upload.", "Depois da transcrição, revise nomes, termos e marcações de tempo para deixar o resultado pronto para uso."],
-    next: () => ["Use o UniScribe para criar transcrições, resumos, traduções, exportações e links privados de compartilhamento em um só lugar."]
+    next: () => ["Use o Votxt para criar transcrições, resumos, traduções, exportações e links privados de compartilhamento em um só lugar."]
   },
   ru: {
     overviewHeading: "Почему это важно",
@@ -664,7 +664,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Следующий шаг",
     overview: (post) => [`${post.title} показывает практичный способ работать с темой «${post.category}» без лишнего усложнения.`, post.excerpt],
     workflow: () => ["Начните с понятного файла, проверьте язык речи и выберите настройки, которые сохраняют разборчивость голоса перед загрузкой.", "После транскрибации проверьте имена, термины и временные метки, чтобы результат был готов к использованию."],
-    next: () => ["В UniScribe можно создать транскрипт, резюме, перевод, экспорт и приватную ссылку для просмотра в одном месте."]
+    next: () => ["В Votxt можно создать транскрипт, резюме, перевод, экспорт и приватную ссылку для просмотра в одном месте."]
   },
   th: {
     overviewHeading: "เหตุผลที่สำคัญ",
@@ -672,7 +672,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "ขั้นตอนถัดไป",
     overview: (post) => [`${post.title} อธิบายวิธีจัดการ ${post.category} อย่างเป็นขั้นตอนโดยไม่ทำให้เวิร์กโฟลว์ซับซ้อนเกินไป`, post.excerpt],
     workflow: () => ["เริ่มจากไฟล์ที่เสียงชัด ตรวจสอบภาษาที่พูด แล้วเลือกการตั้งค่าที่ช่วยให้เสียงพูดยังคงเข้าใจง่ายก่อนอัปโหลด", "หลังถอดเสียง ให้ตรวจชื่อ คำเฉพาะ และเวลา เพื่อให้ผลลัพธ์พร้อมนำไปใช้หรือแชร์ต่อ"],
-    next: () => ["ใช้ UniScribe เพื่อสร้างข้อความถอดเสียง สรุป คำแปล ไฟล์ส่งออก และลิงก์แชร์แบบส่วนตัวได้ในที่เดียว"]
+    next: () => ["ใช้ Votxt เพื่อสร้างข้อความถอดเสียง สรุป คำแปล ไฟล์ส่งออก และลิงก์แชร์แบบส่วนตัวได้ในที่เดียว"]
   },
   tr: {
     overviewHeading: "Neden önemli",
@@ -680,7 +680,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Sonraki adım",
     overview: (post) => [`${post.title}, ${post.category} konusunda pratik ve sade bir çalışma yolu sunar.`, post.excerpt],
     workflow: () => ["Net bir dosyayla başlayın, konuşulan dili doğrulayın ve yüklemeden önce konuşmanın anlaşılır kalmasını sağlayan ayarları seçin.", "Transkripsiyondan sonra adları, terimleri ve zaman damgalarını gözden geçirerek sonucu kullanıma hazır hale getirin."],
-    next: () => ["UniScribe ile transkript, özet, çeviri, dışa aktarma ve özel paylaşım bağlantılarını tek yerde oluşturabilirsiniz."]
+    next: () => ["Votxt ile transkript, özet, çeviri, dışa aktarma ve özel paylaşım bağlantılarını tek yerde oluşturabilirsiniz."]
   },
   uk: {
     overviewHeading: "Чому це важливо",
@@ -688,7 +688,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Наступний крок",
     overview: (post) => [`${post.title} показує практичний спосіб працювати з темою «${post.category}» без зайвого ускладнення.`, post.excerpt],
     workflow: () => ["Почніть із чіткого файлу, перевірте мову мовлення й оберіть налаштування, які зберігають розбірливість голосу перед завантаженням.", "Після транскрипції перегляньте імена, терміни й часові позначки, щоб результат був готовий до використання."],
-    next: () => ["У UniScribe можна створити транскрипт, підсумок, переклад, експорт і приватне посилання для перегляду в одному місці."]
+    next: () => ["У Votxt можна створити транскрипт, підсумок, переклад, експорт і приватне посилання для перегляду в одному місці."]
   },
   vi: {
     overviewHeading: "Vì sao điều này quan trọng",
@@ -696,7 +696,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "Bước tiếp theo",
     overview: (post) => [`${post.title} trình bày cách xử lý ${post.category} theo hướng thực tế mà không làm quy trình trở nên phức tạp.`, post.excerpt],
     workflow: () => ["Bắt đầu với tệp âm thanh rõ, kiểm tra ngôn ngữ được nói và chọn thiết lập giúp giọng nói vẫn dễ hiểu trước khi tải lên.", "Sau khi có bản chép lời, hãy rà soát tên riêng, thuật ngữ và mốc thời gian để kết quả sẵn sàng sử dụng."],
-    next: () => ["Dùng UniScribe để tạo bản chép lời, tóm tắt, bản dịch, tệp xuất và liên kết chia sẻ riêng tư trong cùng một nơi."]
+    next: () => ["Dùng Votxt để tạo bản chép lời, tóm tắt, bản dịch, tệp xuất và liên kết chia sẻ riêng tư trong cùng một nơi."]
   },
   zh: {
     overviewHeading: "为什么这很重要",
@@ -704,7 +704,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "下一步",
     overview: (post) => [`《${post.title}》提供了一套处理「${post.category}」场景的实用方法，不需要把流程变复杂。`, post.excerpt],
     workflow: () => ["先准备清晰的文件，确认实际说话语言，再选择能保留语音清晰度的上传前设置。", "生成转写后，检查人名、专有名词和时间戳，让结果可以直接用于编辑、字幕或分享。"],
-    next: () => ["你可以在 UniScribe 中继续生成转写、摘要、翻译、导出文件和私密分享链接。"]
+    next: () => ["你可以在 Votxt 中继续生成转写、摘要、翻译、导出文件和私密分享链接。"]
   },
   "zh-TW": {
     overviewHeading: "為什麼這很重要",
@@ -712,7 +712,7 @@ const localizedBlogContentCopy: Record<string, BlogArticleContentCopy> = {
     nextHeading: "下一步",
     overview: (post) => [`《${post.title}》提供一套處理「${post.category}」情境的實用方法，不需要把流程變複雜。`, post.excerpt],
     workflow: () => ["先準備清晰的檔案，確認實際說話語言，再選擇能保留語音清晰度的上傳前設定。", "產生轉寫後，檢查人名、專有名詞和時間戳，讓結果可以直接用於編輯、字幕或分享。"],
-    next: () => ["你可以在 UniScribe 中繼續產生轉寫、摘要、翻譯、匯出檔案和私密分享連結。"]
+    next: () => ["你可以在 Votxt 中繼續產生轉寫、摘要、翻譯、匯出檔案和私密分享連結。"]
   }
 };
 

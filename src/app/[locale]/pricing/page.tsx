@@ -16,7 +16,7 @@ export function generateMetadata({params}: {params: {locale: string}}): Metadata
 
   return {
     title: {
-      absolute: `${title} | UniScribe`
+      absolute: `${title} | Votxt`
     },
     description: copy.marketingIntro ?? copy.subheadline
   };

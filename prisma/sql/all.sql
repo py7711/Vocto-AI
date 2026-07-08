@@ -1,4 +1,4 @@
--- UniScribe MySQL 完整数据库脚本
+-- Votxt MySQL 完整数据库脚本
 -- 与 prisma/schema.prisma 当前模型保持一致。
 --
 -- 用法：
@@ -421,14 +421,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 第二部分：演示数据
 -- ============================================================================
 
-SET @demo_user_id = 'user_uniscribe_demo';
-SET @demo_subscription_id = 'sub_uniscribe_demo_free';
-SET @demo_task_id = 'task_uniscribe_demo_complete';
-SET @demo_transcript_id = 'tr_uniscribe_demo_complete';
-SET @seed_password_hash = 'scrypt:uniscribe_seed_salt:77JAoUhIrsHWYj5Ky3sPzgZWxm5oQjsvpfSjNk0wIhslHeg_cIxeGpSf0UfNSvBVkpAtv2Ybifyn6Kq3iTtvWw';
+SET @demo_user_id = 'user_votxt_demo';
+SET @demo_subscription_id = 'sub_votxt_demo_free';
+SET @demo_task_id = 'task_votxt_demo_complete';
+SET @demo_transcript_id = 'tr_votxt_demo_complete';
+SET @seed_password_hash = 'scrypt:votxt_seed_salt:f4W5HcJrdfOMp32MBb2LASjszARbdIf3ba9AEeQzjejcvvxnVWrWevCHfqi3qRX6xtS9RTNyn7hi4cZpOuv2TQ';
 
 INSERT INTO `User` (`id`, `email`, `password_hash`, `name`, `image`, `locale`, `dailyFreeCount`, `dailyResetAt`, `createdAt`, `updatedAt`)
-VALUES (@demo_user_id, 'demo@uniscribe.local', @seed_password_hash, 'UniScribe Demo', NULL, 'en', 0, NULL, NOW(), NOW())
+VALUES (@demo_user_id, 'demo@votxt.local', @seed_password_hash, 'Votxt Demo', NULL, 'en', 0, NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE `password_hash` = VALUES(`password_hash`), `name` = VALUES(`name`), `locale` = VALUES(`locale`), `updatedAt` = NOW();
 
 INSERT INTO `Subscription` (
@@ -453,7 +453,7 @@ INSERT INTO `MediaTask` (
 )
 VALUES (
   @demo_task_id, @demo_user_id, 'UPLOAD', 'product-interview.mp3',
-  'https://assets.uniscribe.local/demo/product-interview.mp3', NULL, 'uploads/demo/product-interview.mp3',
+  'https://assets.votxt.local/demo/product-interview.mp3', NULL, 'uploads/demo/product-interview.mp3',
   'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 126, 5242880,
   'deepgram', 2, 100, 3, NULL, NOW(), NOW(), NOW()
 )
@@ -467,13 +467,13 @@ INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`,
 VALUES (
   @demo_transcript_id,
   @demo_task_id,
-  '发言人 1：UniScribe 可以快速把长录音转成可用文字。\n发言人 2：最重要的输出是一份干净的转写稿，以及总结、思维导图、问答、翻译和字幕文件。',
+  '发言人 1：Votxt 可以快速把长录音转成可用文字。\n发言人 2：最重要的输出是一份干净的转写稿，以及总结、思维导图、问答、翻译和字幕文件。',
   JSON_ARRAY(
-    JSON_OBJECT('start', 0, 'end', 8.4, 'speaker', '发言人 1', 'text', 'UniScribe 可以快速把长录音转成可用文字。'),
+    JSON_OBJECT('start', 0, 'end', 8.4, 'speaker', '发言人 1', 'text', 'Votxt 可以快速把长录音转成可用文字。'),
     JSON_OBJECT('start', 8.5, 'end', 18.9, 'speaker', '发言人 2', 'text', '最重要的输出是一份干净的转写稿，以及总结、思维导图、问答、翻译和字幕文件。')
   ),
   JSON_ARRAY(
-    JSON_OBJECT('start', 0, 'end', 0.4, 'word', 'UniScribe', 'confidence', 0.99, 'speaker', '发言人 1'),
+    JSON_OBJECT('start', 0, 'end', 0.4, 'word', 'Votxt', 'confidence', 0.99, 'speaker', '发言人 1'),
     JSON_OBJECT('start', 0.5, 'end', 1.0, 'word', '可以', 'confidence', 0.98, 'speaker', '发言人 1')
   ),
   NULL,
@@ -489,23 +489,23 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO `AIInsight` (`id`, `mediaTaskId`, `type`, `locale`, `title`, `content`, `model`, `createdAt`, `updatedAt`)
 VALUES
   (
-    'ai_uniscribe_demo_summary', @demo_task_id, 'SUMMARY', 'zh', '总结',
-    JSON_OBJECT('overview', '这段对话把 UniScribe 定义为快速的媒体转文字工作台。', 'bullets', JSON_ARRAY('干净的转写稿是核心输出。', 'AI 洞察让转写稿更容易复用。', '字幕和文档导出是必要能力。')),
+    'ai_votxt_demo_summary', @demo_task_id, 'SUMMARY', 'zh', '总结',
+    JSON_OBJECT('overview', '这段对话把 Votxt 定义为快速的媒体转文字工作台。', 'bullets', JSON_ARRAY('干净的转写稿是核心输出。', 'AI 洞察让转写稿更容易复用。', '字幕和文档导出是必要能力。')),
     'seed', NOW(), NOW()
   ),
   (
-    'ai_uniscribe_demo_mindmap', @demo_task_id, 'MIND_MAP', 'zh', '思维导图',
-    JSON_OBJECT('label', 'UniScribe', 'children', JSON_ARRAY(JSON_OBJECT('label', '转写稿', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'AI 洞察', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))),
+    'ai_votxt_demo_mindmap', @demo_task_id, 'MIND_MAP', 'zh', '思维导图',
+    JSON_OBJECT('label', 'Votxt', 'children', JSON_ARRAY(JSON_OBJECT('label', '转写稿', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'AI 洞察', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))),
     'seed', NOW(), NOW()
   ),
   (
-    'ai_uniscribe_demo_qa', @demo_task_id, 'QA', 'zh', '问答',
-    JSON_ARRAY(JSON_OBJECT('question', 'UniScribe 用来做什么？', 'answer', '它把音频、视频和 YouTube 链接转换成可复用的转写资产。')),
+    'ai_votxt_demo_qa', @demo_task_id, 'QA', 'zh', '问答',
+    JSON_ARRAY(JSON_OBJECT('question', 'Votxt 用来做什么？', 'answer', '它把音频、视频和 YouTube 链接转换成可复用的转写资产。')),
     'seed', NOW(), NOW()
   ),
   (
-    'ai_uniscribe_demo_translation', @demo_task_id, 'TRANSLATION', 'zh', '翻译',
-    JSON_OBJECT('target', 'zh', 'text', '发言人 1：UniScribe 可以快速把长录音转成可用文字。'),
+    'ai_votxt_demo_translation', @demo_task_id, 'TRANSLATION', 'zh', '翻译',
+    JSON_OBJECT('target', 'zh', 'text', '发言人 1：Votxt 可以快速把长录音转成可用文字。'),
     'seed', NOW(), NOW()
   )
 ON DUPLICATE KEY UPDATE
@@ -515,19 +515,19 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO `ExportAsset` (`id`, `mediaTaskId`, `format`, `objectKey`, `url`, `createdAt`)
 VALUES
-  ('ex_uniscribe_demo_txt', @demo_task_id, 'TXT', NULL, '/api/tasks/task_uniscribe_demo_complete/exports/txt', NOW()),
-  ('ex_uniscribe_demo_srt', @demo_task_id, 'SRT', NULL, '/api/tasks/task_uniscribe_demo_complete/exports/srt', NOW()),
-  ('ex_uniscribe_demo_vtt', @demo_task_id, 'VTT', NULL, '/api/tasks/task_uniscribe_demo_complete/exports/vtt', NOW()),
-  ('ex_uniscribe_demo_json', @demo_task_id, 'JSON', NULL, '/api/tasks/task_uniscribe_demo_complete/exports/json', NOW()),
-  ('ex_uniscribe_demo_pdf', @demo_task_id, 'PDF', NULL, '/api/tasks/task_uniscribe_demo_complete/exports/pdf', NOW())
+  ('ex_votxt_demo_txt', @demo_task_id, 'TXT', NULL, '/api/tasks/task_votxt_demo_complete/exports/txt', NOW()),
+  ('ex_votxt_demo_srt', @demo_task_id, 'SRT', NULL, '/api/tasks/task_votxt_demo_complete/exports/srt', NOW()),
+  ('ex_votxt_demo_vtt', @demo_task_id, 'VTT', NULL, '/api/tasks/task_votxt_demo_complete/exports/vtt', NOW()),
+  ('ex_votxt_demo_json', @demo_task_id, 'JSON', NULL, '/api/tasks/task_votxt_demo_complete/exports/json', NOW()),
+  ('ex_votxt_demo_pdf', @demo_task_id, 'PDF', NULL, '/api/tasks/task_votxt_demo_complete/exports/pdf', NOW())
 ON DUPLICATE KEY UPDATE `url` = VALUES(`url`);
 
 -- ============================================================================
 -- 第三部分：QA 测试数据
 -- ============================================================================
 
-SET @test_user_id = 'user_uniscribe_qa';
-SET @seed_password_hash = 'scrypt:uniscribe_seed_salt:77JAoUhIrsHWYj5Ky3sPzgZWxm5oQjsvpfSjNk0wIhslHeg_cIxeGpSf0UfNSvBVkpAtv2Ybifyn6Kq3iTtvWw';
+SET @test_user_id = 'user_votxt_qa';
+SET @seed_password_hash = 'scrypt:votxt_seed_salt:f4W5HcJrdfOMp32MBb2LASjszARbdIf3ba9AEeQzjejcvvxnVWrWevCHfqi3qRX6xtS9RTNyn7hi4cZpOuv2TQ';
 
 INSERT INTO `User` (`id`, `email`, `password_hash`, `name`, `image`, `locale`, `dailyFreeCount`, `dailyResetAt`, `createdAt`, `updatedAt`)
 VALUES (@test_user_id, 'gxx961208@gmail.com', @seed_password_hash, 'alx to', NULL, 'zh', 0, DATE_ADD(NOW(), INTERVAL 1 DAY), NOW(), NOW())
@@ -539,7 +539,7 @@ ON DUPLICATE KEY UPDATE
   `updatedAt` = NOW();
 
 INSERT INTO `OAuthAccount` (`id`, `userId`, `provider`, `provider_account_id`, `email`, `avatar_url`, `createdAt`, `updatedAt`)
-VALUES ('oauth_uniscribe_qa_google', @test_user_id, 'google', 'gxx961208', 'gxx961208@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocIqsiuzBf8BkPA-quJlus__fzdP0B6b4dBjSfEtJv740VFCYw=s96-c', NOW(), NOW())
+VALUES ('oauth_votxt_qa_google', @test_user_id, 'google', 'gxx961208', 'gxx961208@gmail.com', 'https://lh3.googleusercontent.com/a/ACg8ocIqsiuzBf8BkPA-quJlus__fzdP0B6b4dBjSfEtJv740VFCYw=s96-c', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `email` = VALUES(`email`),
   `avatar_url` = VALUES(`avatar_url`),
@@ -551,7 +551,7 @@ INSERT INTO `Subscription` (
   `currentPeriodStart`, `currentPeriodEnd`, `createdAt`, `updatedAt`
 )
 VALUES
-  ('sub_uniscribe_qa_basic', @test_user_id, 'FREE', 'ACTIVE', NULL, NULL, 120, 78, 30, 2147483648, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), NOW())
+  ('sub_votxt_qa_basic', @test_user_id, 'FREE', 'ACTIVE', NULL, NULL, 120, 78, 30, 2147483648, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `plan` = VALUES(`plan`),
   `stripeCustomerId` = VALUES(`stripeCustomerId`),
@@ -564,11 +564,11 @@ ON DUPLICATE KEY UPDATE
 
 DELETE FROM `Folder`
 WHERE `userId` = @test_user_id
-  AND `id` NOT IN ('folder_uniscribe_qa_123');
+  AND `id` NOT IN ('folder_votxt_qa_123');
 
 INSERT INTO `Folder` (`id`, `userId`, `name`, `position`, `createdAt`, `updatedAt`)
 VALUES
-  ('folder_uniscribe_qa_123', @test_user_id, '123', 0, NOW(), NOW())
+  ('folder_votxt_qa_123', @test_user_id, '123', 0, NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `name` = VALUES(`name`),
   `position` = VALUES(`position`),
@@ -581,11 +581,11 @@ INSERT INTO `MediaTask` (
 )
 VALUES
   ('cmqyzscrp00021lvpt08gi2oo', @test_user_id, 'YOUTUBE', 'Learn How to Talk About Yourself in English | Easy Introductions for Beginners | English Podcast', 'https://www.youtube.com/watch?v=hCon8Uq_Bas', NULL, NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'en', 1129, NULL, 'assemblyai', 1, 100, 19, NULL, TIMESTAMP('2026-06-29 07:28:00'), NOW(), NOW()),
-  ('task_uniscribe_qa_queued', NULL, 'UPLOAD', '排队中的通话.wav', 'https://assets.uniscribe.local/qa/queued-call.wav', NULL, 'uploads/qa/queued-call.wav', 'QUEUED', '任务已进入队列。', 'auto', NULL, NULL, 3200000, NULL, NULL, 5, 0, NULL, NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_processing', NULL, 'UPLOAD', '处理中会议.mp4', 'https://assets.uniscribe.local/qa/processing-meeting.mp4', NULL, 'uploads/qa/processing-meeting.mp4', 'TRANSCRIBING', '正在使用服务商降级策略转写。', 'zh', NULL, NULL, 48000000, 'deepgram', NULL, 45, 0, NULL, NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_failed', NULL, 'YOUTUBE', '私有视频', 'https://www.youtube.com/watch?v=private', NULL, NULL, 'FAILED', 'yt-dlp 无法解析音频地址。', 'auto', NULL, NULL, NULL, NULL, NULL, 100, 0, 'TRANSCRIPTION_FAILED', NOW(), NOW(), NULL),
-  ('task_uniscribe_qa_youtube_done', @test_user_id, 'YOUTUBE', '我用 Codex 幫我剪片：AI Agent 工作流公開', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://cdn.uniscribe.local/audio/launch-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 405, NULL, 'assemblyai', 1, 100, 7, NULL, TIMESTAMP('2026-06-28 17:58:00'), NOW(), NOW()),
-  ('task_uniscribe_qa_creator_done', @test_user_id, 'YOUTUBE', '做自媒体6年了，我想说…', 'https://www.youtube.com/watch?v=creator-demo', 'https://cdn.uniscribe.local/audio/creator-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 926, NULL, 'assemblyai', 1, 100, 16, NULL, TIMESTAMP('2026-06-26 07:39:00'), NOW(), NOW())
+  ('task_votxt_qa_queued', NULL, 'UPLOAD', '排队中的通话.wav', 'https://assets.votxt.local/qa/queued-call.wav', NULL, 'uploads/qa/queued-call.wav', 'QUEUED', '任务已进入队列。', 'auto', NULL, NULL, 3200000, NULL, NULL, 5, 0, NULL, NOW(), NOW(), NULL),
+  ('task_votxt_qa_processing', NULL, 'UPLOAD', '处理中会议.mp4', 'https://assets.votxt.local/qa/processing-meeting.mp4', NULL, 'uploads/qa/processing-meeting.mp4', 'TRANSCRIBING', '正在使用服务商降级策略转写。', 'zh', NULL, NULL, 48000000, 'deepgram', NULL, 45, 0, NULL, NOW(), NOW(), NULL),
+  ('task_votxt_qa_failed', NULL, 'YOUTUBE', '私有视频', 'https://www.youtube.com/watch?v=private', NULL, NULL, 'FAILED', 'yt-dlp 无法解析音频地址。', 'auto', NULL, NULL, NULL, NULL, NULL, 100, 0, 'TRANSCRIPTION_FAILED', NOW(), NOW(), NULL),
+  ('task_votxt_qa_youtube_done', @test_user_id, 'YOUTUBE', '我用 Codex 幫我剪片：AI Agent 工作流公開', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://cdn.votxt.local/audio/launch-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 405, NULL, 'assemblyai', 1, 100, 7, NULL, TIMESTAMP('2026-06-28 17:58:00'), NOW(), NOW()),
+  ('task_votxt_qa_creator_done', @test_user_id, 'YOUTUBE', '做自媒体6年了，我想说…', 'https://www.youtube.com/watch?v=creator-demo', 'https://cdn.votxt.local/audio/creator-demo.mp3', NULL, 'COMPLETED', '转写稿已就绪。', 'auto', 'zh', 926, NULL, 'assemblyai', 1, 100, 16, NULL, TIMESTAMP('2026-06-26 07:39:00'), NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `userId` = VALUES(`userId`),
   `originalName` = VALUES(`originalName`),
@@ -607,7 +607,7 @@ WHERE `mediaTaskId` = 'cmqyzscrp00021lvpt08gi2oo'
 
 INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
 VALUES (
-  'tr_uniscribe_qa_intro_target',
+  'tr_votxt_qa_intro_target',
   'cmqyzscrp00021lvpt08gi2oo',
   CONCAT(
     'Hello everyone and welcome back to Mr. English channel where learning English is easy and fun. I''m Emily. Hello Emily. Hello everyone. It''s great to be here. Hi Paul. How are you today? I''m doing great, thank you. And you? You look very happy today. I am very happy. I''m excited for our topic today. Oh, yes. It''s a very good topic. Very important. Yes, exactly. But before we start, everyone please remember to subscribe to our channel. ',
@@ -674,15 +674,15 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
 VALUES (
-  'tr_uniscribe_qa_youtube_done',
-  'task_uniscribe_qa_youtube_done',
-  '这个发布演示说明 UniScribe 如何接收链接、排队转写、展示进度并导出字幕。',
+  'tr_votxt_qa_youtube_done',
+  'task_votxt_qa_youtube_done',
+  '这个发布演示说明 Votxt 如何接收链接、排队转写、展示进度并导出字幕。',
   JSON_ARRAY(
-    JSON_OBJECT('start', 0, 'end', 6.2, 'speaker', '发言人 1', 'text', '这个发布演示说明 UniScribe 如何接收链接。'),
+    JSON_OBJECT('start', 0, 'end', 6.2, 'speaker', '发言人 1', 'text', '这个发布演示说明 Votxt 如何接收链接。'),
     JSON_OBJECT('start', 6.3, 'end', 14.4, 'speaker', '发言人 1', 'text', '它会排队转写、展示进度并导出字幕。')
   ),
   JSON_ARRAY(),
-  '这个发布演示说明 UniScribe 如何接收链接、排队转写、展示进度并导出字幕。',
+  '这个发布演示说明 Votxt 如何接收链接、排队转写、展示进度并导出字幕。',
   NOW(),
   NOW()
 )
@@ -694,8 +694,8 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
 VALUES (
-  'tr_uniscribe_qa_creator_done',
-  'task_uniscribe_qa_creator_done',
+  'tr_votxt_qa_creator_done',
+  'task_votxt_qa_creator_done',
   '做自媒体六年之后，我更相信持续输出、复盘和真实表达比追热点更重要。',
   JSON_ARRAY(
     JSON_OBJECT('start', 0, 'end', 12.4, 'speaker', '发言人 1', 'text', '做自媒体六年之后，我更相信持续输出比追热点更重要。'),
@@ -714,14 +714,14 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO `AIInsight` (`id`, `mediaTaskId`, `type`, `locale`, `title`, `content`, `model`, `createdAt`, `updatedAt`)
 VALUES
-  ('ai_uniscribe_qa_intro_summary', 'cmqyzscrp00021lvpt08gi2oo', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '本期节目围绕“请介绍一下你自己”这一常见问题展开，旨在帮助听众轻松有趣地掌握回答技巧。通过两位主持人保罗（教师）和艾米丽（学生）的对话，展示了如何分享个人信息，并强调这是一个友好的交流开端。', 'bullets', JSON_ARRAY(JSON_OBJECT('text', '“请介绍一下你自己”是人们在新环境（如新班级、新工作、认识新朋友时）常遇到的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 1030, 'end', 1130))), JSON_OBJECT('text', '主持人保罗（28岁，来自加拿大，教师，喜欢狗、披萨和蓝色）和艾米丽（25岁，来自美国，学生，喜欢猫、意面、绿色、艺术和绘画）通过对话分享了个人信息。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 174, 'end', 237))), JSON_OBJECT('text', '分享内容涵盖姓名、籍贯、居住地、年龄、职业、家庭、宠物、喜好（食物、颜色、动物、爱好）及不喜好（食物、活动）。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138), JSON_OBJECT('start', 580, 'end', 665))), JSON_OBJECT('text', '建议回答时保持简洁、清晰、友好，并根据具体情境选择分享内容，例如只说姓名和职业，或姓名和爱好。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '“介绍你自己”被视为一个分享个人信息、开启对话的邀请，而非令人畏惧的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 380)))), 'insights', JSON_ARRAY(JSON_OBJECT('text', '回答“请介绍一下你自己”是建立联系的机会，而非考试。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 336), JSON_OBJECT('start', 335, 'end', 583))), JSON_OBJECT('text', '可以通过涵盖姓名、职业、爱好、喜好/不喜好等关键方面来构建回答。', 'timestamps', JSON_ARRAY()), JSON_OBJECT('text', '根据所处情境调整回答的内容和侧重点。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '保持友好和简洁是关键，微笑也很重要。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 438), JSON_OBJECT('start', 665, 'end', 862))), JSON_OBJECT('text', '这是一个友好的邀请，让你有机会分享自己，并开启新的对话和友谊。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 380))))), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_intro_mindmap', 'cmqyzscrp00021lvpt08gi2oo', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', 'Tell me about yourself', 'children', JSON_ARRAY(JSON_OBJECT('label', 'Basic info', 'children', JSON_ARRAY(JSON_OBJECT('label', 'name', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'where from', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'age', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Life details', 'children', JSON_ARRAY(JSON_OBJECT('label', 'job or studies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'family', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'pets', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Personality', 'children', JSON_ARRAY(JSON_OBJECT('label', 'favorite food and color', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'hobbies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'likes and dislikes', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Advice', 'children', JSON_ARRAY(JSON_OBJECT('label', 'keep it simple', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'be friendly', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'adapt to the situation', 'children', JSON_ARRAY()))))), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_summary', 'task_uniscribe_qa_youtube_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '演示说明了 UniScribe 的链接转写流程。', 'bullets', JSON_ARRAY('粘贴链接', '队列处理', '导出字幕')), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_mindmap', 'task_uniscribe_qa_youtube_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '链接转写', 'children', JSON_ARRAY(JSON_OBJECT('label', '输入', 'children', JSON_ARRAY()), JSON_OBJECT('label', '处理', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_qa', 'task_uniscribe_qa_youtube_done', 'QA', 'zh', '问答', JSON_ARRAY(JSON_OBJECT('question', '这个演示说明了什么？', 'answer', '说明 UniScribe 如何从链接生成转写和字幕。')), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_translation', 'task_uniscribe_qa_youtube_done', 'TRANSLATION', 'zh', '翻译', JSON_OBJECT('target', 'zh', 'text', '该演示说明 UniScribe 接收链接、排队转写、显示进度并导出字幕。'), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_creator_summary', 'task_uniscribe_qa_creator_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '作者回顾了长期做自媒体的经验，强调持续输出和真实表达。', 'bullets', JSON_ARRAY('不要只追热点', '坚持复盘内容', '保持真实表达')), 'seed', NOW(), NOW()),
-  ('ai_uniscribe_qa_creator_mindmap', 'task_uniscribe_qa_creator_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '自媒体经验', 'children', JSON_ARRAY(JSON_OBJECT('label', '持续输出', 'children', JSON_ARRAY()), JSON_OBJECT('label', '复盘', 'children', JSON_ARRAY()), JSON_OBJECT('label', '真实表达', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW())
+  ('ai_votxt_qa_intro_summary', 'cmqyzscrp00021lvpt08gi2oo', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '本期节目围绕“请介绍一下你自己”这一常见问题展开，旨在帮助听众轻松有趣地掌握回答技巧。通过两位主持人保罗（教师）和艾米丽（学生）的对话，展示了如何分享个人信息，并强调这是一个友好的交流开端。', 'bullets', JSON_ARRAY(JSON_OBJECT('text', '“请介绍一下你自己”是人们在新环境（如新班级、新工作、认识新朋友时）常遇到的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 1030, 'end', 1130))), JSON_OBJECT('text', '主持人保罗（28岁，来自加拿大，教师，喜欢狗、披萨和蓝色）和艾米丽（25岁，来自美国，学生，喜欢猫、意面、绿色、艺术和绘画）通过对话分享了个人信息。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 174, 'end', 237))), JSON_OBJECT('text', '分享内容涵盖姓名、籍贯、居住地、年龄、职业、家庭、宠物、喜好（食物、颜色、动物、爱好）及不喜好（食物、活动）。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138), JSON_OBJECT('start', 580, 'end', 665))), JSON_OBJECT('text', '建议回答时保持简洁、清晰、友好，并根据具体情境选择分享内容，例如只说姓名和职业，或姓名和爱好。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '“介绍你自己”被视为一个分享个人信息、开启对话的邀请，而非令人畏惧的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 380)))), 'insights', JSON_ARRAY(JSON_OBJECT('text', '回答“请介绍一下你自己”是建立联系的机会，而非考试。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 336), JSON_OBJECT('start', 335, 'end', 583))), JSON_OBJECT('text', '可以通过涵盖姓名、职业、爱好、喜好/不喜好等关键方面来构建回答。', 'timestamps', JSON_ARRAY()), JSON_OBJECT('text', '根据所处情境调整回答的内容和侧重点。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '保持友好和简洁是关键，微笑也很重要。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 438), JSON_OBJECT('start', 665, 'end', 862))), JSON_OBJECT('text', '这是一个友好的邀请，让你有机会分享自己，并开启新的对话和友谊。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 380))))), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_intro_mindmap', 'cmqyzscrp00021lvpt08gi2oo', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', 'Tell me about yourself', 'children', JSON_ARRAY(JSON_OBJECT('label', 'Basic info', 'children', JSON_ARRAY(JSON_OBJECT('label', 'name', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'where from', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'age', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Life details', 'children', JSON_ARRAY(JSON_OBJECT('label', 'job or studies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'family', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'pets', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Personality', 'children', JSON_ARRAY(JSON_OBJECT('label', 'favorite food and color', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'hobbies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'likes and dislikes', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Advice', 'children', JSON_ARRAY(JSON_OBJECT('label', 'keep it simple', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'be friendly', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'adapt to the situation', 'children', JSON_ARRAY()))))), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_summary', 'task_votxt_qa_youtube_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '演示说明了 Votxt 的链接转写流程。', 'bullets', JSON_ARRAY('粘贴链接', '队列处理', '导出字幕')), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_mindmap', 'task_votxt_qa_youtube_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '链接转写', 'children', JSON_ARRAY(JSON_OBJECT('label', '输入', 'children', JSON_ARRAY()), JSON_OBJECT('label', '处理', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_qa', 'task_votxt_qa_youtube_done', 'QA', 'zh', '问答', JSON_ARRAY(JSON_OBJECT('question', '这个演示说明了什么？', 'answer', '说明 Votxt 如何从链接生成转写和字幕。')), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_translation', 'task_votxt_qa_youtube_done', 'TRANSLATION', 'zh', '翻译', JSON_OBJECT('target', 'zh', 'text', '该演示说明 Votxt 接收链接、排队转写、显示进度并导出字幕。'), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_creator_summary', 'task_votxt_qa_creator_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '作者回顾了长期做自媒体的经验，强调持续输出和真实表达。', 'bullets', JSON_ARRAY('不要只追热点', '坚持复盘内容', '保持真实表达')), 'seed', NOW(), NOW()),
+  ('ai_votxt_qa_creator_mindmap', 'task_votxt_qa_creator_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '自媒体经验', 'children', JSON_ARRAY(JSON_OBJECT('label', '持续输出', 'children', JSON_ARRAY()), JSON_OBJECT('label', '复盘', 'children', JSON_ARRAY()), JSON_OBJECT('label', '真实表达', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
   `content` = VALUES(`content`),
   `updatedAt` = NOW();

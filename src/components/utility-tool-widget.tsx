@@ -369,7 +369,7 @@ function readableSize(bytes: number) {
 }
 
 function stem(name: string) {
-  return name.replace(/\.[^.]+$/, "") || "uniscribe-export";
+  return name.replace(/\.[^.]+$/, "") || "votxt-export";
 }
 
 function toInt16Samples(channel: Float32Array) {

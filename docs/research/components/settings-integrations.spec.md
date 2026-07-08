@@ -3,7 +3,7 @@
 ## Overview
 
 - Target file: `src/components/settings-page.tsx`
-- Screenshot: `docs/design-references/uniscribe.co/settings-desktop.png`
+- Screenshot: `docs/design-references/votxt.co/settings-desktop.png`
 - Interaction model: static connection card with click-driven Google Drive OAuth start.
 
 ## DOM Structure
@@ -77,7 +77,7 @@
 - Connected account email is displayed under the helper copy.
 - Action changes to `Disconnect`; disconnecting changes account state and should not be used during target research without approval.
 - Local parity updated on 2026-07-01: card title now uses target `h3` semantics with unchanged `20px/28px` semibold styling.
-- Target rechecked on 2026-07-01: `Connect` redirects to Google OAuth with `redirect_uri=https://api.uniscribe.co/auth/google-drive/callback`, `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, and `response_type=code`. Local parity updated the generated Google Drive redirect URI to `/auth/google-drive/callback` and rewrites that public path to the existing API callback handler.
+- Target rechecked on 2026-07-01: `Connect` redirects to Google OAuth with `redirect_uri=https://api.votxt.co/auth/google-drive/callback`, `scope=https://www.googleapis.com/auth/drive.file`, `access_type=offline`, `include_granted_scopes=true`, `prompt=consent`, and `response_type=code`. Local parity updated the generated Google Drive redirect URI to `/auth/google-drive/callback` and rewrites that public path to the existing API callback handler.
 - Local parity updated and verified at 1280x720 on 2026-07-02: Google Drive row title now uses target `h4` semantics, and disconnected `Connect` now renders as a button that imperatively starts the same local OAuth route instead of an anchor. Local remeasure: row `578px` by `102px`, `Connect` `79.77px` by `36px`, `h4` `16px/24px` semibold, preserving the OAuth URL contract.
 - Target/local mobile parity updated and verified on 2026-07-02 at `390x844` from `/settings#usage`: `Integrations` renders at `x=16`, `y=1922`, `w=358`, `h=370`; header is `356px` by `122px` with a two-line description; body wrapper is `356px` by `246px`; disconnected Google Drive row is `308px` by `198px`; `Connect` is `80px` by `36px` at `x=58`, `y=2214`.
 

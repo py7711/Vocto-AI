@@ -31,7 +31,7 @@ export type TranscriptionRequest = {
 };
 
 // AssemblyAI webhook 鉴权头名称，回调端点据此校验。
-export const CALLBACK_AUTH_HEADER = "x-uniscribe-callback-token";
+export const CALLBACK_AUTH_HEADER = "x-votxt-callback-token";
 
 // 异步提交返回的句柄，用于回调匹配与容错轮询。
 export type TranscriptionSubmitResult = {
