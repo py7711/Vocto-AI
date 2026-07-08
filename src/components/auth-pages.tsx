@@ -4,6 +4,8 @@ import {useEffect, useMemo, useState} from "react";
 import {useLocale} from "next-intl";
 import {ArrowLeft, ArrowRight, Eye, EyeOff, Mail} from "lucide-react";
 import {BrandLogo} from "@/components/brand-logo";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
+import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
 import {isLocale} from "@/lib/locales";
 
 const authCopy = {
@@ -1628,6 +1630,14 @@ function getForgotCopy(locale: string) {
   return isLocale(locale) && locale in forgotCopy20 ? forgotCopy20[locale as keyof typeof forgotCopy20] : forgotCopy20.en;
 }
 
+function AuthLocaleControl({locale}: {locale: string}) {
+  return (
+    <div className="fixed right-4 top-4 z-40 w-36 sm:w-44">
+      <WorkspaceLanguageSwitcher locale={locale} copy={getWorkspaceCopy(locale)} placement="below" />
+    </div>
+  );
+}
+
 async function createPasswordCredential(password: string) {
   const bytes = new TextEncoder().encode(`uniscribe-password-v1:${password}`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -1670,6 +1680,7 @@ export function AuthPage({mode}: {mode: "signin" | "signup"}) {
 
   return (
     <main className="min-h-screen bg-white">
+      <AuthLocaleControl locale={locale} />
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
@@ -1980,6 +1991,7 @@ export function VerifyEmailPage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-white">
+      <AuthLocaleControl locale={locale} />
       <section className="animate-fade-up h-[480px] w-[384px] rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
         <div className="mx-auto w-[286px]">
           <div className="flex justify-center">
@@ -2045,6 +2057,7 @@ export function ForgotPasswordPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <AuthLocaleControl locale={locale} />
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
@@ -2124,6 +2137,7 @@ export function ResetPasswordPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <AuthLocaleControl locale={locale} />
       <section className="mx-auto grid min-h-screen w-[286px] content-center">
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">

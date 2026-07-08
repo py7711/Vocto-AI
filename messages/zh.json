@@ -29,7 +29,7 @@
     "processing": "处理中",
     "completed": "已完成",
     "failed": "失败",
-    "headline": "Convert Audio & Video to Text",
+    "headline": "将音频和视频转成文字",
     "subheadline": "上传音频、视频文件或粘贴 YouTube 链接，快速用 AI 转成文字。还可以生成摘要、思维导图、关键问答，并导出多种格式。",
     "formats": "支持 11 种格式",
     "languages": "支持 63 种语言",

@@ -49,7 +49,7 @@ import {TranslationEditor} from "@/components/translation-editor";
 import {fallbackMessages, getWorkspaceCopy, localeLanguageOptions} from "./copy";
 import {mergeTaskSnapshot, type AssetView, type CurrentUser, type FolderItem, type InputMode, type Task, type TaskListItem, type TranscriptSegment, type UsageSnapshot} from "./types";
 import {Fact, InsightPanel, MindMap, ModeButton, PanelTitle, StatusStrip} from "./primitives";
-import {WorkspaceSidebar} from "./sidebar";
+import {WorkspaceLanguageSwitcher, WorkspaceSidebar} from "./sidebar";
 import {ExportPanel, ShareTranscriptionDialog, TranscriptPanel} from "./panels";
 import {ProductSections} from "./marketing";
 import {formatDateTime, formatDuration, formatTime, taskDisplayName} from "./format";
@@ -1594,33 +1594,38 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       ) : null}
 
       {isDashboard ? (
-      <section id="workspace" className="flex h-screen overflow-hidden bg-white">
-        <div className="hidden h-screen w-[300px] shrink-0 overflow-hidden md:block">
-          <WorkspaceSidebar
-            t={t}
-            copy={copy}
-            locale={locale}
-            tasks={shownTasks}
-            user={currentUser}
-            usageSnapshot={usageSnapshot}
-            folders={folders}
-            selectedFolderId={selectedFolderId}
-            setSelectedFolderId={setSelectedFolderId}
-            createFolder={createFolder}
-            renameFolder={renameFolder}
-            deleteFolder={deleteFolder}
-            assetView={assetView}
-            setAssetView={setAssetView}
-            assetSearch={assetSearch}
-            setAssetSearch={setAssetSearch}
-            activeTaskId={task?.id}
-            onSelectTask={loadTaskDetail}
-            onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)}
-          />
-        </div>
+        <section id="workspace" className="flex h-screen overflow-hidden bg-white">
+          <div className="hidden h-screen w-[300px] shrink-0 overflow-hidden md:block">
+            <WorkspaceSidebar
+              t={t}
+              copy={copy}
+              locale={locale}
+              tasks={shownTasks}
+              user={currentUser}
+              usageSnapshot={usageSnapshot}
+              folders={folders}
+              selectedFolderId={selectedFolderId}
+              setSelectedFolderId={setSelectedFolderId}
+              createFolder={createFolder}
+              renameFolder={renameFolder}
+              deleteFolder={deleteFolder}
+              assetView={assetView}
+              setAssetView={setAssetView}
+              assetSearch={assetSearch}
+              setAssetSearch={setAssetSearch}
+              activeTaskId={task?.id}
+              onSelectTask={loadTaskDetail}
+              onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)}
+            />
+          </div>
           <section className="min-w-0 flex-1 overflow-y-auto p-4 md:p-8">
             <div className="flex min-h-[600px] flex-col gap-4 md:gap-6">
-            <DashboardUpgradeCard copy={copy} onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)} onShowPlans={openDashboardPlans} />
+              <div className="relative z-40 flex justify-end md:hidden">
+                <div className="w-48 max-w-full">
+                  <WorkspaceLanguageSwitcher locale={locale} copy={copy} placement="below" />
+                </div>
+              </div>
+              <DashboardUpgradeCard copy={copy} onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)} onShowPlans={openDashboardPlans} />
 
             <div className="flex flex-1 flex-col bg-white">
               <div className="flex min-w-[358px] items-center justify-between gap-3">
@@ -3509,13 +3514,15 @@ function RetranscribeDialog({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const retranscribeTarget = task.originalName || copy.taskWorkspace.retranscribe;
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 py-8">
       <section className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-xl border border-ink/10 bg-white p-5 shadow-lifted">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black text-ink">重新转写设置</h2>
-            <p className="mt-1 text-sm font-bold leading-6 text-ink/55">使用新的语言、说话人、字幕、模型和摘要设置重新排队 {task.originalName || "这个转写任务"}。</p>
+            <h2 className="text-lg font-black text-ink">{copy.taskWorkspace.retranscribeSettingsTitle}</h2>
+            <p className="mt-1 text-sm font-bold leading-6 text-ink/55">{copy.taskWorkspace.retranscribeSettingsDescription(retranscribeTarget)}</p>
           </div>
           <button type="button" onClick={onClose} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/10 text-ink/55 hover:text-ink" aria-label={copy.close}>
             <X size={16} />
@@ -3537,12 +3544,12 @@ function RetranscribeDialog({
           summaryLanguage={summaryLanguage}
           setSummaryLanguage={setSummaryLanguage}
         />
-        <p className="mt-4 rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-xs font-bold leading-5 text-coral">已有 AI 洞察和导出缓存会重新生成。</p>
+        <p className="mt-4 rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-xs font-bold leading-5 text-coral">{copy.taskWorkspace.retranscribeSettingsWarning}</p>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <button type="button" onClick={onClose} className="btn-outline px-3 py-2">{copy.cancel}</button>
           <button type="button" onClick={onSubmit} disabled={busy} className="btn-primary px-3 py-2">
             {busy ? <Loader2 className="animate-spin" size={16} /> : <RotateCcw size={16} />}
-            Queue retranscription
+            {copy.taskWorkspace.queueRetranscription}
           </button>
         </div>
       </section>
@@ -3858,15 +3865,20 @@ function UploadWorkspaceShell({
                     <span className="truncate text-[rgba(2,8,23,0.8)]">{t("uploadFiles")}</span>
                   </nav>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => undefined}
-                  className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-violet/20 bg-violet text-white shadow-soft transition hover:bg-violet/90"
-                  aria-label={copy.recentFiles}
-                  aria-expanded="false"
-                >
-                  <Clock size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="relative z-40 w-44 md:hidden">
+                    <WorkspaceLanguageSwitcher locale={locale} copy={copy} placement="below" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => undefined}
+                    className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full border border-violet/20 bg-violet text-white shadow-soft transition hover:bg-violet/90"
+                    aria-label={copy.recentFiles}
+                    aria-expanded="false"
+                  >
+                    <Clock size={16} />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-6">
@@ -5255,6 +5267,8 @@ function TaskWorkspace({
               content={translation}
               transcriptSegments={task.transcript?.segments}
               busy={busy}
+              saveError={copy.taskWorkspace.saveTranslationFailed}
+              saveLabel={copy.taskWorkspace.saveTranslation}
               onSaved={(content) => onTranslationSaved(translationTarget, content)}
               onError={onError}
             />

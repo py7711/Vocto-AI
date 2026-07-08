@@ -1,6 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {type RefObject, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useLocale, useTranslations} from "next-intl";
 import {AlertCircle, ArrowLeft, Brain, Check, CheckCircle2, ChevronDown, Copy, Crown, Download, ExternalLink, FileArchive, FileText, FolderOpen, Image as ImageIcon, Languages, Lightbulb, List, ListChecks, Loader2, Lock, Maximize2, Minimize2, MoreHorizontal, Pencil, Play, RefreshCw, Replace as ReplaceIcon, RotateCcw, Scan, Search, Share2, Sparkles, Star, TicketCheck, Trash2, Users, Wand2, X, Youtube, ZoomIn, ZoomOut} from "lucide-react";
 import clsx from "clsx";
@@ -8,19 +8,22 @@ import {MediaPlayer} from "@/components/media-player";
 import {CompactCheckbox} from "@/components/target-controls";
 import {PricingAction} from "@/components/pricing-actions";
 import {DashboardPricingOverlay} from "@/components/workspace/Workspace";
-import {fallbackMessages, getWorkspaceCopy, exportFormats} from "@/components/workspace/copy";
+import {fallbackMessages, getWorkspaceCopy, exportFormats, languageChoiceLabel} from "@/components/workspace/copy";
+import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
 import {mergeTaskSnapshot, type CurrentUser, type FolderItem, type Task, type TranscriptSegment} from "@/components/workspace/types";
 import {formatTime} from "@/components/workspace/format";
 import {buildExportQuery, ShareTranscriptionDialog} from "@/components/workspace/panels";
 import {summaryTemplateChoices, summaryTemplateRequiresMembership, type SummaryTemplateInput} from "@/lib/summary-template";
 import {hasActiveMembershipFromSubscriptions} from "@/lib/membership-shared";
-import {isLocale, type Locale} from "@/lib/locales";
+import {isLocale, localeEnglishNames, localeNativeNames, locales, type Locale} from "@/lib/locales";
 
 export function TranscriptionPage({taskId}: {taskId: string}) {
   const locale = useLocale();
+  const currentLocale = isLocale(locale) ? locale : "en";
   const translate = useTranslations("app");
   const copy = getWorkspaceCopy(locale);
   const detailCopy = transcriptionControlsFor(locale);
+  const translationCopy = translationSettingsFor(locale);
   const [task, setTask] = useState<Task | null>(null);
   const [draftText, setDraftText] = useState("");
   const [segmentDrafts, setSegmentDrafts] = useState<TranscriptSegment[]>([]);
@@ -69,6 +72,11 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   const [speakerOptionsOpen, setSpeakerOptionsOpen] = useState(false);
   const [showSpeakerLabels, setShowSpeakerLabels] = useState(true);
   const [hiddenSpeakers, setHiddenSpeakers] = useState<Set<string>>(new Set());
+  const translationSettingsRef = useRef<HTMLDivElement | null>(null);
+  const [translationSettingsOpen, setTranslationSettingsOpen] = useState(false);
+  const [translationTarget, setTranslationTarget] = useState<Locale>(currentLocale);
+  const [translationSearch, setTranslationSearch] = useState("");
+  const [generatingTranslation, setGeneratingTranslation] = useState(false);
 
   const t = (key: string) => {
     try {
@@ -166,6 +174,28 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     document.addEventListener("pointerdown", closeMoreMenuOnOutsideClick);
     return () => document.removeEventListener("pointerdown", closeMoreMenuOnOutsideClick);
   }, [moreOpen]);
+
+  useEffect(() => {
+    if (!translationSettingsOpen) return;
+    function closeTranslationSettings(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node) || translationSettingsRef.current?.contains(target)) return;
+      setTranslationSettingsOpen(false);
+    }
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setTranslationSettingsOpen(false);
+    }
+    document.addEventListener("pointerdown", closeTranslationSettings);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeTranslationSettings);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [translationSettingsOpen]);
+
+  useEffect(() => {
+    setTranslationTarget((target) => (isLocale(target) ? target : currentLocale));
+  }, [currentLocale]);
 
   useEffect(() => {
     if (task?.transcript) {
@@ -376,6 +406,34 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       await generateSingleInsight("mind_map");
     } finally {
       setGeneratingMindMap(false);
+    }
+  }
+
+  async function generateTranslation() {
+    if (!task?.id || !task.transcript) return;
+    setGeneratingTranslation(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const record = await fetch(`/api/tasks/${task.id}/translations`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          targetLanguageCode: translationTarget,
+          sourceLanguageCode: task.detectedLanguage ?? task.language ?? "auto"
+        })
+      }).then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error ?? translationCopy.translationFailed);
+        return body as NonNullable<Task["insights"]>[number];
+      });
+      const others = task.insights?.filter((item) => !(item.type === "TRANSLATION" && item.locale === record.locale)) ?? [];
+      setTask({...task, insights: [record, ...others]});
+      setNotice(translationCopy.translationGenerated);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setGeneratingTranslation(false);
     }
   }
 
@@ -625,6 +683,20 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     subtitleMaxChars,
     subtitleMaxDurationSeconds
   });
+  const translationRecords = task?.insights?.filter((item) => item.type === "TRANSLATION") ?? [];
+  const selectedTranslation = translationRecords.find((item) => item.locale === translationTarget)?.content ?? null;
+  const selectedTranslationSegments = useMemo(() => translationSegmentsFromContent(selectedTranslation), [selectedTranslation]);
+  const normalizedTranslationSearch = translationSearch.trim().toLowerCase();
+  const filteredTranslationOptions = useMemo(() => {
+    if (!normalizedTranslationSearch) return translationLanguageOptions;
+    return translationLanguageOptions.filter((option) =>
+      [option.locale, option.label, option.english, option.native]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedTranslationSearch)
+    );
+  }, [normalizedTranslationSearch]);
+  const popularTranslationOptions = filteredTranslationOptions.filter((option) => popularTranslationLocales.includes(option.locale));
   return (
     <main className="flex h-[100dvh] overflow-hidden bg-white text-ink">
       <div className="flex min-w-0 flex-1 flex-col">
@@ -636,7 +708,10 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
           <div className="hidden min-w-0 w-full max-w-[600px] flex-none md:block">
             <h1 className="truncate text-xl font-normal leading-7 text-ink">{hasLoadError ? detailCopy.transcriptionUnavailable : title}</h1>
           </div>
-          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3 md:flex-none">
+          <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 md:flex-none md:gap-3">
+            <div className="relative z-40 w-32 shrink-0 sm:w-44">
+              <WorkspaceLanguageSwitcher locale={locale} copy={copy} placement="below" />
+            </div>
             {sourceHref ? (
               <a href={sourceHref} target="_blank" rel="noreferrer" className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-coral transition hover:bg-coral/10" aria-label={isYoutubeSource ? t("youtube") : t("mediaLinkTranscription")}>
                 {isYoutubeSource ? <Youtube size={16} /> : <ExternalLink size={16} />}
@@ -694,9 +769,41 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                 <button type="button" onClick={copyTranscript} disabled={!task?.transcript} className="focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-paper hover:text-ink disabled:opacity-40" aria-label={detailCopy.copyTranscript}>
                   <Copy size={16} />
                 </button>
-                <button type="button" onClick={saveTranscript} disabled={!task?.transcript || busy} className="focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-paper hover:text-ink disabled:opacity-40" aria-label={detailCopy.saveTranscript}>
-                  {busy ? <Loader2 className="animate-spin" size={16} /> : <Languages size={16} />}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTranslationSettingsOpen((value) => !value);
+                    setSpeakerHintOpen(false);
+                    setSpeakerOptionsOpen(false);
+                    setTranscriptSearchOpen(false);
+                  }}
+                  disabled={!task?.transcript || generatingTranslation}
+                  className={clsx(
+                    "focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md transition disabled:opacity-40",
+                    translationSettingsOpen ? "bg-violet text-white" : "text-slate-500 hover:bg-paper hover:text-ink"
+                  )}
+                  aria-label={translationCopy.openTranslationSettings}
+                  aria-expanded={translationSettingsOpen}
+                >
+                  {generatingTranslation ? <Loader2 className="animate-spin" size={16} /> : <Languages size={16} />}
                 </button>
+                {translationSettingsOpen && task?.transcript ? (
+                  <TranslationSettingsCard
+                    refObject={translationSettingsRef}
+                    copy={translationCopy}
+                    target={translationTarget}
+                    search={translationSearch}
+                    options={filteredTranslationOptions}
+                    popularOptions={popularTranslationOptions}
+                    hasTranslation={Boolean(selectedTranslation)}
+                    generating={generatingTranslation}
+                    disabled={!task?.transcript}
+                    onSearchChange={setTranslationSearch}
+                    onTargetChange={setTranslationTarget}
+                    onGenerate={generateTranslation}
+                    onClose={() => setTranslationSettingsOpen(false)}
+                  />
+                ) : null}
                 <button type="button" onClick={() => { setSpeakerHintOpen((value) => !value); setTranscriptSearchOpen(false); setSpeakerOptionsOpen(false); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full transition disabled:opacity-40 ${speakerHintOpen ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.speakerRecognitionDetails}>
                   <Sparkles size={16} />
                 </button>
@@ -868,6 +975,15 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                             <p className={clsx("text-sm leading-[22.75px]", activeSegmentIndex === index ? "text-white" : "text-ink")}>{segment.text}</p>
                           )}
                         </div>
+                        {selectedTranslationSegments[index]?.text ? (
+                          <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                              <Languages size={12} />
+                              <span>{translationCopy.translationResult}</span>
+                            </div>
+                            <p className="text-sm leading-[22.75px] text-slate-700">{selectedTranslationSegments[index].text}</p>
+                          </div>
+                        ) : null}
                       </article>
                       );
                     })}
@@ -896,6 +1012,15 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                         <div className="rounded-lg border-2 border-transparent bg-white p-2 transition hover:border-violet sm:p-3">
                           <p className="text-sm leading-[22.75px] text-ink">{paragraph}</p>
                         </div>
+                        {selectedTranslationSegments[index]?.text ? (
+                          <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                              <Languages size={12} />
+                              <span>{translationCopy.translationResult}</span>
+                            </div>
+                            <p className="text-sm leading-[22.75px] text-slate-700">{selectedTranslationSegments[index].text}</p>
+                          </div>
+                        ) : null}
                       </article>
                     ))}
                     <textarea value={draftText} onChange={(event) => setDraftText(event.target.value)} className="sr-only" aria-label={detailCopy.editableTranscriptField} />
@@ -1229,6 +1354,193 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         />
       ) : null}
     </main>
+  );
+}
+
+type TranslationLanguageOption = {
+  locale: Locale;
+  label: string;
+  english: string;
+  native: string;
+};
+
+const translationLanguageOptions: TranslationLanguageOption[] = locales.map((item) => ({
+  locale: item,
+  label: languageChoiceLabel(item),
+  english: localeEnglishNames[item],
+  native: localeNativeNames[item]
+}));
+
+const popularTranslationLocales: Locale[] = ["en", "ru", "id", "es", "ar", "th", "it", "pt", "zh"];
+
+type TranslationDisplaySegment = {
+  text: string;
+  start?: number;
+  end?: number;
+  speaker?: string;
+};
+
+function translationSegmentsFromContent(content: unknown): TranslationDisplaySegment[] {
+  if (!content || typeof content !== "object") return [];
+  const record = content as Record<string, unknown>;
+  if (Array.isArray(record.segments)) {
+    return record.segments
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const segment = item as Record<string, unknown>;
+        const text = typeof segment.text === "string" ? segment.text.trim() : "";
+        if (!text) return null;
+        return {
+          text,
+          start: typeof segment.start === "number" ? segment.start : undefined,
+          end: typeof segment.end === "number" ? segment.end : undefined,
+          speaker: typeof segment.speaker === "string" && segment.speaker.trim() ? segment.speaker.trim() : undefined
+        };
+      })
+      .filter(Boolean) as TranslationDisplaySegment[];
+  }
+
+  const text = typeof record.text === "string" ? record.text : typeof record.translation === "string" ? record.translation : "";
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => ({text: paragraph}));
+}
+
+type TranslationSettingsCopy = {
+  openTranslationSettings: string;
+  translationSettings: string;
+  selectTargetLanguage: string;
+  searchLanguagePlaceholder: string;
+  popularLanguages: string;
+  allLanguages: string;
+  generateTranslation: string;
+  generatingTranslation: string;
+  regenerateTranslation: string;
+  translationGenerated: string;
+  translationFailed: string;
+  translationResult: string;
+  close: string;
+  noLanguageResults: string;
+};
+
+function TranslationSettingsCard({
+  refObject,
+  copy,
+  target,
+  search,
+  options,
+  popularOptions,
+  hasTranslation,
+  generating,
+  disabled,
+  onSearchChange,
+  onTargetChange,
+  onGenerate,
+  onClose
+}: {
+  refObject: RefObject<HTMLDivElement>;
+  copy: TranslationSettingsCopy;
+  target: Locale;
+  search: string;
+  options: TranslationLanguageOption[];
+  popularOptions: TranslationLanguageOption[];
+  hasTranslation: boolean;
+  generating: boolean;
+  disabled: boolean;
+  onSearchChange: (value: string) => void;
+  onTargetChange: (value: Locale) => void;
+  onGenerate: () => void | Promise<void>;
+  onClose: () => void;
+}) {
+  const [listOpen, setListOpen] = useState(true);
+  const selectedLabel = languageChoiceLabel(target);
+
+  const renderLanguageButton = (option: TranslationLanguageOption) => {
+    const selected = option.locale === target;
+    return (
+      <button
+        key={option.locale}
+        type="button"
+        role="option"
+        aria-selected={selected}
+        onClick={() => {
+          onTargetChange(option.locale);
+          onSearchChange("");
+        }}
+        className={clsx(
+          "flex min-h-8 w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-xs font-medium leading-4 transition",
+          selected ? "bg-violet text-white" : "bg-white text-ink hover:bg-slate-100"
+        )}
+      >
+        <span className="min-w-0 flex-1 truncate">{option.label}</span>
+        {selected ? <Check size={13} className="ml-2 flex-none" /> : null}
+      </button>
+    );
+  };
+
+  return (
+    <div ref={refObject} className="absolute right-0 top-10 z-[70] w-[320px] max-w-[calc(100vw-24px)] rounded-lg border border-slate-200 bg-white p-3 text-left text-ink shadow-xl">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold leading-5 text-ink">{copy.translationSettings}</h3>
+        <button type="button" onClick={onClose} className="grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-ink" aria-label={copy.close}>
+          <X size={13} />
+        </button>
+      </div>
+
+      <label className="mt-3 grid gap-1.5">
+        <span className="text-xs font-semibold leading-4 text-slate-600">{copy.selectTargetLanguage}</span>
+        <button
+          type="button"
+          onClick={() => setListOpen((value) => !value)}
+          className="flex h-9 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-2.5 text-left text-xs font-semibold text-ink transition hover:border-slate-300"
+          aria-expanded={listOpen}
+        >
+          <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
+          <ChevronDown className={clsx("h-3.5 w-3.5 flex-none text-slate-400 transition-transform", listOpen && "rotate-180")} />
+        </button>
+      </label>
+
+      {listOpen ? (
+        <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 p-2">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+              <input
+                value={search}
+                onChange={(event) => onSearchChange(event.target.value)}
+                className="h-8 w-full rounded-md border border-violet bg-white pl-8 pr-2.5 text-xs font-medium text-ink outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-violet"
+                placeholder={copy.searchLanguagePlaceholder}
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="max-h-[220px] overflow-y-auto p-1.5" role="listbox">
+            {popularOptions.length ? (
+              <div>
+                <p className="px-2.5 pb-1 pt-0.5 text-[11px] font-semibold leading-4 text-slate-500">{copy.popularLanguages}</p>
+                <div className="grid gap-0.5">{popularOptions.map(renderLanguageButton)}</div>
+              </div>
+            ) : null}
+            <div className={popularOptions.length ? "mt-1.5 border-t border-slate-200 pt-1.5" : ""}>
+              <p className="px-2.5 pb-1 pt-0.5 text-[11px] font-semibold leading-4 text-slate-500">{copy.allLanguages}</p>
+              {options.length ? <div className="grid gap-0.5">{options.map(renderLanguageButton)}</div> : <p className="px-2.5 py-2 text-xs font-medium text-slate-500">{copy.noLanguageResults}</p>}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onGenerate}
+        disabled={disabled || generating}
+        className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-violet px-3 text-xs font-semibold text-white transition hover:bg-violetDark disabled:pointer-events-none disabled:opacity-50"
+      >
+        {generating ? <Loader2 className="animate-spin" size={14} /> : <Languages size={14} />}
+        {generating ? copy.generatingTranslation : hasTranslation ? copy.regenerateTranslation : copy.generateTranslation}
+      </button>
+    </div>
   );
 }
 
@@ -2520,6 +2832,33 @@ const transcriptionRuntimeCopy: Record<Locale, TranscriptionRuntimeCopy> = {
   zh: {ratingSaved: "转写评分已保存。", transcriptionUnavailable: "转写不可用", unableSaveRating: "无法保存转写评分。"},
   "zh-TW": {ratingSaved: "轉寫評分已儲存。", transcriptionUnavailable: "轉寫不可用", unableSaveRating: "無法儲存轉寫評分。"}
 };
+
+const translationSettingsCopy: Record<Locale, TranslationSettingsCopy> = {
+  ar: {openTranslationSettings: "فتح إعدادات الترجمة", translationSettings: "إعدادات الترجمة", selectTargetLanguage: "اختر اللغة الهدف", searchLanguagePlaceholder: "ابحث عن لغة...", popularLanguages: "لغات شائعة", allLanguages: "كل اللغات", generateTranslation: "إنشاء الترجمة", generatingTranslation: "جار الترجمة...", regenerateTranslation: "إعادة إنشاء الترجمة", translationGenerated: "تم إنشاء الترجمة.", translationFailed: "تعذر إنشاء الترجمة.", translationResult: "الترجمة", close: "إغلاق", noLanguageResults: "لا توجد لغات مطابقة."},
+  de: {openTranslationSettings: "Übersetzungseinstellungen öffnen", translationSettings: "Übersetzungseinstellungen", selectTargetLanguage: "Zielsprache auswählen", searchLanguagePlaceholder: "Sprache suchen...", popularLanguages: "Beliebte Sprachen", allLanguages: "Alle Sprachen", generateTranslation: "Übersetzung erzeugen", generatingTranslation: "Übersetzen...", regenerateTranslation: "Übersetzung neu erzeugen", translationGenerated: "Übersetzung wurde erzeugt.", translationFailed: "Übersetzung konnte nicht erzeugt werden.", translationResult: "Übersetzung", close: "Schliessen", noLanguageResults: "Keine passenden Sprachen."},
+  en: {openTranslationSettings: "Open translation settings", translationSettings: "Translation settings", selectTargetLanguage: "Select target language", searchLanguagePlaceholder: "Search languages...", popularLanguages: "Popular languages", allLanguages: "All languages", generateTranslation: "Generate translation", generatingTranslation: "Translating...", regenerateTranslation: "Regenerate translation", translationGenerated: "Translation has been generated.", translationFailed: "Unable to generate translation.", translationResult: "Translation", close: "Close", noLanguageResults: "No matching languages."},
+  es: {openTranslationSettings: "Abrir ajustes de traducción", translationSettings: "Ajustes de traducción", selectTargetLanguage: "Selecciona el idioma de destino", searchLanguagePlaceholder: "Buscar idiomas...", popularLanguages: "Idiomas populares", allLanguages: "Todos los idiomas", generateTranslation: "Generar traducción", generatingTranslation: "Traduciendo...", regenerateTranslation: "Regenerar traducción", translationGenerated: "La traducción se ha generado.", translationFailed: "No se pudo generar la traducción.", translationResult: "Traducción", close: "Cerrar", noLanguageResults: "No hay idiomas coincidentes."},
+  fr: {openTranslationSettings: "Ouvrir les paramètres de traduction", translationSettings: "Paramètres de traduction", selectTargetLanguage: "Choisir la langue cible", searchLanguagePlaceholder: "Rechercher une langue...", popularLanguages: "Langues populaires", allLanguages: "Toutes les langues", generateTranslation: "Générer la traduction", generatingTranslation: "Traduction...", regenerateTranslation: "Regénérer la traduction", translationGenerated: "La traduction a été générée.", translationFailed: "Impossible de générer la traduction.", translationResult: "Traduction", close: "Fermer", noLanguageResults: "Aucune langue correspondante."},
+  hu: {openTranslationSettings: "Fordítási beállítások megnyitása", translationSettings: "Fordítási beállítások", selectTargetLanguage: "Célnyelv kiválasztása", searchLanguagePlaceholder: "Nyelv keresése...", popularLanguages: "Népszerű nyelvek", allLanguages: "Minden nyelv", generateTranslation: "Fordítás generálása", generatingTranslation: "Fordítás...", regenerateTranslation: "Fordítás újragenerálása", translationGenerated: "A fordítás elkészült.", translationFailed: "Nem sikerült fordítást generálni.", translationResult: "Fordítás", close: "Bezárás", noLanguageResults: "Nincs találat."},
+  id: {openTranslationSettings: "Buka pengaturan terjemahan", translationSettings: "Pengaturan terjemahan", selectTargetLanguage: "Pilih bahasa target", searchLanguagePlaceholder: "Cari bahasa...", popularLanguages: "Bahasa populer", allLanguages: "Semua bahasa", generateTranslation: "Buat terjemahan", generatingTranslation: "Menerjemahkan...", regenerateTranslation: "Buat ulang terjemahan", translationGenerated: "Terjemahan telah dibuat.", translationFailed: "Tidak dapat membuat terjemahan.", translationResult: "Terjemahan", close: "Tutup", noLanguageResults: "Tidak ada bahasa yang cocok."},
+  it: {openTranslationSettings: "Apri impostazioni traduzione", translationSettings: "Impostazioni traduzione", selectTargetLanguage: "Seleziona lingua di destinazione", searchLanguagePlaceholder: "Cerca lingue...", popularLanguages: "Lingue popolari", allLanguages: "Tutte le lingue", generateTranslation: "Genera traduzione", generatingTranslation: "Traduzione...", regenerateTranslation: "Rigenera traduzione", translationGenerated: "La traduzione è stata generata.", translationFailed: "Impossibile generare la traduzione.", translationResult: "Traduzione", close: "Chiudi", noLanguageResults: "Nessuna lingua corrispondente."},
+  ja: {openTranslationSettings: "翻訳設定を開く", translationSettings: "翻訳設定", selectTargetLanguage: "翻訳先言語を選択", searchLanguagePlaceholder: "言語を検索...", popularLanguages: "人気の言語", allLanguages: "すべての言語", generateTranslation: "翻訳を生成", generatingTranslation: "翻訳中...", regenerateTranslation: "翻訳を再生成", translationGenerated: "翻訳を生成しました。", translationFailed: "翻訳を生成できません。", translationResult: "翻訳", close: "閉じる", noLanguageResults: "一致する言語がありません。"},
+  ko: {openTranslationSettings: "번역 설정 열기", translationSettings: "번역 설정", selectTargetLanguage: "대상 언어 선택", searchLanguagePlaceholder: "언어 검색...", popularLanguages: "인기 언어", allLanguages: "모든 언어", generateTranslation: "번역 생성", generatingTranslation: "번역 중...", regenerateTranslation: "번역 다시 생성", translationGenerated: "번역이 생성되었습니다.", translationFailed: "번역을 생성할 수 없습니다.", translationResult: "번역", close: "닫기", noLanguageResults: "일치하는 언어가 없습니다."},
+  nl: {openTranslationSettings: "Vertaalinstellingen openen", translationSettings: "Vertaalinstellingen", selectTargetLanguage: "Doeltaal selecteren", searchLanguagePlaceholder: "Talen zoeken...", popularLanguages: "Populaire talen", allLanguages: "Alle talen", generateTranslation: "Vertaling genereren", generatingTranslation: "Vertalen...", regenerateTranslation: "Vertaling opnieuw genereren", translationGenerated: "Vertaling is gegenereerd.", translationFailed: "Kan vertaling niet genereren.", translationResult: "Vertaling", close: "Sluiten", noLanguageResults: "Geen overeenkomende talen."},
+  pl: {openTranslationSettings: "Otwórz ustawienia tłumaczenia", translationSettings: "Ustawienia tłumaczenia", selectTargetLanguage: "Wybierz język docelowy", searchLanguagePlaceholder: "Szukaj języków...", popularLanguages: "Popularne języki", allLanguages: "Wszystkie języki", generateTranslation: "Generuj tłumaczenie", generatingTranslation: "Tłumaczenie...", regenerateTranslation: "Wygeneruj ponownie", translationGenerated: "Tłumaczenie zostało wygenerowane.", translationFailed: "Nie można wygenerować tłumaczenia.", translationResult: "Tłumaczenie", close: "Zamknij", noLanguageResults: "Brak pasujących języków."},
+  pt: {openTranslationSettings: "Abrir configurações de tradução", translationSettings: "Configurações de tradução", selectTargetLanguage: "Selecionar idioma de destino", searchLanguagePlaceholder: "Pesquisar idiomas...", popularLanguages: "Idiomas populares", allLanguages: "Todos os idiomas", generateTranslation: "Gerar tradução", generatingTranslation: "Traduzindo...", regenerateTranslation: "Gerar tradução novamente", translationGenerated: "A tradução foi gerada.", translationFailed: "Não foi possível gerar a tradução.", translationResult: "Tradução", close: "Fechar", noLanguageResults: "Nenhum idioma correspondente."},
+  ru: {openTranslationSettings: "Открыть настройки перевода", translationSettings: "Настройки перевода", selectTargetLanguage: "Выберите целевой язык", searchLanguagePlaceholder: "Поиск языков...", popularLanguages: "Популярные языки", allLanguages: "Все языки", generateTranslation: "Создать перевод", generatingTranslation: "Перевод...", regenerateTranslation: "Создать перевод заново", translationGenerated: "Перевод создан.", translationFailed: "Не удалось создать перевод.", translationResult: "Перевод", close: "Закрыть", noLanguageResults: "Подходящих языков нет."},
+  th: {openTranslationSettings: "เปิดการตั้งค่าการแปล", translationSettings: "การตั้งค่าการแปล", selectTargetLanguage: "เลือกภาษาเป้าหมาย", searchLanguagePlaceholder: "ค้นหาภาษา...", popularLanguages: "ภาษายอดนิยม", allLanguages: "ทุกภาษา", generateTranslation: "สร้างคำแปล", generatingTranslation: "กำลังแปล...", regenerateTranslation: "สร้างคำแปลอีกครั้ง", translationGenerated: "สร้างคำแปลแล้ว", translationFailed: "ไม่สามารถสร้างคำแปลได้", translationResult: "คำแปล", close: "ปิด", noLanguageResults: "ไม่พบภาษาที่ตรงกัน"},
+  tr: {openTranslationSettings: "Çeviri ayarlarını aç", translationSettings: "Çeviri ayarları", selectTargetLanguage: "Hedef dili seç", searchLanguagePlaceholder: "Dil ara...", popularLanguages: "Popüler diller", allLanguages: "Tüm diller", generateTranslation: "Çeviri oluştur", generatingTranslation: "Çevriliyor...", regenerateTranslation: "Çeviriyi yeniden oluştur", translationGenerated: "Çeviri oluşturuldu.", translationFailed: "Çeviri oluşturulamadı.", translationResult: "Çeviri", close: "Kapat", noLanguageResults: "Eşleşen dil yok."},
+  uk: {openTranslationSettings: "Відкрити налаштування перекладу", translationSettings: "Налаштування перекладу", selectTargetLanguage: "Виберіть цільову мову", searchLanguagePlaceholder: "Шукати мови...", popularLanguages: "Популярні мови", allLanguages: "Усі мови", generateTranslation: "Створити переклад", generatingTranslation: "Переклад...", regenerateTranslation: "Створити переклад знову", translationGenerated: "Переклад створено.", translationFailed: "Не вдалося створити переклад.", translationResult: "Переклад", close: "Закрити", noLanguageResults: "Немає відповідних мов."},
+  vi: {openTranslationSettings: "Mở cài đặt dịch", translationSettings: "Cài đặt dịch", selectTargetLanguage: "Chọn ngôn ngữ đích", searchLanguagePlaceholder: "Tìm ngôn ngữ...", popularLanguages: "Ngôn ngữ phổ biến", allLanguages: "Tất cả ngôn ngữ", generateTranslation: "Tạo bản dịch", generatingTranslation: "Đang dịch...", regenerateTranslation: "Tạo lại bản dịch", translationGenerated: "Bản dịch đã được tạo.", translationFailed: "Không thể tạo bản dịch.", translationResult: "Bản dịch", close: "Đóng", noLanguageResults: "Không có ngôn ngữ phù hợp."},
+  zh: {openTranslationSettings: "打开翻译设置", translationSettings: "翻译设置", selectTargetLanguage: "选择目标语言", searchLanguagePlaceholder: "搜索语言...", popularLanguages: "热门语言", allLanguages: "所有语言", generateTranslation: "生成翻译", generatingTranslation: "正在翻译...", regenerateTranslation: "重新生成翻译", translationGenerated: "翻译内容已生成。", translationFailed: "无法创建翻译。", translationResult: "翻译", close: "关闭", noLanguageResults: "没有匹配的语言。"},
+  "zh-TW": {openTranslationSettings: "開啟翻譯設定", translationSettings: "翻譯設定", selectTargetLanguage: "選擇目標語言", searchLanguagePlaceholder: "搜尋語言...", popularLanguages: "熱門語言", allLanguages: "所有語言", generateTranslation: "生成翻譯", generatingTranslation: "正在翻譯...", regenerateTranslation: "重新生成翻譯", translationGenerated: "翻譯內容已生成。", translationFailed: "無法建立翻譯。", translationResult: "翻譯", close: "關閉", noLanguageResults: "沒有相符的語言。"}
+};
+
+function translationSettingsFor(locale: string) {
+  return translationSettingsCopy[isLocale(locale) ? locale : "en"];
+}
 
 function transcriptionControlsFor(locale: string) {
   const safeLocale = isLocale(locale) ? locale : "en";

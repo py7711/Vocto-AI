@@ -549,42 +549,49 @@ export async function chunkAudioForFallback(input: {
   const directory = await mkdtemp(join(tmpdir(), "uniscribe-fallback-"));
   const audioPath = join(directory, "audio.mp3");
 
-  const downloadUrl = input.audioUrl.startsWith("r2://") && input.objectKey
-    ? await createDownloadUrl(input.objectKey)
-    : input.audioUrl;
-  const response = await fetch(downloadUrl);
-  if (!response.ok || !response.body) {
-    await rm(directory, {recursive: true, force: true}).catch(() => undefined);
-    throw new Error(`兜底切片无法下载标准化音频：${response.status} ${response.statusText}`);
-  }
-  await pipeline(Readable.fromWeb(response.body as any), createWriteStream(audioPath));
+  // 下载完成后返回 directory 交给调用方在转写结束后清理；但下载/切片过程中任何一步出错都要
+  // 在这里自行清理临时目录再抛出，否则调用方永远拿不到 directory，无法执行它自己的清理逻辑，
+  // 导致失败的兜底任务在 /tmp 里永久残留完整音频文件，长期运行会占满服务器磁盘。
+  try {
+    const downloadUrl = input.audioUrl.startsWith("r2://") && input.objectKey
+      ? await createDownloadUrl(input.objectKey)
+      : input.audioUrl;
+    const response = await fetch(downloadUrl);
+    if (!response.ok || !response.body) {
+      throw new Error(`兜底切片无法下载标准化音频：${response.status} ${response.statusText}`);
+    }
+    await pipeline(Readable.fromWeb(response.body as any), createWriteStream(audioPath));
 
-  const durationSeconds = await probeDurationSeconds(audioPath);
+    const durationSeconds = await probeDurationSeconds(audioPath);
 
-  // 短音频或时长未知：无需切片，整段交给 Groq。
-  if (!shouldChunk(durationSeconds)) {
-    return {
-      chunks: [{filePath: audioPath, start: 0, end: durationSeconds ?? 0, index: 0}],
-      durationSeconds,
-      directory
-    };
-  }
+    // 短音频或时长未知：无需切片，整段交给 Groq。
+    if (!shouldChunk(durationSeconds)) {
+      return {
+        chunks: [{filePath: audioPath, start: 0, end: durationSeconds ?? 0, index: 0}],
+        durationSeconds,
+        directory
+      };
+    }
 
-  const silenceEnds = await detectSilenceBoundaries(audioPath).catch(() => []);
-  const ranges = buildChunkRanges(durationSeconds!, silenceEnds);
-  const chunks = await mapWithConcurrency(ranges, 3, async (range) => {
-    const chunkPath = join(directory, `chunk-${range.index}.mp3`);
-    await sliceAudio({
-      inputPath: audioPath,
-      outputPath: chunkPath,
-      startSeconds: range.start,
-      durationSeconds: range.end - range.start
+    const silenceEnds = await detectSilenceBoundaries(audioPath).catch(() => []);
+    const ranges = buildChunkRanges(durationSeconds!, silenceEnds);
+    const chunks = await mapWithConcurrency(ranges, 3, async (range) => {
+      const chunkPath = join(directory, `chunk-${range.index}.mp3`);
+      await sliceAudio({
+        inputPath: audioPath,
+        outputPath: chunkPath,
+        startSeconds: range.start,
+        durationSeconds: range.end - range.start
+      });
+      return {filePath: chunkPath, start: range.start, end: range.end, index: range.index};
     });
-    return {filePath: chunkPath, start: range.start, end: range.end, index: range.index};
-  });
-  chunks.sort((a, b) => a.index - b.index);
+    chunks.sort((a, b) => a.index - b.index);
 
-  return {chunks, durationSeconds, directory};
+    return {chunks, durationSeconds, directory};
+  } catch (error) {
+    await rm(directory, {recursive: true, force: true}).catch(() => undefined);
+    throw error;
+  }
 }
 
 // 当前转写链路不把 YouTube/公开视频下载到本地再用 ffmpeg 转码，而是用 yt-dlp 解析临时直链，

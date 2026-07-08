@@ -10,6 +10,8 @@ type TranslationEditorProps = {
   content: any;
   transcriptSegments?: TranscriptSegment[];
   busy?: boolean;
+  saveError?: string;
+  saveLabel?: string;
   onSaved?: (content: any) => void;
   onError?: (message: string) => void;
 };
@@ -52,7 +54,7 @@ function stamp(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
 }
 
-export function TranslationEditor({taskId, locale, content, transcriptSegments = [], busy, onSaved, onError}: TranslationEditorProps) {
+export function TranslationEditor({taskId, locale, content, transcriptSegments = [], busy, saveError = "Unable to save translation.", saveLabel = "Save translation", onSaved, onError}: TranslationEditorProps) {
   const [draftSegments, setDraftSegments] = useState<TranscriptSegment[]>([]);
   const [saving, setSaving] = useState(false);
   const fallbackText = useMemo(() => contentText(content), [content]);
@@ -75,7 +77,7 @@ export function TranslationEditor({taskId, locale, content, transcriptSegments =
         body: JSON.stringify(draftSegments.length ? {segments: draftSegments} : {text: fallbackText})
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "无法保存翻译。");
+      if (!response.ok) throw new Error(body.error ?? saveError);
       onSaved?.(body.content);
     } catch (cause) {
       onError?.(cause instanceof Error ? cause.message : String(cause));
@@ -104,7 +106,7 @@ export function TranslationEditor({taskId, locale, content, transcriptSegments =
       )}
       <button type="button" onClick={saveTranslation} disabled={busy || saving || (!draftSegments.length && !fallbackText.trim())} className="btn-outline w-fit px-3 py-2">
         {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-        Save translation
+        {saveLabel}
       </button>
     </div>
   );

@@ -24,7 +24,7 @@ export default function RootLayout({children}: {children: ReactNode}) {
   const locale = isLocale(localeCandidate) ? localeCandidate : "en";
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+    <html lang={locale} dir="ltr">
       <body>{children}</body>
     </html>
   );

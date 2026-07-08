@@ -1283,6 +1283,13 @@ function workspaceMessageOverrides(locale: Locale) {
     remainingMinutes: app.quotaMinutes,
     usedThisMonth: app.quotaMinutes,
     whyTitle: app.features,
+    workflowTitle: app.workflowTitle,
+    workflowUpload: app.workflowUpload,
+    workflowUploadText: app.workflowUploadText,
+    workflowTranscribe: app.workflowTranscribe,
+    workflowTranscribeText: app.workflowTranscribeText,
+    workflowExport: app.workflowExport,
+    workflowExportText: app.workflowExportText,
     plansTitle: app.plansTitle,
     minutesUnit: app.languages.includes("63") ? "min" : "min",
     viewFullPricing: app.pricing,
@@ -1434,6 +1441,7 @@ type WorkspaceSidebarCopy = {
   emailSupport: string;
   discordAlt: string;
   settings: string;
+  language: string;
   theme: string;
   themeLight: string;
   themeDark: string;
@@ -1480,6 +1488,7 @@ const workspaceSidebarCopyEn: WorkspaceSidebarCopy = {
   emailSupport: "Email Support",
   discordAlt: "Discord",
   settings: "Settings",
+  language: "Language",
   theme: "Theme",
   themeLight: "Light",
   themeDark: "Dark",
@@ -1517,6 +1526,29 @@ const workspaceSidebarCopyEn: WorkspaceSidebarCopy = {
   planBasic: "Basic",
   planStandard: "Standard",
   planPro: "Pro"
+};
+
+const workspaceSidebarLanguageLabels: Record<Locale, string> = {
+  ar: "اللغة",
+  de: "Sprache",
+  en: "Language",
+  es: "Idioma",
+  fr: "Langue",
+  hu: "Nyelv",
+  id: "Bahasa",
+  it: "Lingua",
+  ja: "言語",
+  ko: "언어",
+  nl: "Taal",
+  pl: "Język",
+  pt: "Idioma",
+  ru: "Язык",
+  th: "ภาษา",
+  tr: "Dil",
+  uk: "Мова",
+  vi: "Ngôn ngữ",
+  zh: "语言",
+  "zh-TW": "語言"
 };
 
 const workspaceSidebarCopyOverrides: Record<Locale, Partial<WorkspaceSidebarCopy>> = {
@@ -1570,7 +1602,8 @@ function getWorkspaceSidebarCopy(locale: Locale): WorkspaceSidebarCopy {
   return {
     ...workspaceSidebarCopyEn,
     ...workspaceSidebarSentenceCopy[locale],
-    ...overrides
+    ...overrides,
+    language: workspaceSidebarLanguageLabels[locale]
   };
 }
 
@@ -1725,10 +1758,66 @@ const workspaceTaskActionExtraCopy: Record<Locale, {
   "zh-TW": {readFoldersFailed: "無法讀取資料夾。", createFolderFailed: "無法建立資料夾。", renameFolderFailed: "無法重新命名資料夾。", deleteFolderFailed: "無法刪除資料夾。", moveTaskFailed: "無法移動轉寫。", renameTaskFailed: "無法重新命名轉寫。", taskRenamed: "轉寫已重新命名。", retranscribeFailed: "無法排入重新轉寫。", retranscribeQueued: "重新轉寫已進入佇列。", deleteTaskFailed: "無法刪除轉寫。", taskDeleted: "轉寫已刪除。", downloadOriginalFailed: "無法下載原始媒體。", deleteOriginalFailed: "無法刪除原始媒體。", originalDeleted: "原始媒體已刪除。", batchActionFailed: "無法執行批次操作。", batchDeleted: "已刪除選取的轉寫。", batchOriginalsDeleted: "已刪除選取的原始媒體檔案。", batchMoved: "已移動選取的轉寫。", batchExportFailed: "無法匯出選取的轉寫。", batchExported: (count) => `已匯出 ${count} 個選取的轉寫。`, disableShareFailed: "無法停用分享連結。", shareDisabled: "分享連結已停用。", translationFailed: "無法建立翻譯。", speakersFailed: "無法更新說話者。", speakersUpdated: (count) => `已在 ${count} 個片段中更新說話者名稱。`}
 };
 
+const workspaceRetranscribeDialogCopy: Record<Locale, {
+  retranscribeSettingsTitle: string;
+  retranscribeSettingsDescription: (name: string) => string;
+  retranscribeSettingsWarning: string;
+  queueRetranscription: string;
+}> = {
+  ar: {retranscribeSettingsTitle: "إعدادات إعادة التفريغ", retranscribeSettingsDescription: (name) => `أعد صف ${name} بلغة ومتحدثين وترجمات ونموذج وملخص جديد.`, retranscribeSettingsWarning: "سيتم إنشاء رؤى الذكاء الاصطناعي وذاكرة التصدير المؤقتة من جديد.", queueRetranscription: "إضافة إعادة التفريغ إلى الصف"},
+  de: {retranscribeSettingsTitle: "Einstellungen für Neu-Transkription", retranscribeSettingsDescription: (name) => `Stelle ${name} mit neuer Sprache, Sprechern, Untertiteln, Modell und Zusammenfassung erneut in die Warteschlange.`, retranscribeSettingsWarning: "Vorhandene KI-Insights und Export-Caches werden neu erstellt.", queueRetranscription: "Neu-Transkription einreihen"},
+  en: {retranscribeSettingsTitle: "Retranscription settings", retranscribeSettingsDescription: (name) => `Queue ${name} again with new language, speaker, subtitle, model, and summary settings.`, retranscribeSettingsWarning: "Existing AI insights and export caches will be regenerated.", queueRetranscription: "Queue retranscription"},
+  es: {retranscribeSettingsTitle: "Ajustes de retranscripción", retranscribeSettingsDescription: (name) => `Vuelve a poner ${name} en cola con nuevos ajustes de idioma, hablantes, subtítulos, modelo y resumen.`, retranscribeSettingsWarning: "Los insights de IA y las cachés de exportación existentes se regenerarán.", queueRetranscription: "Poner retranscripción en cola"},
+  fr: {retranscribeSettingsTitle: "Paramètres de retranscription", retranscribeSettingsDescription: (name) => `Remettez ${name} en file avec de nouveaux réglages de langue, d'intervenants, de sous-titres, de modèle et de résumé.`, retranscribeSettingsWarning: "Les insights IA et caches d'export existants seront régénérés.", queueRetranscription: "Ajouter la retranscription à la file"},
+  hu: {retranscribeSettingsTitle: "Újraátírás beállításai", retranscribeSettingsDescription: (name) => `Állítsd újra sorba ezt: ${name}, új nyelv-, beszélő-, felirat-, modell- és összefoglaló-beállításokkal.`, retranscribeSettingsWarning: "A meglévő AI-elemzések és export gyorsítótárak újragenerálódnak.", queueRetranscription: "Újraátírás sorba állítása"},
+  id: {retranscribeSettingsTitle: "Pengaturan transkripsi ulang", retranscribeSettingsDescription: (name) => `Antrekan ${name} lagi dengan pengaturan bahasa, pembicara, subtitle, model, dan ringkasan baru.`, retranscribeSettingsWarning: "Insight AI dan cache ekspor yang ada akan dibuat ulang.", queueRetranscription: "Antrekan transkripsi ulang"},
+  it: {retranscribeSettingsTitle: "Impostazioni di ritrascrizione", retranscribeSettingsDescription: (name) => `Rimetti in coda ${name} con nuove impostazioni di lingua, parlanti, sottotitoli, modello e riepilogo.`, retranscribeSettingsWarning: "Gli insight IA e le cache di esportazione esistenti verranno rigenerati.", queueRetranscription: "Metti in coda la ritrascrizione"},
+  ja: {retranscribeSettingsTitle: "再文字起こし設定", retranscribeSettingsDescription: (name) => `${name} を新しい言語、話者、字幕、モデル、要約設定で再度キューに追加します。`, retranscribeSettingsWarning: "既存の AI インサイトとエクスポートキャッシュは再生成されます。", queueRetranscription: "再文字起こしをキューに追加"},
+  ko: {retranscribeSettingsTitle: "재전사 설정", retranscribeSettingsDescription: (name) => `${name}을(를) 새 언어, 화자, 자막, 모델, 요약 설정으로 다시 대기열에 추가합니다.`, retranscribeSettingsWarning: "기존 AI 인사이트와 내보내기 캐시는 다시 생성됩니다.", queueRetranscription: "재전사 대기열 추가"},
+  nl: {retranscribeSettingsTitle: "Instellingen voor hertranscriptie", retranscribeSettingsDescription: (name) => `Zet ${name} opnieuw in de wachtrij met nieuwe taal-, spreker-, ondertitel-, model- en samenvattingsinstellingen.`, retranscribeSettingsWarning: "Bestaande AI-inzichten en exportcaches worden opnieuw gegenereerd.", queueRetranscription: "Hertranscriptie in wachtrij plaatsen"},
+  pl: {retranscribeSettingsTitle: "Ustawienia ponownej transkrypcji", retranscribeSettingsDescription: (name) => `Dodaj ${name} ponownie do kolejki z nowymi ustawieniami języka, mówców, napisów, modelu i podsumowania.`, retranscribeSettingsWarning: "Istniejące wnioski AI i pamięci podręczne eksportu zostaną wygenerowane ponownie.", queueRetranscription: "Dodaj ponowną transkrypcję do kolejki"},
+  pt: {retranscribeSettingsTitle: "Configurações de retranscrição", retranscribeSettingsDescription: (name) => `Coloque ${name} novamente na fila com novas configurações de idioma, falantes, legendas, modelo e resumo.`, retranscribeSettingsWarning: "Insights de IA e caches de exportação existentes serão gerados novamente.", queueRetranscription: "Colocar retranscrição na fila"},
+  ru: {retranscribeSettingsTitle: "Настройки повторной расшифровки", retranscribeSettingsDescription: (name) => `Поставьте ${name} в очередь заново с новыми настройками языка, спикеров, субтитров, модели и сводки.`, retranscribeSettingsWarning: "Существующие AI-инсайты и кэши экспорта будут созданы заново.", queueRetranscription: "Поставить повторную расшифровку в очередь"},
+  th: {retranscribeSettingsTitle: "การตั้งค่าถอดเสียงใหม่", retranscribeSettingsDescription: (name) => `เพิ่ม ${name} เข้าคิวอีกครั้งด้วยการตั้งค่าภาษา ผู้พูด คำบรรยาย โมเดล และสรุปใหม่`, retranscribeSettingsWarning: "ข้อมูลเชิงลึก AI และแคชการส่งออกที่มีอยู่จะถูกสร้างใหม่", queueRetranscription: "เพิ่มการถอดเสียงใหม่เข้าคิว"},
+  tr: {retranscribeSettingsTitle: "Yeniden transkripsiyon ayarları", retranscribeSettingsDescription: (name) => `${name} öğesini yeni dil, konuşmacı, altyazı, model ve özet ayarlarıyla yeniden sıraya al.`, retranscribeSettingsWarning: "Mevcut AI içgörüleri ve dışa aktarma önbellekleri yeniden oluşturulur.", queueRetranscription: "Yeniden transkripsiyonu sıraya al"},
+  uk: {retranscribeSettingsTitle: "Налаштування повторної транскрипції", retranscribeSettingsDescription: (name) => `Додайте ${name} до черги з новими налаштуваннями мови, спікерів, субтитрів, моделі й підсумку.`, retranscribeSettingsWarning: "Наявні AI-інсайти та кеші експорту буде створено заново.", queueRetranscription: "Додати повторну транскрипцію до черги"},
+  vi: {retranscribeSettingsTitle: "Cài đặt phiên âm lại", retranscribeSettingsDescription: (name) => `Đưa ${name} vào hàng đợi lại với cài đặt ngôn ngữ, người nói, phụ đề, mô hình và tóm tắt mới.`, retranscribeSettingsWarning: "Insight AI và bộ nhớ đệm hiện có sẽ được tạo lại.", queueRetranscription: "Đưa phiên âm lại vào hàng đợi"},
+  zh: {retranscribeSettingsTitle: "重新转写设置", retranscribeSettingsDescription: (name) => `使用新的语言、说话人、字幕、模型和摘要设置重新排队 ${name}。`, retranscribeSettingsWarning: "已有 AI 洞察和导出缓存会重新生成。", queueRetranscription: "排队重新转写"},
+  "zh-TW": {retranscribeSettingsTitle: "重新轉寫設定", retranscribeSettingsDescription: (name) => `使用新的語言、說話者、字幕、模型和摘要設定重新排入 ${name}。`, retranscribeSettingsWarning: "既有 AI 洞察和匯出快取會重新產生。", queueRetranscription: "排入重新轉寫"}
+};
+
+const workspaceTranslationEditorCopy: Record<Locale, {
+  saveTranslation: string;
+  saveTranslationFailed: string;
+}> = {
+  ar: {saveTranslation: "حفظ الترجمة", saveTranslationFailed: "تعذر حفظ الترجمة."},
+  de: {saveTranslation: "Übersetzung speichern", saveTranslationFailed: "Übersetzung konnte nicht gespeichert werden."},
+  en: {saveTranslation: "Save translation", saveTranslationFailed: "Unable to save translation."},
+  es: {saveTranslation: "Guardar traducción", saveTranslationFailed: "No se pudo guardar la traducción."},
+  fr: {saveTranslation: "Enregistrer la traduction", saveTranslationFailed: "Impossible d'enregistrer la traduction."},
+  hu: {saveTranslation: "Fordítás mentése", saveTranslationFailed: "A fordítás nem menthető."},
+  id: {saveTranslation: "Simpan terjemahan", saveTranslationFailed: "Tidak dapat menyimpan terjemahan."},
+  it: {saveTranslation: "Salva traduzione", saveTranslationFailed: "Impossibile salvare la traduzione."},
+  ja: {saveTranslation: "翻訳を保存", saveTranslationFailed: "翻訳を保存できません。"},
+  ko: {saveTranslation: "번역 저장", saveTranslationFailed: "번역을 저장할 수 없습니다."},
+  nl: {saveTranslation: "Vertaling opslaan", saveTranslationFailed: "Kan vertaling niet opslaan."},
+  pl: {saveTranslation: "Zapisz tłumaczenie", saveTranslationFailed: "Nie można zapisać tłumaczenia."},
+  pt: {saveTranslation: "Salvar tradução", saveTranslationFailed: "Não foi possível salvar a tradução."},
+  ru: {saveTranslation: "Сохранить перевод", saveTranslationFailed: "Не удалось сохранить перевод."},
+  th: {saveTranslation: "บันทึกคำแปล", saveTranslationFailed: "ไม่สามารถบันทึกคำแปลได้"},
+  tr: {saveTranslation: "Çeviriyi kaydet", saveTranslationFailed: "Çeviri kaydedilemedi."},
+  uk: {saveTranslation: "Зберегти переклад", saveTranslationFailed: "Не вдалося зберегти переклад."},
+  vi: {saveTranslation: "Lưu bản dịch", saveTranslationFailed: "Không thể lưu bản dịch."},
+  zh: {saveTranslation: "保存翻译", saveTranslationFailed: "无法保存翻译。"},
+  "zh-TW": {saveTranslation: "儲存翻譯", saveTranslationFailed: "無法儲存翻譯。"}
+};
+
 function getWorkspaceDashboardCopy(locale: Locale) {
   const terms = workspaceDashboardTerms[locale];
   const taskActions = workspaceTaskActionCopy[locale];
   const taskActionExtras = workspaceTaskActionExtraCopy[locale];
+  const retranscribeDialog = workspaceRetranscribeDialogCopy[locale];
+  const translationEditor = workspaceTranslationEditorCopy[locale];
   const app = appMessagesByLocale[locale];
   const operations = workspaceOperationalCopy[locale];
   const sidebar = getWorkspaceSidebarCopy(locale);
@@ -1839,6 +1928,8 @@ function getWorkspaceDashboardCopy(locale: Locale) {
     taskWorkspace: {
       ...taskActions,
       ...taskActionExtras,
+      ...retranscribeDialog,
+      ...translationEditor,
       retranscribe: terms.retranscribe,
       retryTranscription: terms.retryTranscription,
       youtubeFallbackRetry: terms.youtubeFallbackRetry,

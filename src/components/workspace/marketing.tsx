@@ -170,6 +170,29 @@ const localizedMarketingSections: Record<string, {convertTitle: string; featureT
   "zh-TW": {convertTitle: "更多音影片轉文字轉換器", featureTitles: ["快速將音訊和影片轉成文字", "產生摘要、心智圖和關鍵重點", "直接匯出轉寫或分享連結"], languageTitle: "支援的語言", languageText: "以下是轉寫和字幕支援的主要語言。", seeAllLanguages: "查看全部語言", reviewExcellent: "優秀", reviewRating: "Trustpilot 評分 4.8/5"}
 };
 
+const localizedMarketingUi: Record<string, {bestPracticesTitle: string; moreInformation: string; reviewsText: string; reviewsTitle: string; showMore: string}> = {
+  ar: {bestPracticesTitle: "أفضل ممارسات تفريغ الصوت والفيديو", moreInformation: "مزيد من المعلومات", reviewsText: "ساعد UniScribe المستخدمين على تحويل التسجيلات القصيرة والطويلة إلى نصوص قابلة للعمل.", reviewsTitle: "ماذا يقول مستخدمونا", showMore: "عرض المزيد"},
+  de: {bestPracticesTitle: "Best Practices für Audio- und Video-Transkription", moreInformation: "Weitere Informationen", reviewsText: "UniScribe hilft bei kurzen Sprachnotizen ebenso wie bei langen Aufnahmen.", reviewsTitle: "Was unsere Nutzer sagen", showMore: "Mehr anzeigen"},
+  en: {bestPracticesTitle: "Best Practices for Audio & Video Transcription", moreInformation: "More information", reviewsText: "UniScribe has helped people transcribe 52,272,840 minutes of audio and video, from short voice notes to long-form recordings.", reviewsTitle: "What Our Users Say", showMore: "Show More"},
+  es: {bestPracticesTitle: "Buenas prácticas para transcribir audio y video", moreInformation: "Más información", reviewsText: "UniScribe ayuda a convertir notas de voz cortas y grabaciones largas en texto útil.", reviewsTitle: "Lo que dicen nuestros usuarios", showMore: "Ver más"},
+  fr: {bestPracticesTitle: "Bonnes pratiques de transcription audio et vidéo", moreInformation: "Plus d'informations", reviewsText: "UniScribe aide à transformer notes vocales et longs enregistrements en texte exploitable.", reviewsTitle: "Ce que disent nos utilisateurs", showMore: "Voir plus"},
+  hu: {bestPracticesTitle: "Hang- és videóátírási bevált gyakorlatok", moreInformation: "További információ", reviewsText: "A UniScribe rövid hangjegyzetekből és hosszú felvételekből is használható szöveget készít.", reviewsTitle: "Mit mondanak a felhasználók", showMore: "Továbbiak"},
+  id: {bestPracticesTitle: "Praktik terbaik transkripsi audio dan video", moreInformation: "Informasi selengkapnya", reviewsText: "UniScribe membantu mengubah catatan suara pendek dan rekaman panjang menjadi teks yang siap dipakai.", reviewsTitle: "Apa kata pengguna kami", showMore: "Tampilkan lagi"},
+  it: {bestPracticesTitle: "Buone pratiche per trascrivere audio e video", moreInformation: "Maggiori informazioni", reviewsText: "UniScribe aiuta a trasformare note vocali brevi e registrazioni lunghe in testo utilizzabile.", reviewsTitle: "Cosa dicono gli utenti", showMore: "Mostra altro"},
+  ja: {bestPracticesTitle: "音声・動画文字起こしのベストプラクティス", moreInformation: "詳細情報", reviewsText: "UniScribe は短い音声メモから長時間の録音まで、使いやすいテキスト化を支援します。", reviewsTitle: "ユーザーの声", showMore: "もっと見る"},
+  ko: {bestPracticesTitle: "오디오 및 비디오 전사 모범 사례", moreInformation: "자세히 보기", reviewsText: "UniScribe는 짧은 음성 메모부터 긴 녹음까지 바로 쓸 수 있는 텍스트로 바꿔 줍니다.", reviewsTitle: "사용자 후기", showMore: "더 보기"},
+  nl: {bestPracticesTitle: "Best practices voor audio- en videotranscriptie", moreInformation: "Meer informatie", reviewsText: "UniScribe helpt korte spraaknotities en lange opnames om te zetten in bruikbare tekst.", reviewsTitle: "Wat gebruikers zeggen", showMore: "Meer tonen"},
+  pl: {bestPracticesTitle: "Dobre praktyki transkrypcji audio i wideo", moreInformation: "Więcej informacji", reviewsText: "UniScribe pomaga zamieniać krótkie notatki głosowe i długie nagrania w użyteczny tekst.", reviewsTitle: "Co mówią użytkownicy", showMore: "Pokaż więcej"},
+  pt: {bestPracticesTitle: "Boas práticas para transcrição de áudio e vídeo", moreInformation: "Mais informações", reviewsText: "UniScribe ajuda a transformar notas de voz curtas e gravações longas em texto útil.", reviewsTitle: "O que os usuários dizem", showMore: "Ver mais"},
+  ru: {bestPracticesTitle: "Лучшие практики расшифровки аудио и видео", moreInformation: "Подробнее", reviewsText: "UniScribe помогает превращать короткие голосовые заметки и длинные записи в полезный текст.", reviewsTitle: "Что говорят пользователи", showMore: "Показать больше"},
+  th: {bestPracticesTitle: "แนวทางที่ดีสำหรับการถอดเสียงและวิดีโอ", moreInformation: "ข้อมูลเพิ่มเติม", reviewsText: "UniScribe ช่วยเปลี่ยนบันทึกเสียงสั้นและไฟล์ยาวให้เป็นข้อความที่ใช้งานได้", reviewsTitle: "เสียงจากผู้ใช้", showMore: "ดูเพิ่มเติม"},
+  tr: {bestPracticesTitle: "Ses ve video transkripsiyonu için iyi uygulamalar", moreInformation: "Daha fazla bilgi", reviewsText: "UniScribe kısa ses notlarını ve uzun kayıtları kullanışlı metne dönüştürmeye yardımcı olur.", reviewsTitle: "Kullanıcılarımız ne söylüyor", showMore: "Daha fazla göster"},
+  uk: {bestPracticesTitle: "Найкращі практики транскрипції аудіо й відео", moreInformation: "Докладніше", reviewsText: "UniScribe допомагає перетворювати короткі голосові нотатки й довгі записи на корисний текст.", reviewsTitle: "Що кажуть користувачі", showMore: "Показати більше"},
+  vi: {bestPracticesTitle: "Thực hành tốt khi phiên âm audio và video", moreInformation: "Thông tin thêm", reviewsText: "UniScribe giúp biến ghi chú thoại ngắn và bản ghi dài thành văn bản dễ sử dụng.", reviewsTitle: "Người dùng nói gì", showMore: "Xem thêm"},
+  zh: {bestPracticesTitle: "音视频转写最佳实践", moreInformation: "更多信息", reviewsText: "UniScribe 已帮助用户把短语音和长录音转成可直接使用的文字。", reviewsTitle: "用户评价", showMore: "查看更多"},
+  "zh-TW": {bestPracticesTitle: "音影片轉寫最佳實踐", moreInformation: "更多資訊", reviewsText: "UniScribe 已協助使用者把短語音和長錄音轉成可直接使用的文字。", reviewsTitle: "使用者評價", showMore: "查看更多"}
+};
+
 const reviews = [
   ["AN", "Anikó", "Accurate transcription even in Hungarian, the best app in its league I have tried so far."],
   ["KA", "Karen", "It is exactly what I'm looking for. It is quick and simple with a nice vibe."],
@@ -286,7 +309,7 @@ function StarRow() {
   );
 }
 
-function PricingFeatureLabel({feature}: {feature: PricingFeature}) {
+function PricingFeatureLabel({feature, moreInfoLabel}: {feature: PricingFeature; moreInfoLabel: string}) {
   if (typeof feature === "string") {
     return <>{feature}</>;
   }
@@ -305,7 +328,7 @@ function PricingFeatureLabel({feature}: {feature: PricingFeature}) {
       {feature.info ? (
         <button
           type="button"
-          aria-label="More information"
+          aria-label={moreInfoLabel}
           className="inline-flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1"
         >
           <Info className="h-3.5 w-3.5 text-slate-400" />
@@ -325,6 +348,7 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
   const activePricing = localizedPricingModes[pricingMode];
   const localizedFaqs = marketingCopy.homeFaqs ?? faqs;
   const localeText = localizedMarketingSections[locale] ?? localizedMarketingSections.en;
+  const uiText = localizedMarketingUi[locale] ?? localizedMarketingUi.en;
   const converterLabels = localizedConverterLabels[locale] ?? copy.converters ?? localizedConverterLabels.en;
   const localizedWorkflow = [
     {title: marketingCopy.workflowUpload ?? workflow[0].title, text: marketingCopy.workflowUploadText ?? workflow[0].text, icon: UploadCloud},
@@ -341,34 +365,33 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
     <>
       <section id="features" className="border-y border-slate-200 bg-white px-4 py-16 sm:px-6 lg:px-8">
         <SectionTitle title={marketingCopy.workflowTitle ?? "How to Convert Audio & Video to Text"} />
-        <div className="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-3">
+        <div className="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-3 md:gap-10 lg:gap-12">
           {localizedWorkflow.map((item, index) => (
-            <article key={item.title} className="relative rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <item.icon size={26} />
+            <article key={item.title} className="relative rounded-lg border border-slate-200 bg-white px-5 py-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:px-6 sm:py-5">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <item.icon size={24} />
               </span>
-              <h3 className="mt-5 text-xl font-semibold text-ink">{item.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-500">{item.text}</p>
+              <h3 className="mt-4 text-lg font-semibold leading-6 text-ink">{item.title}</h3>
+              <p className="mx-auto mt-2 max-w-[21rem] text-sm leading-6 text-slate-500">{item.text}</p>
               {index < localizedWorkflow.length - 1 ? (
-                <Image src={asset("arrow.svg")} alt="arrow" width={81} height={16} className="absolute -right-10 top-12 hidden w-20 md:block" />
+                <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+0.25rem)] top-1/2 z-10 hidden h-4 w-10 -translate-y-1/2 md:block lg:w-12">
+                  <span className="absolute left-0 top-1/2 h-0 w-8 -translate-y-1/2 border-t-2 border-dashed border-primary lg:w-10" />
+                  <span className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 border-r-2 border-t-2 border-primary" />
+                </span>
               ) : null}
             </article>
           ))}
         </div>
       </section>
 
-      <section className="bg-[#f7f7ff] px-4 py-20 sm:px-6 md:py-24 lg:px-8 2xl:pb-[168px] 2xl:pt-[88px]">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="text-4xl font-black leading-[1.1] text-[#020817] md:text-5xl lg:text-[52px]">
-            {localeText.convertTitle}
-          </h2>
-        </div>
-        <div className="mx-auto mt-14 grid max-w-[1870px] grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-8 lg:gap-y-7 2xl:mt-[100px] 2xl:gap-x-[132px] 2xl:gap-y-[37px]">
+      <section className="border-y border-slate-200 bg-lavender px-4 py-16 sm:px-6 lg:px-8">
+        <SectionTitle title={localeText.convertTitle} />
+        <div className="mx-auto mt-10 grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {converterLinks.map(([, href], index) => (
             <a
               key={href}
               href={`/${locale}/${href}`}
-              className="flex min-h-[64px] items-center justify-center rounded-full border-2 border-[#6b6eff] bg-white px-4 text-center text-lg font-semibold text-[#6669f5] shadow-[0_8px_18px_rgba(100,103,242,0.12)] transition hover:-translate-y-0.5 hover:bg-[#f1f2ff] hover:shadow-[0_12px_24px_rgba(100,103,242,0.18)] focus:outline-none focus:ring-2 focus:ring-[#6b6eff]/30 focus:ring-offset-2 focus:ring-offset-[#f7f7ff] md:min-h-20 md:px-6 md:text-xl xl:text-2xl 2xl:min-h-[94px] 2xl:text-[28px]"
+              className="flex min-h-[52px] items-center justify-center rounded-lg border border-primary/25 bg-white/95 px-4 text-center text-sm font-semibold text-primary shadow-sm transition hover:-translate-y-0.5 hover:border-primary/45 hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-lavender sm:min-h-[56px]"
             >
               {converterLabels[index] ?? localizedConverterLabels.en[index]}
             </a>
@@ -421,8 +444,8 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
 
       <section className="border-y border-slate-200 bg-white px-4 py-16 sm:px-6 lg:px-8">
         <SectionTitle
-          title={locale === "en" ? "What Our Users Say" : marketingCopy.whyTitle}
-          text={locale === "en" ? "UniScribe has helped people transcribe 52,272,840 minutes of audio and video, from short voice notes to long-form recordings." : marketingCopy.marketingIntro}
+          title={uiText.reviewsTitle}
+          text={uiText.reviewsText}
         />
         <div className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-semibold">
           <span>{localeText.reviewExcellent}</span>
@@ -494,7 +517,7 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
                   return (
                     <p key={key} className="flex items-start gap-2 text-sm leading-5 text-slate-600">
                       <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-primary" />
-                      <PricingFeatureLabel feature={feature} />
+                      <PricingFeatureLabel feature={feature} moreInfoLabel={uiText.moreInformation} />
                     </p>
                   );
                 })}
@@ -524,7 +547,7 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
       </section>
 
       <section className="px-4 py-16 sm:px-6 lg:px-8">
-        <SectionTitle title={locale === "en" ? "Best Practices for Audio & Video Transcription" : marketingCopy.blog ?? "Best Practices for Audio & Video Transcription"} />
+        <SectionTitle title={uiText.bestPracticesTitle} />
         <div className="mx-auto mt-10 grid max-w-7xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <a key={post.slug} href={`/${locale}/blog/${post.slug}`} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
@@ -541,7 +564,7 @@ export function ProductSections({copy, locale}: {t: (key: string) => string; cop
         </div>
         <div className="mt-9 text-center">
           <a href={`/${locale}/blog`} className="inline-flex items-center rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-white transition hover:bg-primary/90">
-            {locale === "en" ? "Show More" : marketingCopy.blog ?? "Show More"}
+            {uiText.showMore}
           </a>
         </div>
       </section>

@@ -483,6 +483,11 @@ function LanguageSwitcher() {
   const currentLocale = isLocale(locale) ? locale : "en";
   const rootRef = useRef<HTMLDetailsElement | null>(null);
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setSearch(window.location.search);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -507,38 +512,38 @@ function LanguageSwitcher() {
     const segments = pathname.split("/");
     if (segments.length > 1) {
       segments[1] = target;
-      return segments.join("/") || `/${target}`;
+      return `${segments.join("/") || `/${target}`}${search}`;
     }
-    return `/${target}`;
+    return `/${target}${search}`;
   }
 
   return (
     <details ref={rootRef} open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group relative">
       <summary
         aria-label={getSiteShellText(currentLocale).language}
-        className="focus-ring flex cursor-pointer list-none items-center gap-3 bg-transparent p-0 text-[22px] font-bold leading-8 text-[#020817] transition hover:text-[#020817]/80 lg:gap-[18px] lg:text-[29px] lg:leading-9 [&::-webkit-details-marker]:hidden"
+        className="focus-ring flex cursor-pointer list-none items-center gap-2 bg-transparent p-0 text-sm font-bold leading-5 text-[#020817] transition hover:text-[#020817]/80 lg:text-[15px] lg:leading-5 [&::-webkit-details-marker]:hidden"
         onClick={(event) => {
           event.preventDefault();
           setOpen((current) => !current);
         }}
       >
-        <Globe className="h-[25px] w-[25px] lg:h-[30px] lg:w-[30px]" strokeWidth={2.4} />
+        <Globe className="h-[17px] w-[17px] lg:h-[18px] lg:w-[18px]" strokeWidth={2.3} />
         <span className="hidden sm:inline">{localeNativeNames[currentLocale]}</span>
         <span className="sm:hidden">{currentLocale.toUpperCase()}</span>
-        <ChevronDown className={`h-6 w-6 transition lg:h-7 lg:w-7 ${open ? "rotate-180" : ""}`} strokeWidth={2.5} />
+        <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} strokeWidth={2.4} />
       </summary>
-      <div className="fixed left-4 right-4 top-[72px] z-30 mt-0 grid max-h-[calc(100vh-96px)] w-auto overflow-y-auto rounded-lg border border-[#d6ddeb] bg-white px-[25px] py-4 shadow-none md:absolute md:left-auto md:right-0 md:top-auto md:mt-5 md:max-h-[min(724px,calc(100vh-112px))] md:w-[min(574px,calc(100vw-32px))]">
+      <div className="fixed left-4 right-4 top-[72px] z-30 mt-0 grid max-h-[calc(100vh-96px)] w-auto overflow-y-auto rounded-lg border border-[#d6ddeb] bg-white px-4 py-2 shadow-none md:absolute md:left-auto md:right-0 md:top-auto md:mt-4 md:max-h-[min(520px,calc(100vh-112px))] md:w-[min(340px,calc(100vw-32px))]">
         {locales.map((item) => (
           <a
             key={item}
             href={pathForLocale(item)}
-            className={`flex min-h-[88px] items-center justify-between gap-8 rounded-md px-0 py-2 transition hover:bg-[#fbfcff] md:min-h-[104px] ${item === currentLocale ? "text-[#6467f2]" : "text-[#020817]"}`}
+            className={`flex min-h-[54px] items-center justify-between gap-4 rounded-md px-1 py-2 transition hover:bg-[#fbfcff] md:min-h-[58px] ${item === currentLocale ? "text-[#6467f2]" : "text-[#020817]"}`}
           >
-            <span className="grid gap-1">
-              <span className="text-[24px] font-bold leading-8 tracking-normal md:text-[28px] md:leading-[34px]">{localeNativeNames[item]}</span>
-              <span className="text-[21px] font-medium leading-7 text-[#64748b] md:text-[25px] md:leading-[31px]">{localeEnglishNames[item]}</span>
+            <span className="grid gap-0.5">
+              <span className="text-[15px] font-bold leading-5 tracking-normal md:text-base md:leading-5">{localeNativeNames[item]}</span>
+              <span className="text-[13px] font-medium leading-[18px] text-[#64748b] md:text-sm md:leading-5">{localeEnglishNames[item]}</span>
             </span>
-            {item === currentLocale ? <Check className="h-7 w-7 shrink-0 text-[#6467f2]" strokeWidth={2.2} /> : null}
+            {item === currentLocale ? <Check className="h-[18px] w-[18px] shrink-0 text-[#6467f2]" strokeWidth={2.2} /> : null}
           </a>
         ))}
       </div>

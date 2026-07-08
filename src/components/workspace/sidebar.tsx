@@ -1,8 +1,10 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {ChevronDown, ChevronUp, Clock, Copy, CreditCard, Crown, Edit3, FileText, FolderOpen, Home, LogOut, Mail, Monitor, Moon, MoreHorizontal, Plus, Settings, Sun, SunMoon, Trash2, X} from "lucide-react";
+import {useEffect, useRef, useState} from "react";
+import {usePathname} from "next/navigation";
+import {Check, ChevronDown, ChevronUp, Clock, Copy, CreditCard, Crown, Edit3, FileText, FolderOpen, Globe, Home, LogOut, Mail, Monitor, Moon, MoreHorizontal, Plus, Settings, Sun, SunMoon, Trash2, X} from "lucide-react";
 import {BrandLogo} from "@/components/brand-logo";
+import {isLocale, localeEnglishNames, localeNativeNames, locales, type Locale} from "@/lib/locales";
 import type {WorkspaceCopy} from "./copy";
 import type {AssetView, CurrentUser, FolderItem, TaskListItem, UsageSnapshot} from "./types";
 
@@ -89,6 +91,81 @@ function storeWorkspaceTheme(theme: WorkspaceTheme) {
   }
 }
 
+export function WorkspaceLanguageSwitcher({locale, copy, placement = "above"}: {locale: string; copy: Pick<WorkspaceCopy, "language">; placement?: "above" | "below"}) {
+  const pathname = usePathname() ?? `/${locale}`;
+  const currentLocale = isLocale(locale) ? locale : "en";
+  const rootRef = useRef<HTMLDetailsElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const menuPlacementClass = placement === "below" ? "top-[52px]" : "bottom-[52px]";
+
+  useEffect(() => {
+    setSearch(window.location.search);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOnOutsideInteraction(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideInteraction);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideInteraction);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  function pathForLocale(target: Locale) {
+    const segments = pathname.split("/");
+    if (segments.length > 1) {
+      segments[1] = target;
+      return `${segments.join("/") || `/${target}`}${search}`;
+    }
+    return `/${target}${search}`;
+  }
+
+  return (
+    <details ref={rootRef} open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="relative">
+      <summary
+        aria-label={copy.language}
+        className="focus-ring flex h-11 cursor-pointer list-none items-center justify-between rounded-[12px] border border-slate-200 bg-white px-3 text-sm font-semibold text-ink shadow-sm transition hover:bg-slate-50 [&::-webkit-details-marker]:hidden"
+        onClick={(event) => {
+          event.preventDefault();
+          setOpen((value) => !value);
+        }}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <Globe size={17} className="shrink-0 text-violet" />
+          <span className="truncate">{localeNativeNames[currentLocale]}</span>
+        </span>
+        <ChevronDown size={16} className={`shrink-0 text-slate-500 transition ${open ? "rotate-180" : ""}`} />
+      </summary>
+      <div className={`absolute left-0 z-50 grid max-h-[420px] w-full overflow-y-auto rounded-[12px] border border-[#d6ddeb] bg-white p-2 ${menuPlacementClass}`}>
+        {locales.map((item) => (
+          <a
+            key={item}
+            href={pathForLocale(item)}
+            className={`flex min-h-[54px] items-center justify-between gap-3 rounded-lg px-3 py-2 transition hover:bg-[#f7f7ff] ${item === currentLocale ? "text-[#6467f2]" : "text-ink"}`}
+          >
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-bold leading-5">{localeNativeNames[item]}</span>
+              <span className="block truncate text-xs font-medium leading-4 text-slate-500">{localeEnglishNames[item]}</span>
+            </span>
+            {item === currentLocale ? <Check size={17} className="shrink-0 text-[#6467f2]" /> : null}
+          </a>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | null; copy: WorkspaceCopy}) {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<WorkspaceTheme>("System");
@@ -97,7 +174,6 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
   const email = user?.email || copy.loginSyncHint;
   const avatarUrl = user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl || null;
   const supportEmail = "hi@uniscribe.co";
-  const discordInviteUrl = "https://discord.com/invite/RJTaS28UWU";
 
   async function signOut() {
     await fetch("/api/auth/logout", {method: "POST"}).catch(() => undefined);
@@ -121,10 +197,6 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
     }
     const data = await response.json().catch(() => ({}));
     if (response.ok && data.url) window.location.href = data.url;
-  }
-
-  function openDiscord() {
-    window.open(discordInviteUrl, "_blank", "noopener,noreferrer");
   }
 
   useEffect(() => {
@@ -182,30 +254,25 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
           </button>
         </div>
       {open ? (
-        <div className="absolute left-[17px] top-[73px] grid w-[233px] gap-2 animate-in slide-in-from-top-2 duration-200">
-          <button type="button" onClick={() => openBilling().catch(() => undefined)} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+        <div className="absolute left-[17px] top-[73px] z-50 grid w-[233px] gap-2 rounded-[16px] border border-slate-200 bg-white p-2 animate-in slide-in-from-top-2 duration-200">
+          <button type="button" onClick={() => openBilling().catch(() => undefined)} className="focus-ring flex h-10 w-full items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <CreditCard size={16} />
             {copy.billing}
           </button>
-          <button type="button" onClick={() => setSupportOpen(true)} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+          <button type="button" onClick={() => setSupportOpen(true)} className="focus-ring flex h-10 w-full items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <Mail size={16} />
             {copy.emailSupport}
           </button>
-          <button type="button" onClick={openDiscord} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://cdn.uniscribe.co/badges/Discord-Symbol-Blurple.svg" alt={copy.discordAlt} className="h-auto w-4 brightness-0 opacity-60" />
-            {copy.discordAlt}
-          </button>
-          <button type="button" onClick={() => { window.location.href = `/${locale}/settings`; }} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+          <button type="button" onClick={() => { window.location.href = `/${locale}/settings`; }} className="focus-ring flex h-10 w-full items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <Settings size={16} />
             {copy.settings}
           </button>
-          <div className="flex h-10 w-[233px] items-center justify-between rounded-[12px] border border-transparent bg-slate-100/20 px-4 transition hover:border-slate-200/60">
+          <div className="flex h-10 w-full items-center justify-between rounded-[12px] border border-slate-200 bg-white px-4 transition hover:bg-slate-50">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
               <SunMoon size={16} />
               <span>{copy.theme}</span>
             </div>
-            <div className="flex h-8 rounded-lg border border-slate-200/60 bg-slate-100/60 p-0.5">
+            <div className="flex h-8 rounded-lg border border-slate-200 bg-white p-0.5">
               {[
                 ["Light", copy.themeLight, Sun],
                 ["Dark", copy.themeDark, Moon],
@@ -219,7 +286,7 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
                     type="button"
                     aria-label={label as string}
                     onClick={() => chooseTheme(typedLabel)}
-                    className={`focus-ring grid h-[26px] w-[26px] place-items-center rounded-md transition ${theme === typedLabel ? "bg-white text-ink shadow-[0_1px_2px_rgba(0,0,0,0.1)] dark:bg-slate-900 dark:text-slate-50" : "text-slate-500 hover:bg-white/80 hover:text-ink"}`}
+                    className={`focus-ring grid h-[26px] w-[26px] place-items-center rounded-md transition ${theme === typedLabel ? "bg-slate-100 text-ink dark:bg-slate-900 dark:text-slate-50" : "text-slate-500 hover:bg-slate-50 hover:text-ink"}`}
                   >
                     <ThemeIcon size={14} />
                     <span className="sr-only">{label as string}</span>
@@ -231,7 +298,7 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
           <div className="py-1">
             <div className="h-px w-full bg-slate-200" />
           </div>
-          <button type="button" onClick={signOut} className="focus-ring flex h-10 w-[233px] items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
+          <button type="button" onClick={signOut} className="focus-ring flex h-10 w-full items-center gap-2 rounded-[12px] px-4 py-2 text-left text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink">
             <LogOut size={16} />
             {copy.signOut}
           </button>
@@ -571,7 +638,10 @@ export function WorkspaceSidebar({
         </div>
       ) : null}
 
-      <AccountMenu locale={locale} user={user} copy={copy} />
+      <div className="mt-auto grid gap-3">
+        <WorkspaceLanguageSwitcher locale={locale} copy={copy} />
+        <AccountMenu locale={locale} user={user} copy={copy} />
+      </div>
     </aside>
   );
 }

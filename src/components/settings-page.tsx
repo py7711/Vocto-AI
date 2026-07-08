@@ -31,7 +31,7 @@ import clsx from "clsx";
 import {PricingAction} from "@/components/pricing-actions";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {DashboardPricingOverlay} from "@/components/workspace/Workspace";
-import {WorkspaceSidebar} from "@/components/workspace/sidebar";
+import {WorkspaceLanguageSwitcher, WorkspaceSidebar} from "@/components/workspace/sidebar";
 import {isLocale, type Locale} from "@/lib/locales";
 import type {CurrentUser, FolderItem, UsageSnapshot} from "@/components/workspace/types";
 
@@ -2603,7 +2603,7 @@ export function SettingsPage({initialUser = null}: {initialUser?: CurrentUser | 
 
       <section className="min-w-0 flex-1 overflow-y-auto p-4 md:p-8">
         <div className="flex w-full flex-col">
-          <div className="flex items-center gap-4 md:items-start">
+          <div className="flex items-start justify-between gap-4">
             <button
               type="button"
               onClick={goBackToWorkspace}
@@ -2612,9 +2612,12 @@ export function SettingsPage({initialUser = null}: {initialUser?: CurrentUser | 
             >
               <ArrowLeft size={16} />
             </button>
-            <div>
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-bold leading-8 tracking-tight text-[rgb(2,8,23)]">{settingsCopy.shell.title}</h1>
               <p className="text-base leading-6 text-slate-500">{settingsCopy.shell.subtitle}</p>
+            </div>
+            <div className="relative z-40 w-44 shrink-0 md:hidden">
+              <WorkspaceLanguageSwitcher locale={locale} copy={workspaceCopy} placement="below" />
             </div>
           </div>
 

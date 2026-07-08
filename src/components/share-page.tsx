@@ -3,6 +3,8 @@ import {ArrowLeft, Download, Network, Sparkles, Star} from "lucide-react";
 import {MediaPlayer, MediaSeekButton} from "@/components/media-player";
 import {ShareExportLinks} from "@/components/share-export-links";
 import {SharedTranslationPanel} from "@/components/shared-translation-panel";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
+import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
 import {isLocale, type Locale} from "@/lib/locales";
 import {getPublicShare} from "@/lib/share-links";
 
@@ -475,6 +477,11 @@ const shareCopy: Record<Locale, ShareCopy> = {
   }
 };
 
+export function getSharePageTitle(locale: string) {
+  const normalizedLocale = isLocale(locale) ? locale : "en";
+  return shareCopy[normalizedLocale].fallbackTitle;
+}
+
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const rest = Math.floor(seconds % 60);
@@ -499,6 +506,7 @@ export async function SharePage({locale, token}: {locale: string; token: string}
 
   const normalizedLocale = isLocale(locale) ? locale : "en";
   const copy = shareCopy[normalizedLocale];
+  const languageCopy = {language: getWorkspaceCopy(normalizedLocale).language};
   const task = share.mediaTask;
   const text = transcript.editedText || transcript.plainText;
   const segments = readSegments(transcript.segments);
@@ -527,10 +535,15 @@ export async function SharePage({locale, token}: {locale: string; token: string}
             <ArrowLeft size={16} />
           </a>
           <p className="hidden min-w-0 flex-1 truncate text-sm font-black text-ink/75 md:block">{title}</p>
-          <a href="#exports" className="btn-primary h-9 px-3 py-2">
-            <Download size={16} />
-            {copy.export}
-          </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="relative z-40 w-32 sm:w-44">
+              <WorkspaceLanguageSwitcher locale={normalizedLocale} copy={languageCopy} placement="below" />
+            </div>
+            <a href="#exports" className="btn-primary h-9 px-3 py-2">
+              <Download size={16} />
+              {copy.export}
+            </a>
+          </div>
         </div>
       </header>
 
