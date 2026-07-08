@@ -1686,7 +1686,7 @@ export function AuthPage({mode}: {mode: "signin" | "signup"}) {
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
             <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
-              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
+              <BrandLogo alt="Votxt" className="h-[42px] w-auto" />
             </a>
           </div>
           {isSignup ? (
@@ -1997,7 +1997,7 @@ export function VerifyEmailPage() {
         <div className="mx-auto w-[286px]">
           <div className="flex justify-center">
             <a href={`/${locale}`} className="block transition-opacity hover:opacity-90" aria-label="Votxt home">
-              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
+              <BrandLogo alt="Votxt" className="h-[42px] w-auto" />
             </a>
           </div>
           <Mail className="mx-auto mt-10 text-violet" size={48} />
@@ -2063,7 +2063,7 @@ export function ForgotPasswordPage() {
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
             <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
-              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
+              <BrandLogo alt="Votxt" className="h-[42px] w-auto" />
             </a>
           </div>
           <div className="text-center">
@@ -2143,7 +2143,7 @@ export function ResetPasswordPage() {
         <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
           <div className="mb-10 flex justify-center">
             <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
-              <BrandLogo alt="Votxt" className="h-[42px] w-[180px] object-contain" />
+              <BrandLogo alt="Votxt" className="h-[42px] w-auto" />
             </a>
           </div>
           <div className="text-center">

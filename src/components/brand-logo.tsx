@@ -6,7 +6,7 @@ type BrandLogoProps = {
   width?: number;
 };
 
-export function BrandLogo({alt = "Votxt Logo", className = "", height = 45, loading = "eager", width = 180}: BrandLogoProps) {
+export function BrandLogo({alt = "Votxt Logo", className = "", height = 45, loading = "eager", width = 118}: BrandLogoProps) {
   const lightClassName = className ? `${className} dark:hidden` : "dark:hidden";
   const darkClassName = className ? `hidden ${className} dark:block` : "hidden dark:block";
 

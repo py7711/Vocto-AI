@@ -458,7 +458,7 @@ export function WorkspaceSidebar({
   return (
     <aside className="flex h-screen min-h-0 min-w-0 flex-col gap-5 overflow-y-auto bg-white px-4 py-4">
       <a href={`/${locale}/dashboard`} className="flex h-[44px] items-center">
-        <BrandLogo alt="Votxt" width={238} height={52} className="h-auto w-[154px]" />
+        <BrandLogo alt="Votxt" width={470} height={180} className="h-[32px] w-auto" />
       </a>
 
       <section className="h-[204.5px] min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-[#f7f7ff] px-4 py-4 shadow-soft">
