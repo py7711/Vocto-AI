@@ -53,6 +53,7 @@ import {WorkspaceLanguageSwitcher, WorkspaceSidebar} from "./sidebar";
 import {ExportPanel, ShareTranscriptionDialog, TranscriptPanel} from "./panels";
 import {ProductSections} from "./marketing";
 import {formatDateTime, formatDuration, formatTime, taskDisplayName} from "./format";
+import {safeImageSrc} from "@/lib/image-url";
 import {subscriptionGrantsMembership} from "@/lib/membership-shared";
 
 const maxBatchFiles = 50;
@@ -2197,6 +2198,7 @@ function AppSumoWelcomeDialog({
 
 function HomeWelcomeCard({user, copy, locale}: {user: CurrentUser; copy: ReturnType<typeof getWorkspaceCopy>; locale: string}) {
   const displayName = user.name?.trim() || user.email.split("@")[0] || copy.account;
+  const avatarSrc = safeImageSrc(user.image);
   const initials = displayName
     .split(/\s+/)
     .map((part) => part[0])
@@ -2207,10 +2209,10 @@ function HomeWelcomeCard({user, copy, locale}: {user: CurrentUser; copy: ReturnT
   return (
     <section className="rounded-2xl border border-white/80 bg-white px-5 py-5 text-center shadow-lifted md:px-7 md:py-7">
       <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#2f711f] text-lg font-semibold text-white shadow-card ring-1 ring-ink/10 md:h-16 md:w-16 md:text-xl">
-        {user.image ? (
+        {avatarSrc ? (
           // 外部 OAuth 头像域名不可控，用原生 img 避免 next/image 域名限制。
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt="" className="h-full w-full object-cover" />
+          <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
         ) : (
           initials
         )}

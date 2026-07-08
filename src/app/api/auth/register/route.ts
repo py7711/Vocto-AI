@@ -57,6 +57,9 @@ export async function POST(request: Request) {
       name: user.name,
       verificationUrl,
       locale: input.locale
+    }).catch((emailError) => {
+      console.error("Verification email failed after registration", emailError);
+      return {sent: false, verificationUrl};
     });
 
     await setSessionCookie(user.id);

@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from "react";
 import {usePathname} from "next/navigation";
 import {Check, ChevronDown, ChevronUp, Clock, Copy, CreditCard, Crown, Edit3, FileText, FolderOpen, Globe, Home, LogOut, Mail, Monitor, Moon, MoreHorizontal, Plus, Settings, Sun, SunMoon, Trash2, X} from "lucide-react";
 import {BrandLogo} from "@/components/brand-logo";
+import {safeImageSrc} from "@/lib/image-url";
 import {isLocale, localeEnglishNames, localeNativeNames, locales, type Locale} from "@/lib/locales";
 import type {WorkspaceCopy} from "./copy";
 import type {AssetView, CurrentUser, FolderItem, TaskListItem, UsageSnapshot} from "./types";
@@ -172,7 +173,7 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
   const [supportOpen, setSupportOpen] = useState(false);
   const displayName = user?.name || copy.anonymousUser;
   const email = user?.email || copy.loginSyncHint;
-  const avatarUrl = user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl || null;
+  const avatarUrl = safeImageSrc(user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl);
   const supportEmail = "hi@votxt.co";
 
   async function signOut() {

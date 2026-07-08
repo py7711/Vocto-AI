@@ -32,6 +32,7 @@ import {PricingAction} from "@/components/pricing-actions";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {DashboardPricingOverlay} from "@/components/workspace/Workspace";
 import {WorkspaceLanguageSwitcher, WorkspaceSidebar} from "@/components/workspace/sidebar";
+import {safeImageSrc} from "@/lib/image-url";
 import {isLocale, type Locale} from "@/lib/locales";
 import type {CurrentUser, FolderItem, UsageSnapshot} from "@/components/workspace/types";
 
@@ -2211,7 +2212,7 @@ export function SettingsPage({initialUser = null}: {initialUser?: CurrentUser | 
     PRO: settingsCopy.usage.planNames.PRO,
     STANDARD: settingsCopy.usage.planNames.STANDARD
   }[normalizedPlan] ?? String(plan).toLowerCase().replace(/^\w/, (letter) => letter.toUpperCase());
-  const avatarUrl = user?.image || googleAccount?.avatarUrl || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl || null;
+  const avatarUrl = safeImageSrc(user?.image || googleAccount?.avatarUrl || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl);
   const notificationStoragePrefix = `votxt_notification_preferences:${user?.id ?? "anonymous"}`;
 
   useEffect(() => {

@@ -1682,11 +1682,11 @@ export function AuthPage({mode}: {mode: "signin" | "signup"}) {
   return (
     <main className="min-h-screen bg-white">
       <AuthLocaleControl locale={locale} />
-      <section className="mx-auto grid min-h-screen w-[286px] content-center">
-        <div className="animate-fade-up" style={{position: "relative", top: "-12px"}}>
+      <section className={isSignup ? "mx-auto grid min-h-screen w-full max-w-[386px] content-center px-5 sm:px-0" : "mx-auto grid min-h-screen w-[286px] content-center"}>
+        <div className="animate-fade-up" style={{position: "relative", top: isSignup ? "0px" : "-12px"}}>
           <div className="mb-10 flex justify-center">
             <a href={`/${locale}`} className="transition-opacity hover:opacity-90" aria-label="Votxt home">
-              <BrandLogo alt="Votxt" className="h-[42px] w-auto" />
+              <BrandLogo alt="Votxt" width={isSignup ? 132 : 118} height={isSignup ? 51 : 45} className={isSignup ? "h-[46px] w-auto" : "h-[42px] w-auto"} />
             </a>
           </div>
           {isSignup ? (
@@ -1751,7 +1751,7 @@ function Divider({label}: {label: string}) {
   return (
     <div className="my-4 flex h-5 items-center gap-3 text-sm leading-5 text-[rgb(2,8,23)]">
       <span className="h-px flex-1 bg-slate-200" />
-      {label}
+      <span className="shrink-0 text-center">{label}</span>
       <span className="h-px flex-1 bg-slate-200" />
     </div>
   );
@@ -1862,7 +1862,7 @@ function SignupCard({
       <GoogleButton locale={locale} label={text.google} />
       <Divider label={text.signupDivider} />
       {step === "email" ? (
-        <>
+        <div className="mx-auto w-full max-w-[276px]">
           <label className="block">
             <span className="block text-sm font-medium leading-5 text-[rgb(2,8,23)]">{text.email}</span>
             <input
@@ -1876,9 +1876,9 @@ function SignupCard({
           <button type="button" onClick={() => setStep("profile")} disabled={!email.includes("@")} className="focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-violet px-4 py-2 text-sm font-medium text-white ring-offset-background transition-colors hover:bg-violet/90 disabled:cursor-not-allowed disabled:opacity-50">
             {text.continue}
           </button>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="mx-auto w-full max-w-[276px]">
           <div className="mb-6 rounded-lg bg-ink/[0.03] p-4 ring-1 ring-ink/5">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1912,7 +1912,7 @@ function SignupCard({
             {busy ? text.registering : text.submitSignup}
           </button>
           <button type="button" onClick={() => setStep("email")} className="mx-auto mt-6 block text-lg font-black text-ink/55">{text.back}</button>
-        </>
+        </div>
       )}
       <p className="mt-4 text-center text-sm leading-5 text-slate-500">{text.already} <a className="text-violet hover:underline" href={`/${locale}/auth/signin`}>{text.signinLink}</a></p>
       <p className="mx-auto mt-4 max-w-[286px] text-center text-xs leading-4 text-slate-500">{text.termsPrefix} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/terms-of-service`}>{text.terms}</a> {text.and} <a className="text-violet underline hover:text-violet/80" href={`/${locale}/privacy-policy`}>{text.privacy}</a>.</p>
@@ -1947,6 +1947,10 @@ export function VerifyEmailPage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error ?? text.verifyFailed);
         setStatus("success");
+        // 验证即登录：短暂展示成功状态后自动跳转仪表盘。
+        window.setTimeout(() => {
+          window.location.assign(`/${locale}/dashboard`);
+        }, 1200);
       })
       .catch((cause) => {
         setStatus("failed");
