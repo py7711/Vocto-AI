@@ -1,6 +1,6 @@
 import {headers} from "next/headers";
 import {REQUEST_URL_LOG_HEADER} from "@/lib/logging-headers";
-import {logError, type LogContext} from "@/lib/logger";
+import {logError, logInfo, type LogContext} from "@/lib/logger";
 
 type RequestLike = {
   url?: string;
@@ -17,6 +17,22 @@ export function logApiError(error: unknown, request?: Request | string | URL | A
   const logContext = requestLike ? context : (request ?? context) as ApiLogContext;
   const requestUrl = logContext.requestUrl ?? requestUrlFrom(requestLike);
   logError(error, {
+    ...logContext,
+    requestUrl,
+    meta: {
+      runtime: "next-route",
+      route: logContext.route,
+      method: logContext.method ?? methodFrom(requestLike),
+      ...logContext.meta
+    }
+  });
+}
+
+export function logApiInfo(message: string, request?: Request | string | URL | ApiLogContext | null, context: ApiLogContext = {}) {
+  const requestLike = isRequestLike(request) || typeof request === "string" || request instanceof URL ? request : undefined;
+  const logContext = requestLike ? context : (request ?? context) as ApiLogContext;
+  const requestUrl = logContext.requestUrl ?? requestUrlFrom(requestLike);
+  logInfo(message, {
     ...logContext,
     requestUrl,
     meta: {

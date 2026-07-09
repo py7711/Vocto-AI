@@ -182,6 +182,7 @@ function findProjectStackLocation(stack?: string) {
   const projectFrame = parsed.find((frame) => {
     const classPath = frame.classPath.replace(/\\/g, "/");
     return !classPath.includes("node_modules/")
+      && !classPath.includes("src/lib/api-logger.ts")
       && !classPath.includes("src/lib/logger.ts")
       && !classPath.startsWith("node:");
   });
