@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {retryTranscriptionTask, taskRetryErrorResponse} from "@/lib/task-retry";
 import {taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const retrySchema = z.object({
   retryType: z.enum(["standard", "youtube_fallback"]).default("standard")
@@ -14,6 +15,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     await retryTranscriptionTask({taskId: params.taskId, headers: request.headers, retryType: input.retryType});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const retryError = taskRetryErrorResponse(error);

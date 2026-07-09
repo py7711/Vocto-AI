@@ -8,6 +8,7 @@ import type {ExportOptions} from "@/lib/exporters";
 import {renderCsv, renderDocx, renderJson, renderMarkdown, renderSrt, renderTxt, renderVtt} from "@/lib/exporters";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {createZip} from "@/lib/zip";
+import {logApiError} from "@/lib/api-logger";
 
 const batchExportSchema = z.object({
   taskIds: z.array(z.string().min(1)).min(1).max(100),
@@ -168,6 +169,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法导出选中的转写。";

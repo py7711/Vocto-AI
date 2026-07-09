@@ -4,6 +4,7 @@ import {decodeIdentityTransitionToken, ensureFreeSubscription, getAccountUser, s
 import {getCurrentUser} from "@/lib/auth";
 import {ensurePersonalTeam} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const mergeSchema = z.object({
   transitionToken: z.string().min(1)
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       user: user ? serializeUser(user) : null
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法合并匿名账号。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

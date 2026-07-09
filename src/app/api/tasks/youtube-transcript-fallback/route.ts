@@ -3,6 +3,7 @@ import {z} from "zod";
 import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const fallbackSchema = z.object({
   taskId: z.string().min(1)
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     await publishTaskUpdate(task.id);
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法加入 YouTube 降级转写队列。"}, {status: error instanceof z.ZodError ? 422 : 400});

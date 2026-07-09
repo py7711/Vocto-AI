@@ -3,6 +3,7 @@ import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {createBillingPortalSession} from "@/lib/billing";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const portalSchema = z.object({
   returnPath: z.string().max(240).optional()
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({url: session.url});
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法打开客户门户。";
     return NextResponse.json({error: message}, {status: 400});
   }

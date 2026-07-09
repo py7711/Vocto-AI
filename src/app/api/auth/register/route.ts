@@ -5,6 +5,7 @@ import {authMessage} from "@/lib/api-copy";
 import {sendVerificationEmail} from "@/lib/email";
 import {prisma} from "@/lib/prisma";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -58,7 +59,9 @@ export async function POST(request: Request) {
       verificationUrl,
       locale: input.locale
     }).catch((emailError) => {
-      console.error("Verification email failed after registration", emailError);
+      logApiError(emailError, request, {
+        message: "Verification email failed after registration."
+      });
       return {sent: false, verificationUrl};
     });
 
@@ -75,6 +78,7 @@ export async function POST(request: Request) {
       verificationUrl: emailResult.verificationUrl
     });
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: authMessage("registerFailed", locale)}, {status});
   }

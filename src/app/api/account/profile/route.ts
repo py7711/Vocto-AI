@@ -6,6 +6,7 @@ import {jsonSafe} from "@/lib/json";
 import {isLocale} from "@/lib/locales";
 import {prisma} from "@/lib/prisma";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const profileSchema = z.object({
   firstName: z.string().max(80).optional(),
@@ -105,6 +106,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(jsonSafe({user: {...updated, passwordSet: Boolean(updated.passwordHash), passwordHash: undefined}, emailVerification}));
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: error instanceof Error ? error.message : "无法更新账号设置。"}, {status});
   }

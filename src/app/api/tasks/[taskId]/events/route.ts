@@ -1,5 +1,6 @@
 import {createRedisConnection, describeRedisConnectionError, getRedisConnectionError} from "@/lib/redis";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +8,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) {
       return Response.json(accessError.body, {status: accessError.status});
@@ -23,7 +25,11 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       try {
         await subscriber.subscribe(`task:${params.taskId}`);
       } catch (error) {
-        console.error(describeRedisConnectionError(getRedisConnectionError(subscriber, error)));
+        const redisError = getRedisConnectionError(subscriber, error);
+        logApiError(redisError, request, {
+          message: describeRedisConnectionError(redisError),
+          meta: {taskId: params.taskId}
+        });
         controller.error(error);
         return;
       }

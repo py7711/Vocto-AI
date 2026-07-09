@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const updateTranscriptSchema = z.object({
   editedText: z.string().min(1).optional(),
@@ -33,6 +34,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     await publishTaskUpdate(params.taskId);
     return NextResponse.json(transcript);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法保存转写文本。";

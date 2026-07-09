@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {setSessionCookie, verifyEmailToken} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
+import {logApiError} from "@/lib/api-logger";
 
 const verifySchema = z.object({
   token: z.string().min(16),
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     await setSessionCookie(userId);
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: authMessage("verifyFailed", locale)}, {status});
   }

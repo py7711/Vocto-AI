@@ -1,5 +1,6 @@
 import {Queue} from "bullmq";
 import {env} from "@/lib/env";
+import {logError} from "@/lib/logger";
 import {createRedisConnection, describeRedisConnectionError} from "@/lib/redis";
 import type {SummaryTemplateInput} from "@/lib/summary-template";
 
@@ -41,7 +42,11 @@ export function getTranscribeQueue() {
       }
     });
     queue.on("error", (error) => {
-      console.error(describeRedisConnectionError(error));
+      logError(error, {
+        requestUrl: "queue://transcribe",
+        message: describeRedisConnectionError(error),
+        meta: {queue: TRANSCRIBE_QUEUE}
+      });
     });
     transcribeQueue = queue;
   }

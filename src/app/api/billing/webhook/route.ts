@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {addonPacks, billingPlans, oneTimePacks, type AddonPack, type BillingPlan, type OneTimePack, verifyStripeWebhookSignature} from "@/lib/billing";
 import {prisma, prismaTransactionOptions} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -217,6 +218,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({received: true});
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "Webhook 处理失败。";
     return NextResponse.json({error: message}, {status: 400});
   }

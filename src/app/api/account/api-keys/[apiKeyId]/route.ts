@@ -3,6 +3,7 @@ import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {apiAccessRequiredMessage, createDeveloperSecret, ensurePersonalTeam, hasDeveloperApiAccess} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120)
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, {params}: {params: {apiKeyId: stri
     if (!updated.count) return NextResponse.json({error: "API Key 不存在。"}, {status: 404});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: error instanceof Error ? error.message : "无法更新 API Key。"}, {status});
   }

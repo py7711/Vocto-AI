@@ -5,6 +5,7 @@ import {z} from "zod";
 import {buildOutline, renderOutlineDocx, renderOutlineJson, renderOutlineMarkdown, renderOutlineText} from "@/lib/outline-exporters";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   transcriptionId: z.string().min(1),
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
     const body = input.format === "json" ? renderOutlineJson(outline) : input.format === "txt" ? renderOutlineText(outline) : renderOutlineMarkdown(outline);
     return new Response(body, {headers: {"Content-Type": contentTypes[input.format], "Content-Disposition": `attachment; filename="${fileName}"`}});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法导出大纲。"}, {status: error instanceof z.ZodError ? 422 : 400});

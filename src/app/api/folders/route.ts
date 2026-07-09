@@ -2,12 +2,13 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const folderSchema = z.object({
   name: z.string().trim().min(1).max(120)
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({folders: []});
@@ -20,6 +21,7 @@ export async function GET() {
 
     return NextResponse.json({folders});
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法读取文件夹。";
     return NextResponse.json({error: message}, {status: 400});
   }
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(folder);
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法创建文件夹。";
     return NextResponse.json({error: message}, {status: 400});
   }

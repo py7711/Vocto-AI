@@ -3,6 +3,7 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {deleteObject} from "@/lib/storage";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   transcriptionIds: z.array(z.string().min(1)).min(1).max(100)
@@ -28,6 +29,7 @@ export async function DELETE(request: Request) {
       : {count: 0};
     return NextResponse.json({ok: true, count: result.count, failed});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法批量删除原始文件。"}, {status: error instanceof z.ZodError ? 422 : 400});

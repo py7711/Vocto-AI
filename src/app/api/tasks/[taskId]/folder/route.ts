@@ -4,6 +4,7 @@ import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {getRequestOrigin} from "@/lib/request-origin";
 import {serializeShareLinkForOwner} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 const moveTaskSchema = z.object({
   folderId: z.string().nullable()
@@ -56,6 +57,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
       )
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法移动转写。";

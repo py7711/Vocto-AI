@@ -3,6 +3,7 @@ import {z} from "zod";
 import {getCurrentUser, hashRawPassword} from "@/lib/auth";
 import {ensureFreeSubscription, getAccountUser, serializeUser} from "@/lib/account-compat";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -57,6 +58,7 @@ export async function PUT(request: Request) {
     const user = await getAccountUser(sessionUser.id);
     return NextResponse.json({user: user ? serializeUser(user) : null});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法更新用户信息。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

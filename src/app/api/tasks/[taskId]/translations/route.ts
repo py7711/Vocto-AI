@@ -3,6 +3,7 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {translateBatchWithFallback} from "@/server/translation";
+import {logApiError} from "@/lib/api-logger";
 
 const translationSchema = z.object({
   targetLanguageCode: z.string().trim().min(2).max(16),
@@ -92,6 +93,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
 
     return NextResponse.json({translations});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法读取翻译列表。";
@@ -174,6 +176,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     await publishTaskUpdate(task.id);
     return NextResponse.json(record);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法创建翻译。";

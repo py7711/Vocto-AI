@@ -4,6 +4,7 @@ import {createElement} from "react";
 import {prisma} from "@/lib/prisma";
 import {parseExportOptions, renderCsv, renderDocx, renderJson, renderMarkdown, renderSrt, renderTxt, renderVtt} from "@/lib/exporters";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const contentTypes: Record<string, string> = {
   txt: "text/plain; charset=utf-8",
@@ -89,6 +90,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       headers: {"Content-Type": contentTypes[format], "Content-Disposition": `attachment; filename="${fileName}"`}
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法导出转写。";

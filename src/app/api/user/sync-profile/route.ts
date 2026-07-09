@@ -3,6 +3,7 @@ import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {ensureFreeSubscription, getAccountUser, serializeUser} from "@/lib/account-compat";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const profileSchema = z.object({
   name: z.string().trim().max(120).optional(),
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     const user = await getAccountUser(sessionUser.id);
     return NextResponse.json({user: user ? serializeUser(user) : null, synced: true});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法同步个人资料。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

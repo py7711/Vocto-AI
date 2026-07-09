@@ -4,6 +4,7 @@ import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {ensurePersonalTeam} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const acquisitionSchema = z.object({
   landingUrl: z.string().max(2048).nullable().optional(),
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法同步获客来源。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

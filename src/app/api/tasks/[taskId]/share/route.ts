@@ -5,6 +5,7 @@ import {getRequestOrigin} from "@/lib/request-origin";
 import {createShareToken, serializeShareLinkForOwner} from "@/lib/share-links";
 import {hashToken} from "@/lib/auth";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const createShareSchema = z.object({
   locale: z.string().min(2).max(16).default("zh"),
@@ -41,6 +42,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       shareLink: shareLink ? serializeShareLinkForOwner(shareLink, {appUrl: getRequestOrigin(request), locale}) : null
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法读取分享状态。";
@@ -79,6 +81,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       shareLink: serializeShareLinkForOwner(shareLink, {appUrl: getRequestOrigin(request), locale: input.locale})
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法创建分享链接。";
@@ -101,6 +104,7 @@ export async function DELETE(request: Request, {params}: {params: {taskId: strin
 
     return NextResponse.json({ok: true, disabledCount: result.count});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法停用分享链接。";

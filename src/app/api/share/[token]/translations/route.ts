@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {getPublicShare} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 export async function GET(_request: Request, {params}: {params: {token: string}}) {
   try {
@@ -28,6 +29,7 @@ export async function GET(_request: Request, {params}: {params: {token: string}}
 
     return NextResponse.json({translations});
   } catch (error) {
+    logApiError(error, _request);
     const message = error instanceof Error ? error.message : "无法读取分享翻译列表。";
     return NextResponse.json({error: message}, {status: 400});
   }

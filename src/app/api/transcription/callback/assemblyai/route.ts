@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {AssemblyAIProvider} from "@/server/transcription/assemblyai";
 import {finalizeTranscriptionResult, loadJobContext} from "@/server/transcription/finalize";
 import {CALLBACK_AUTH_HEADER} from "@/server/transcription/types";
+import {logApiError} from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ok: true});
   } catch (error) {
-    console.error("[assemblyai-callback] 处理失败：", error instanceof Error ? error.message : error);
+    logApiError(error, request);
     return NextResponse.json({ok: false}, {status: 200});
   }
 }

@@ -4,6 +4,7 @@ import {createElement} from "react";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {buildOutline, renderOutlineDocx, renderOutlineJson, renderOutlineMarkdown, renderOutlineText} from "@/lib/outline-exporters";
+import {logApiError} from "@/lib/api-logger";
 
 const contentTypes: Record<string, string> = {
   md: "text/markdown; charset=utf-8",
@@ -100,6 +101,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       }
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法导出大纲。";

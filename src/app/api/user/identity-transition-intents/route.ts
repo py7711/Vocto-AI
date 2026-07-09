@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {createTransitionIntent} from "@/lib/account-compat";
+import {logApiError} from "@/lib/api-logger";
 
 const intentSchema = z.object({
   anonymousId: z.string().trim().max(160).optional(),
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
       expiresAt: intent.expiresAt
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法创建身份迁移意图。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

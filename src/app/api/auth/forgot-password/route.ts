@@ -4,6 +4,7 @@ import {createPasswordResetToken} from "@/lib/auth";
 import {sendPasswordResetEmail} from "@/lib/email";
 import {prisma} from "@/lib/prisma";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(),
@@ -39,7 +40,8 @@ export async function POST(request: Request) {
       sent: emailResult.sent,
       resetUrl: "resetUrl" in emailResult ? emailResult.resetUrl : undefined
     });
-  } catch {
+  } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: "无法创建密码重置链接。"}, {status: 400});
   }
 }

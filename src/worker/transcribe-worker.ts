@@ -2,6 +2,7 @@ import "dotenv/config";
 import {randomUUID} from "node:crypto";
 import {Worker} from "bullmq";
 import {TRANSCRIBE_QUEUE, type TranscribeJob} from "@/lib/queue";
+import {installProcessErrorHandlers, logError, logInfo, logWarn} from "@/lib/logger";
 import {createRedisConnection, describeRedisConnectionError, getRedisConnectionError} from "@/lib/redis";
 import {prisma} from "@/lib/prisma";
 import {env} from "@/lib/env";
@@ -12,6 +13,13 @@ import {transcribeChunkedWithGroq} from "@/server/transcription/groq-chunked";
 import {finalizeTranscriptionResult, saveJobContext, type TranscriptionJobContext} from "@/server/transcription/finalize";
 import type {TranscriptionRequest} from "@/server/transcription/types";
 import {isGoogleDriveShareUrl, prepareTaskAudioAsset, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
+
+installProcessErrorHandlers({
+  requestUrl: "worker://transcribe",
+  classPath: "src/worker/transcribe-worker.ts",
+  functionName: "process",
+  line: 1
+});
 
 // worker 是独立 Node 进程，不在 Next.js 请求生命周期内运行。
 // 这里避免导入包含 cookies/getCurrentUser 的 "@/lib/tasks"，否则会间接加载 `server-only`
@@ -62,7 +70,11 @@ async function runWithCallbackAndPolling(
     const submitResult = await primary.submit({...request, callbackUrl, callbackToken});
     providerJobId = submitResult.providerJobId;
   } catch (error) {
-    console.warn(`[transcribe] ${primary.name} 异步提交失败，转同步兜底：`, error instanceof Error ? error.message : error);
+    logWarn(error, {
+      requestUrl: `worker://transcribe/${taskId}`,
+      message: `[transcribe] ${primary.name} async submit failed; falling back to sync transcription.`,
+      meta: {provider: primary.name, taskId}
+    });
     return false;
   }
 
@@ -90,7 +102,11 @@ async function runWithCallbackAndPolling(
         return await finalizeTranscriptionResult({taskId, result: polled, context: baseContext});
       }
     } catch (error) {
-      console.warn(`[transcribe] ${primary.name} 轮询失败：`, error instanceof Error ? error.message : error);
+      logWarn(error, {
+        requestUrl: `worker://transcribe/${taskId}`,
+        message: `[transcribe] ${primary.name} polling failed; falling back to sync transcription.`,
+        meta: {provider: primary.name, providerJobId, taskId}
+      });
       return false;
     }
   }
@@ -131,7 +147,12 @@ async function createWorker() {
   try {
     await connection.connect();
   } catch (error) {
-    console.error(describeRedisConnectionError(getRedisConnectionError(connection, error)));
+    const redisError = getRedisConnectionError(connection, error);
+    logError(redisError, {
+      requestUrl: "worker://transcribe/redis",
+      message: describeRedisConnectionError(redisError),
+      meta: {queue: TRANSCRIBE_QUEUE}
+    });
     connection.disconnect();
     process.exit(1);
   }
@@ -211,13 +232,22 @@ async function createWorker() {
   );
 
   worker.on("error", (error) => {
-    console.error(describeRedisConnectionError(error));
+    logError(error, {
+      requestUrl: "worker://transcribe",
+      message: describeRedisConnectionError(error),
+      meta: {queue: TRANSCRIBE_QUEUE}
+    });
   });
 
   worker.on("failed", async (job, error) => {
     if (!job) return;
     if (error instanceof JobCanceledError) return;
 
+    logError(error, {
+      requestUrl: `worker://transcribe/${job.data.taskId}`,
+      message: "Transcribe job failed.",
+      meta: {jobId: job.id, taskId: job.data.taskId, queue: TRANSCRIBE_QUEUE}
+    });
     await releaseQuotaForFailedTask(job.data.taskId);
     await updateTaskStatus(job.data.taskId, "FAILED", {
       progress: 100,
@@ -226,7 +256,10 @@ async function createWorker() {
     });
   });
 
-  console.log(`Votxt worker 正在监听队列 ${TRANSCRIBE_QUEUE}。`);
+  logInfo(`Votxt worker listening on queue ${TRANSCRIBE_QUEUE}.`, {
+    requestUrl: "worker://transcribe",
+    meta: {queue: TRANSCRIBE_QUEUE}
+  });
 }
 
 void createWorker();

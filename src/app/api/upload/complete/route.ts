@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {publicObjectUrl} from "@/lib/storage";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   key: z.string().min(1).optional(),
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       publicUrl: publicObjectUrl(key)
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法完成上传。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

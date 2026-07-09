@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {GET as exportSharedTranscription} from "@/app/api/share/[token]/exports/[format]/route";
+import {logApiError} from "@/lib/api-logger";
 
 const shareExportSchema = z.object({
   shareCode: z.string().optional(),
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
     const forwarded = new Request(url, {headers: request.headers});
     return exportSharedTranscription(forwarded, {params: {token, format}});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json(
       {error: error instanceof Error ? error.message : "无法导出分享转写。"},
       {status: error instanceof z.ZodError ? 422 : 400}

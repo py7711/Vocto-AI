@@ -5,6 +5,7 @@ import {getRequestOrigin} from "@/lib/request-origin";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {serializeCompatTask} from "@/lib/transcription-compat";
 import {releaseQuotaForFailedTask} from "@/lib/usage";
+import {logApiError} from "@/lib/api-logger";
 
 const updateSchema = z.object({
   // 旧转写详情页会提交 filename/languageCode/transcriptionType 等字段，
@@ -52,6 +53,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
     if (!task) return NextResponse.json({error: "转写任务不存在。"}, {status: 404});
     return NextResponse.json(serializeCompatTask(task, {locale, appUrl: getRequestOrigin(request)}));
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法读取转写。"}, {status: 400});
@@ -103,6 +105,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     await publishTaskUpdate(params.taskId);
     return NextResponse.json(serializeCompatTask(task, {locale, appUrl: getRequestOrigin(request)}));
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法更新转写。"}, {status: error instanceof z.ZodError ? 422 : 400});
@@ -121,6 +124,7 @@ export async function DELETE(request: Request, {params}: {params: {taskId: strin
     await prisma.mediaTask.delete({where: {id: params.taskId}});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法删除转写。"}, {status: 400});

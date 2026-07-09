@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const updateFolderSchema = z.object({
   name: z.string().trim().min(1).max(120)
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, {params}: {params: {folderId: stri
 
     return NextResponse.json(folder);
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法更新文件夹。";
     return NextResponse.json({error: message}, {status: 400});
   }
@@ -53,6 +55,7 @@ export async function DELETE(_request: Request, {params}: {params: {folderId: st
 
     return NextResponse.json({ok: true, deletedTaskCount: result.count});
   } catch (error) {
+    logApiError(error, _request);
     const message = error instanceof Error ? error.message : "无法删除文件夹。";
     return NextResponse.json({error: message}, {status: 400});
   }

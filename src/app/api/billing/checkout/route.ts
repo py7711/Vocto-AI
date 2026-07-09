@@ -4,6 +4,7 @@ import {getCurrentUser} from "@/lib/auth";
 import {createCheckoutSession, createStripeCustomer, type AddonPack, type BillingPlan, type OneTimePack} from "@/lib/billing";
 import {prisma} from "@/lib/prisma";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const checkoutSchema = z.object({
   plan: z.enum(["BASIC", "STANDARD", "PRO"]).optional(),
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({url: session.url});
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法创建 Stripe 支付会话。";
     return NextResponse.json({error: message}, {status: 400});
   }

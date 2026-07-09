@@ -4,6 +4,7 @@ import {prisma} from "@/lib/prisma";
 import {deleteObject} from "@/lib/storage";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {releaseQuotaForFailedTask} from "@/lib/usage";
+import {logApiError} from "@/lib/api-logger";
 
 const batchSchema = z.object({
   taskIds: z.array(z.string().min(1)).min(1).max(100),
@@ -81,6 +82,7 @@ export async function PATCH(request: Request) {
     });
     return NextResponse.json({ok: true, count: result.count});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法执行批量操作。";

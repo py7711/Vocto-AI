@@ -5,6 +5,7 @@ import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {renderCsv, renderDocx, renderJson, renderMarkdown, renderSrt, renderTxt, renderVtt} from "@/lib/exporters";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const exportSchema = z.object({
   fileId: z.string().min(1),
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
 
     return new Response(body, {headers: {"Content-Type": contentTypes[input.fileType], "Content-Disposition": `attachment; filename="${fileName}"`}});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法导出转写。"}, {status: error instanceof z.ZodError ? 422 : 400});

@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {POST as createSingleInsight} from "@/app/api/tasks/[taskId]/insights/single/route";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {logApiError} from "@/lib/api-logger";
 
 const sourceSingleTextSchema = z.object({
   transcriptionFileId: z.string().optional(),
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
 
     return createSingleInsight(forwarded, {params: {taskId}});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json(
       {error: error instanceof Error ? error.message : "无法创建单项 AI 后处理任务。"},
       {status: error instanceof z.ZodError ? 422 : 400}

@@ -3,6 +3,7 @@ import {consumeSignedStateCookie, getCurrentUser} from "@/lib/auth";
 import {env} from "@/lib/env";
 import {exchangeDriveCode} from "@/lib/google-drive";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const stateCookie = "votxt_drive_state";
 
@@ -52,6 +53,7 @@ export async function GET(request: Request) {
 
     return NextResponse.redirect(`${appUrl}/${locale}/upload?mode=drive&drive=connected`);
   } catch (error) {
+    logApiError(error, request);
     const message = encodeURIComponent(error instanceof Error ? error.message : "Google Drive 授权失败。");
     return NextResponse.redirect(`${appUrl}/${locale}/upload?mode=drive&error=${message}`);
   }

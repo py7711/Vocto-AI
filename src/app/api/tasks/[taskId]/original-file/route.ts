@@ -3,6 +3,7 @@ import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, deleteObject} from "@/lib/storage";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl, resolveYoutubeAudioUrl} from "@/server/media/prepare";
+import {logApiError} from "@/lib/api-logger";
 
 type PlayableAsset = {
   kind: string;
@@ -66,6 +67,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       storedObject: Boolean(task.objectKey)
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法创建原始媒体下载链接。";
@@ -98,6 +100,7 @@ export async function DELETE(request: Request, {params}: {params: {taskId: strin
 
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法删除原始媒体。";

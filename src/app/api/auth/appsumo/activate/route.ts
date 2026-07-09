@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const activateSchema = z.object({
   code: z.string().trim().min(3).max(120),
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法激活 AppSumo 兑换码。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

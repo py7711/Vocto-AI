@@ -2,6 +2,7 @@ import {z} from "zod";
 import {apiUnauthorizedResponse} from "@/lib/developer-settings";
 import {openApiError, requireOpenApiAccess} from "@/lib/openapi";
 import {createUploadUrl, publicObjectUrl} from "@/lib/storage";
+import {logApiError} from "@/lib/api-logger";
 
 const uploadSchema = z.object({
   // v1 公开 API 使用 snake_case 字段和 success/data/timestamp 响应包装，
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    logApiError(error, request);
     return openApiError(
       error instanceof z.ZodError ? "VALIDATION_ERROR" : "UPLOAD_URL_FAILED",
       error instanceof Error ? error.message : "无法创建上传地址。",

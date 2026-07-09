@@ -2,6 +2,7 @@ import {prisma} from "@/lib/prisma";
 import {apiUnauthorizedResponse} from "@/lib/developer-settings";
 import {createOpenApiTranscription, openApiError, requireOpenApiAccess} from "@/lib/openapi";
 import {serializeTranscription} from "@/lib/webhook-delivery";
+import {logApiError} from "@/lib/api-logger";
 
 export async function GET(request: Request) {
   try {
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    logApiError(error, request);
     return openApiError("LIST_TRANSCRIPTIONS_FAILED", error instanceof Error ? error.message : "无法列出转写任务。");
   }
 }

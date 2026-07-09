@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {POST as createTaskTranslation} from "@/app/api/tasks/[taskId]/translations/route";
+import {logApiError} from "@/lib/api-logger";
 
 const sourceTranslationSchema = z.object({
   transcriptionFileId: z.string().optional(),
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
 
     return createTaskTranslation(forwarded, {params: {taskId}});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json(
       {error: error instanceof Error ? error.message : "无法创建翻译任务。"},
       {status: error instanceof z.ZodError ? 422 : 400}

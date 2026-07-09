@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {getCurrentUser} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
 import {freeDailyFileLimit} from "@/lib/usage";
+import {logApiError} from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ function resolvePeriodStart(subscription: {currentPeriodStart: Date | null; curr
   return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -160,6 +161,7 @@ export async function GET() {
       }
     });
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法读取个人用量。";
     return NextResponse.json({error: message}, {status: 400});
   }

@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {downloadYoutubeSubtitle} from "@/server/media/prepare";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   url: z.string().min(1),
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法下载 YouTube 字幕。";
     return NextResponse.json({error: message}, {status: 400});
   }

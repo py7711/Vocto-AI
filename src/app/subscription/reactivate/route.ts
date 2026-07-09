@@ -1,8 +1,9 @@
 import {NextResponse} from "next/server";
 import {getCurrentUser} from "@/lib/auth";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     // 旧订阅页会调用根级 /subscription/reactivate；当前个人版订阅入口在 /api/billing/*，
     // 这里仅保留“把当前订阅恢复为 ACTIVE”的兼容能力。
@@ -21,6 +22,7 @@ export async function POST() {
 
     return NextResponse.json({subscription: updated});
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法恢复订阅。";
     return NextResponse.json({error: message}, {status: 400});
   }

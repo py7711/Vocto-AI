@@ -5,6 +5,7 @@ import {generateInsights} from "@/server/ai/insights";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {normalizeSummaryTemplate, summaryTemplateInputValues, summaryTemplateRequiresMembership} from "@/lib/summary-template";
 import {userHasActiveMembership} from "@/lib/membership";
+import {logApiError} from "@/lib/api-logger";
 
 const insightSchema = z.object({
   locale: z.string().default("en"),
@@ -39,6 +40,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
 
     return NextResponse.json(insights);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法生成 AI 洞察。";

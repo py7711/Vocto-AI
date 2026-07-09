@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const segmentSchema = z.object({
   start: z.number().nonnegative(),
@@ -34,6 +35,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
 
     return NextResponse.json(translation);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法读取翻译。";
@@ -76,6 +78,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     await publishTaskUpdate(params.taskId);
     return NextResponse.json(updated);
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法更新翻译。";

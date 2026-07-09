@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {consumeOAuthStateCookie, setSessionCookie} from "@/lib/auth";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 type GoogleTokenResponse = {
   access_token?: string;
@@ -128,6 +129,7 @@ export async function GET(request: Request) {
     await setSessionCookie(user.id);
     return NextResponse.redirect(`${appUrl}${nextPath}`);
   } catch (error) {
+    logApiError(error, request);
     const message = encodeURIComponent(error instanceof Error ? error.message : "Google 登录失败。");
     return NextResponse.redirect(`${appUrl}/${locale}/auth/signin?error=${message}`);
   }

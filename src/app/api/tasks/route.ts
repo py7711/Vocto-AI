@@ -11,6 +11,7 @@ import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summar
 import {jsonSafe} from "@/lib/json";
 import {getRequestOrigin} from "@/lib/request-origin";
 import {serializeShareLinkForOwner} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 const createTaskSchema = z.object({
   sourceType: z.enum(["UPLOAD", "YOUTUBE", "GOOGLE_DRIVE"]),
@@ -112,6 +113,7 @@ export async function GET(request: Request) {
       })))
     });
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法读取转写任务列表。";
     return NextResponse.json({error: message}, {status: 400});
   }
@@ -200,6 +202,7 @@ export async function POST(request: Request) {
         summaryLanguage: input.summaryLanguage
       });
     } catch (queueError) {
+      logApiError(queueError, request);
       await releaseQuotaForFailedTask(task.id);
       await prisma.mediaTask.update({
         where: {id: task.id},
@@ -210,6 +213,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(task);
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法创建转写任务。";
     return NextResponse.json({error: message}, {status: message === "RATE_LIMITED" ? 429 : quotaErrorStatus(message)});
   }

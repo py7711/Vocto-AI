@@ -3,6 +3,7 @@ import {NextResponse} from "next/server";
 import {createElement} from "react";
 import {parseExportOptions, renderCsv, renderDocx, renderJson, renderMarkdown, renderSrt, renderTxt, renderVtt} from "@/lib/exporters";
 import {getPublicShare} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 const contentTypes: Record<string, string> = {
   txt: "text/plain; charset=utf-8",
@@ -90,6 +91,7 @@ export async function GET(request: Request, {params}: {params: {token: string; f
       headers: {"Content-Type": contentTypes[format], "Content-Disposition": `attachment; filename="${fileName}"`}
     });
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法导出分享转写。";
     return NextResponse.json({error: message}, {status: 400});
   }

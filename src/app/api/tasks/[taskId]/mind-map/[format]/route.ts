@@ -3,6 +3,7 @@ import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {userHasActiveMembership} from "@/lib/membership";
 import {normalizeMindMapExportNode, renderMindMapMarkdown, renderMindMapXmind} from "@/lib/mind-map-exporters";
+import {logApiError} from "@/lib/api-logger";
 
 function safeDownloadName(value: string | null | undefined) {
   return (value || "votxt").replace(/[^\w.\-]+/g, "_").replace(/^_+|_+$/g, "") || "votxt";
@@ -62,6 +63,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       }
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法导出思维导图。";

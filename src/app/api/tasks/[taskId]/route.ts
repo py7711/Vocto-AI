@@ -6,6 +6,7 @@ import {releaseQuotaForFailedTask} from "@/lib/usage";
 import {jsonSafe} from "@/lib/json";
 import {getRequestOrigin} from "@/lib/request-origin";
 import {serializeShareLinkForOwner} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 const updateTaskSchema = z.object({
   originalName: z.string().trim().min(1).max(512).optional(),
@@ -93,6 +94,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       }
     }, request)));
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法读取转写。";
@@ -169,6 +171,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     await publishTaskUpdate(params.taskId);
     return NextResponse.json(jsonSafe(serializeTaskForWorkspace(task, request)));
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法更新转写。";
@@ -190,6 +193,7 @@ export async function DELETE(request: Request, {params}: {params: {taskId: strin
     await prisma.mediaTask.delete({where: {id: params.taskId}});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法删除转写。";

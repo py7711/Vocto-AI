@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
@@ -27,6 +28,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       transcriptionFileId: task.id
     });
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json({error: error instanceof Error ? error.message : "无法读取任务状态。"}, {status: 400});

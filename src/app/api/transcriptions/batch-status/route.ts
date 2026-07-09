@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   transcriptionFileIds: z.array(z.string().min(1)).min(1).max(100)
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({data: rows});
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json(
       {error: error instanceof Error ? error.message : "无法读取批量状态。"},
       {status: error instanceof z.ZodError ? 422 : 400}

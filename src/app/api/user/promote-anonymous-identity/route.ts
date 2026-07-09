@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {decodeIdentityTransitionToken} from "@/lib/account-compat";
+import {logApiError} from "@/lib/api-logger";
 
 const promoteSchema = z.object({
   transitionToken: z.string().min(1)
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
       nextAction: "sign_up_or_sign_in"
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法升级匿名身份。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

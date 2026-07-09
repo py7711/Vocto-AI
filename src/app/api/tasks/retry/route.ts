@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {retryTranscriptionTask, taskRetryErrorResponse, type TaskRetryType} from "@/lib/task-retry";
 import {taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 const retrySchema = z.object({
   taskId: z.string().min(1),
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
     await retryTranscriptionTask({taskId: input.taskId, headers: request.headers, retryType});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const retryError = taskRetryErrorResponse(error);

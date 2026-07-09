@@ -6,6 +6,7 @@ import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl} from "@/server/media/prepare";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {logApiError} from "@/lib/api-logger";
 
 const retranscribeSchema = z.object({
   language: z.string().optional(),
@@ -73,6 +74,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     await publishTaskUpdate(params.taskId);
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法加入重转写队列。";

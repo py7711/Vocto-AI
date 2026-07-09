@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {getPublicShare} from "@/lib/share-links";
+import {logApiError} from "@/lib/api-logger";
 
 function serializeShare(share: NonNullable<Awaited<ReturnType<typeof getPublicShare>>>) {
   // 旧分享详情接口返回 transcription/fileId/transcriptionFileId 等历史字段；
@@ -40,6 +41,7 @@ export async function GET(_request: Request, {params}: {params: {token: string}}
     }
     return NextResponse.json(serializeShare(share));
   } catch (error) {
+    logApiError(error, _request);
     const message = error instanceof Error ? error.message : "无法读取分享链接。";
     return NextResponse.json({error: message}, {status: 400});
   }

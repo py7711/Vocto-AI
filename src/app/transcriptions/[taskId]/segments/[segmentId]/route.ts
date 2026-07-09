@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
+import {logApiError} from "@/lib/api-logger";
 
 type Segment = {start: number; end: number; text: string; speaker?: string};
 
@@ -54,6 +55,7 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
     await publishTaskUpdate(params.taskId);
     return NextResponse.json({transcript, segment: next[index], segments: next});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     return NextResponse.json(

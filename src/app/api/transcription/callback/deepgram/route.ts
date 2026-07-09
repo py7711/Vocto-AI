@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {DeepgramProvider} from "@/server/transcription/deepgram";
 import {finalizeTranscriptionResult, loadJobContext} from "@/server/transcription/finalize";
+import {logApiError} from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +25,8 @@ export async function POST(request: Request) {
     await finalizeTranscriptionResult({taskId, result, context});
     return NextResponse.json({ok: true});
   } catch (error) {
+    logApiError(error, request);
     // 回调解析失败不阻断流程，worker 的容错轮询/同步兜底会继续尝试收尾。
-    console.error("[deepgram-callback] 处理失败：", error instanceof Error ? error.message : error);
     return NextResponse.json({ok: false}, {status: 200});
   }
 }

@@ -8,6 +8,7 @@ import {putObject} from "@/lib/storage";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {logApiError} from "@/lib/api-logger";
 
 const importSchema = z.object({
   fileId: z.string().min(1),
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
         summaryLanguage: input.summaryLanguage
       });
     } catch (queueError) {
+      logApiError(queueError, request);
       // 队列写入发生在数据库事务之后；如果 Redis/BullMQ 不可用，需要主动释放刚预留的额度，
       // 并把任务置为失败，避免用户看到永久停在排队中的 Drive 导入任务。
       await releaseQuotaForFailedTask(task.id);
@@ -159,6 +161,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(task);
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法导入 Google Drive 文件。";
     return NextResponse.json({error: message}, {status: quotaErrorStatus(message)});
   }

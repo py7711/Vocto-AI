@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {createUploadUrl, publicObjectUrl} from "@/lib/storage";
+import {logApiError} from "@/lib/api-logger";
 
 const schema = z.object({
   // 旧上传端点使用 fileName/fileSize，新接口使用 filename/sizeBytes。
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       publicUrl: signed.publicUrl || publicObjectUrl(key)
     });
   } catch (error) {
+    logApiError(error, request);
     return NextResponse.json({error: error instanceof Error ? error.message : "无法生成上传签名链接。"}, {status: error instanceof z.ZodError ? 422 : 400});
   }
 }

@@ -4,6 +4,7 @@ import {createEmailVerificationToken, getCurrentUser} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {sendVerificationEmail} from "@/lib/email";
 import {getRequestOrigin} from "@/lib/request-origin";
+import {logApiError} from "@/lib/api-logger";
 
 const resendSchema = z.object({
   locale: z.string().default("en")
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
       verificationUrl: emailResult.verificationUrl ?? null
     });
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: authMessage("verifyFailed", locale)}, {status});
   }

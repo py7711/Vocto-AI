@@ -3,6 +3,7 @@ import {z} from "zod";
 import {getCurrentUser} from "@/lib/auth";
 import {apiAccessRequiredMessage, createDeveloperSecret, ensurePersonalTeam, hasDeveloperApiAccess} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120)
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({apiKey, token: secret.token});
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: error instanceof Error ? error.message : "无法创建 API Key。"}, {status});
   }

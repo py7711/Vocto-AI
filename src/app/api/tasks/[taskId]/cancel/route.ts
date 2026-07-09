@@ -3,6 +3,7 @@ import {removeQueuedTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, taskAccessErrorResponse, updateTaskStatus} from "@/lib/tasks";
 import {releaseQuotaForFailedTask} from "@/lib/usage";
+import {logApiError} from "@/lib/api-logger";
 
 const cancellableStatuses = new Set(["UPLOADING", "QUEUED", "PROCESSING", "TRANSCRIBING", "ANALYZING"]);
 
@@ -30,6 +31,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
 
     return NextResponse.json({task: updated, removedJobs});
   } catch (error) {
+    logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});
     const message = error instanceof Error ? error.message : "无法取消转写。";

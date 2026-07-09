@@ -3,6 +3,7 @@ import {z} from "zod";
 import {isPasswordCredential, setSessionCookie, verifyPasswordCredentials} from "@/lib/auth";
 import {authMessage} from "@/lib/api-copy";
 import {prisma} from "@/lib/prisma";
+import {logApiError} from "@/lib/api-logger";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
     await setSessionCookie(user.id);
     return NextResponse.json({user: {id: user.id, email: user.email, name: user.name, role: user.role}});
   } catch (error) {
+    logApiError(error, request);
     const status = error instanceof z.ZodError ? 422 : 400;
     return NextResponse.json({error: authMessage("loginFailed", locale)}, {status});
   }

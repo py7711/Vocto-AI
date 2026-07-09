@@ -7,6 +7,7 @@ import {
   resolveMediaSourceProvider,
   type MediaSourceProvider
 } from "@/server/media/prepare";
+import {logApiError} from "@/lib/api-logger";
 
 const resolveSchema = z.object({
   url: z.string().min(1)
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
       warnings
     });
   } catch (error) {
+    logApiError(error, request);
     const message = error instanceof Error ? error.message : "无法解析媒体链接。";
     return NextResponse.json({error: message}, {status: 400});
   }
