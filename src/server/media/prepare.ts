@@ -1,4 +1,5 @@
 import {spawn} from "node:child_process";
+import {existsSync} from "node:fs";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdtemp, readdir, readFile, rm, stat} from "node:fs/promises";
 import {tmpdir} from "node:os";
@@ -97,19 +98,165 @@ function ytDlpSpawnEnv() {
   };
 }
 
+function resolveYoutubeCookiesPath() {
+  if (env.YT_DLP_COOKIES_PATH && existsSync(env.YT_DLP_COOKIES_PATH)) {
+    return env.YT_DLP_COOKIES_PATH;
+  }
+
+  const defaultPath = join(process.cwd(), "config/youtube-cookies.txt");
+  if (existsSync(defaultPath)) {
+    return defaultPath;
+  }
+
+  return undefined;
+}
+
+function isYoutubeBotBlockedError(message: string) {
+  return /Sign in to confirm you.?re not a bot/i.test(message) ||
+    /confirm you.?re not a bot/i.test(message);
+}
+
 function ytDlpBaseArgs() {
   const args = [
     "--js-runtimes",
     `node:${process.execPath}`,
+    "--remote-components",
+    "ejs:github",
     "--extractor-args",
-    "youtube:player_client=android"
+    "youtube:player_client=android,web"
   ];
 
-  if (env.YT_DLP_COOKIES_PATH) {
-    args.push("--cookies", env.YT_DLP_COOKIES_PATH);
+  const cookiesPath = resolveYoutubeCookiesPath();
+  if (cookiesPath) {
+    args.push("--cookies", cookiesPath);
   }
 
   return args;
+}
+
+export function extractYoutubeVideoId(url: string) {
+  const parsed = new URL(normalizeMediaUrl(url));
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+
+  if (host === "youtu.be") {
+    return parsed.pathname.split("/").filter(Boolean)[0] ?? null;
+  }
+
+  if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+    const fromQuery = parsed.searchParams.get("v");
+    if (fromQuery) return fromQuery;
+
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const embedIndex = parts.findIndex((part) => part === "embed" || part === "shorts" || part === "live");
+    if (embedIndex >= 0 && parts[embedIndex + 1]) {
+      return parts[embedIndex + 1];
+    }
+  }
+
+  return null;
+}
+
+async function resolveYoutubeMetadataViaOEmbed(url: string) {
+  const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+  const response = await fetch(endpoint, {signal: AbortSignal.timeout(10_000)});
+  if (!response.ok) {
+    throw new Error(`YouTube oEmbed 请求失败：${response.status} ${response.statusText}`);
+  }
+
+  const payload = await response.json() as {
+    title?: string;
+    thumbnail_url?: string;
+    author_name?: string;
+  };
+
+  const videoId = extractYoutubeVideoId(url);
+  return {
+    title: payload.title,
+    durationSeconds: undefined,
+    thumbnailUrl: payload.thumbnail_url || (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : undefined),
+    sourceUrl: videoId ? `https://www.youtube.com/watch?v=${videoId}` : url,
+    providerName: "youtube",
+    contentLength: undefined,
+    extension: undefined
+  };
+}
+
+async function resolveYoutubeMetadataViaDataApi(videoId: string) {
+  if (!env.GOOGLE_API_KEY) return null;
+
+  const endpoint = new URL("https://www.googleapis.com/youtube/v3/videos");
+  endpoint.searchParams.set("part", "snippet,contentDetails");
+  endpoint.searchParams.set("id", videoId);
+  endpoint.searchParams.set("key", env.GOOGLE_API_KEY);
+
+  const response = await fetch(endpoint, {signal: AbortSignal.timeout(10_000)});
+  if (!response.ok) return null;
+
+  const payload = await response.json() as {
+    items?: Array<{
+      snippet?: {title?: string; thumbnails?: {maxres?: {url?: string}; high?: {url?: string}; default?: {url?: string}}};
+      contentDetails?: {duration?: string};
+    }>;
+  };
+  const item = payload.items?.[0];
+  if (!item) return null;
+
+  const thumbnails = item.snippet?.thumbnails;
+  const durationSeconds = item.contentDetails?.duration
+    ? parseIso8601Duration(item.contentDetails.duration)
+    : undefined;
+
+  return {
+    title: item.snippet?.title,
+    durationSeconds,
+    thumbnailUrl: thumbnails?.maxres?.url || thumbnails?.high?.url || thumbnails?.default?.url,
+    sourceUrl: `https://www.youtube.com/watch?v=${videoId}`,
+    providerName: "youtube",
+    contentLength: undefined,
+    extension: undefined
+  };
+}
+
+function parseIso8601Duration(value: string) {
+  const match = value.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return undefined;
+
+  const hours = Number(match[1] || 0);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  return normalizeDurationSeconds(hours * 3600 + minutes * 60 + seconds);
+}
+
+async function resolveYoutubeMetadataFallback(url: string, cause: unknown) {
+  const videoId = extractYoutubeVideoId(url);
+  const errors: string[] = [cause instanceof Error ? cause.message : String(cause)];
+
+  if (videoId) {
+    try {
+      const fromApi = await resolveYoutubeMetadataViaDataApi(videoId);
+      if (fromApi?.title) return fromApi;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  try {
+    const fromOEmbed = await resolveYoutubeMetadataViaOEmbed(url);
+    if (fromOEmbed.title) {
+      return fromOEmbed;
+    }
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
+
+  const needsCookies = errors.some((message) => isYoutubeBotBlockedError(message));
+  if (needsCookies && !resolveYoutubeCookiesPath()) {
+    throw new Error(
+      "YouTube 已将服务器 IP 识别为机器人。请在服务器配置 config/youtube-cookies.txt（Netscape 格式），或在 .env 设置 YT_DLP_COOKIES_PATH 后执行 pm2 restart all。"
+    );
+  }
+
+  throw cause instanceof Error ? cause : new Error(String(cause));
 }
 
 async function withYtDlp<T>(operation: (spec: CommandSpec) => Promise<T>) {
@@ -354,14 +501,24 @@ async function downloadRemoteMedia(input: {
 }) {
   if (input.sourceType === "YOUTUBE") {
     const outputTemplate = join(input.directory, "source.%(ext)s");
-    await runYtDlp([
-      "--no-playlist",
-      "--format",
-      "bestaudio/best",
-      "--output",
-      outputTemplate,
-      input.sourceUrl
-    ], 15 * 60_000);
+    try {
+      await runYtDlp([
+        "--no-playlist",
+        "--format",
+        "bestaudio/best",
+        "--output",
+        outputTemplate,
+        input.sourceUrl
+      ], 15 * 60_000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (isYoutubeBotBlockedError(message) && !resolveYoutubeCookiesPath()) {
+        throw new Error(
+          "YouTube 阻止了服务器下载音频。请上传浏览器导出的 cookies 到 config/youtube-cookies.txt，或在 .env 设置 YT_DLP_COOKIES_PATH，然后执行 pm2 restart all。"
+        );
+      }
+      throw error;
+    }
     const files = await readdir(input.directory);
     const downloaded = files.find((file) => file.startsWith("source."));
     if (!downloaded) throw new Error("yt-dlp 未生成媒体文件。");
@@ -697,28 +854,38 @@ export async function resolveYoutubeVideoDownloadUrl(url: string) {
 }
 
 export async function resolveMediaMetadata(url: string) {
-  const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", url], 20_000);
-  const metadata = JSON.parse(output) as {
-    title?: string;
-    fulltitle?: string;
-    duration?: number;
-    thumbnail?: string;
-    webpage_url?: string;
-    extractor_key?: string;
-    filesize?: number;
-    filesize_approx?: number;
-    ext?: string;
-  };
+  const provider = resolveMediaSourceProvider(url);
 
-  return {
-    title: metadata.title || metadata.fulltitle,
-    durationSeconds: normalizeDurationSeconds(metadata.duration),
-    thumbnailUrl: metadata.thumbnail,
-    sourceUrl: metadata.webpage_url,
-    providerName: metadata.extractor_key,
-    contentLength: metadata.filesize || metadata.filesize_approx,
-    extension: metadata.ext
-  };
+  try {
+    const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", url], 20_000);
+    const metadata = JSON.parse(output) as {
+      title?: string;
+      fulltitle?: string;
+      duration?: number;
+      thumbnail?: string;
+      webpage_url?: string;
+      extractor_key?: string;
+      filesize?: number;
+      filesize_approx?: number;
+      ext?: string;
+    };
+
+    return {
+      title: metadata.title || metadata.fulltitle,
+      durationSeconds: normalizeDurationSeconds(metadata.duration),
+      thumbnailUrl: metadata.thumbnail,
+      sourceUrl: metadata.webpage_url,
+      providerName: metadata.extractor_key,
+      contentLength: metadata.filesize || metadata.filesize_approx,
+      extension: metadata.ext
+    };
+  } catch (error) {
+    if (provider === "youtube") {
+      return resolveYoutubeMetadataFallback(url, error);
+    }
+
+    throw error;
+  }
 }
 
 export async function resolveYoutubeInfo(url: string) {
