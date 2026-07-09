@@ -769,6 +769,15 @@ function localizedRelatedLabel(href: string, fallback: string, locale: string) {
   return fallback;
 }
 
+function toolRoutePath(item: ToolPageRecord) {
+  const usesToolsPath = item.kind === "utility"
+    || item.kind === "youtube-subtitles"
+    || item.kind === "youtube-video-downloader"
+    || item.slug === "audio-to-text"
+    || item.slug === "video-link-to-text";
+  return `${usesToolsPath ? "tools" : "l"}/${item.slug}`;
+}
+
 export function ToolPage({slug, page: providedPage}: {slug: string; page?: ToolPageRecord}) {
   const locale = useLocale();
   const copy = getWorkspaceCopy(locale);
@@ -779,7 +788,7 @@ export function ToolPage({slug, page: providedPage}: {slug: string; page?: ToolP
   const pageDescription = page.mode === "link" ? `${text.pasteLinkText} ${text.transcribeText}` : text.aiFastText;
   const related = page.related ?? (page.language
     ? languagePages.filter((item) => item.slug !== page.slug).slice(0, 12).map((item) => [item.language ?? item.title, `languages/${item.slug}`] as [string, string])
-    : tools.filter((item) => item.slug !== page.slug).slice(0, 8).map((item) => [item.title, item.kind === "utility" || item.slug === "audio-to-text" || item.slug === "video-link-to-text" ? `tools/${item.slug}` : `l/${item.slug}`] as [string, string]));
+    : tools.filter((item) => item.slug !== page.slug).slice(0, 8).map((item) => [item.title, toolRoutePath(item)] as [string, string]));
   const uploadHref = `/${locale}/upload?mode=${page.mode}`;
   const proofPoints: Array<[LucideIcon, string, string]> = [
     [FileAudio, text.proofFormatsTitle, text.proofFormatsText],
