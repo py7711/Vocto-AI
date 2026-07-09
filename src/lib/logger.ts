@@ -35,6 +35,7 @@ type LogEntry = {
 };
 
 const EAST_8_TIME_ZONE = "Asia/Shanghai";
+const DEFAULT_LOG_DIR = "/logs";
 const DEFAULT_REQUEST_URL = "unknown://request";
 const originalConsole = {
   debug: console.debug.bind(console),
@@ -128,7 +129,7 @@ function writeLog(level: LogLevel, messageOrError: unknown, context: LogContext)
 }
 
 function resolveLogDir() {
-  const configured = process.env.LOG_DIR || "logs";
+  const configured = process.env.LOG_DIR || DEFAULT_LOG_DIR;
   return isAbsolute(configured) ? configured : join(process.cwd(), configured);
 }
 
