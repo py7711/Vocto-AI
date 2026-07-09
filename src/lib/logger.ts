@@ -5,8 +5,10 @@ import pino, {type DestinationStream, type Logger} from "pino";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 type PinoLogLevel = LogLevel | "trace" | "fatal" | "silent";
+type LogService = "web" | "worker";
 
 export type LogContext = {
+  service?: LogService;
   requestUrl?: string | URL | null;
   classPath?: string;
   functionName?: string;
@@ -24,6 +26,7 @@ type StackLocation = {
 };
 
 type LogFields = {
+  service: LogService;
   requestUrl: string;
   classPath: string;
   functionName: string;
@@ -101,6 +104,7 @@ export function installConsoleLogger(context: LogContext = {}) {
   if (consoleHandlersInstalled) return;
   consoleHandlersInstalled = true;
   const consoleContext: LogContext = {
+    service: context.service,
     requestUrl: context.requestUrl,
     meta: context.meta
   };
@@ -146,6 +150,7 @@ function writeLog(level: LogLevel, messageOrError: unknown, context: LogContext)
   const errorDetail = level === "error" || messageOrError instanceof Error ? serializeError(messageOrError) : undefined;
   const location = resolveLocation(messageOrError, context);
   const fields: LogFields = {
+    service: resolveLogService(context),
     requestUrl: sanitizeRequestUrl(context.requestUrl),
     classPath: context.classPath ?? location.classPath,
     functionName: context.functionName ?? location.functionName,
@@ -191,7 +196,7 @@ function writeLogFile(chunk: string) {
   try {
     const logDir = resolveLogDir();
     mkdirSync(logDir, {recursive: true});
-    appendFileSync(join(logDir, `${formatEast8Date()}.log`), chunk.endsWith("\n") ? chunk : `${chunk}\n`, "utf8");
+    appendFileSync(join(logDir, `${resolveLogFilePrefix(chunk)}-${formatEast8Date()}.log`), chunk.endsWith("\n") ? chunk : `${chunk}\n`, "utf8");
   } catch (writeError) {
     originalConsole.error("[logger] failed to write log file", writeError);
   }
@@ -221,6 +226,26 @@ function resolveLogLevel(): PinoLogLevel {
   const configured = process.env.LOG_LEVEL;
   if (configured && isPinoLogLevel(configured)) return configured;
   return DEFAULT_LOG_LEVEL;
+}
+
+function resolveLogService(context: LogContext): LogService {
+  if (context.service) return context.service;
+  const configured = process.env.LOG_SERVICE;
+  if (configured === "web" || configured === "worker") return configured;
+  const requestUrl = String(context.requestUrl ?? "");
+  if (requestUrl.startsWith("worker://")) return "worker";
+  return "web";
+}
+
+function resolveLogFilePrefix(line: string): LogService {
+  try {
+    const parsed = JSON.parse(line) as {service?: unknown; requestUrl?: unknown};
+    if (parsed.service === "web" || parsed.service === "worker") return parsed.service;
+    if (typeof parsed.requestUrl === "string" && parsed.requestUrl.startsWith("worker://")) return "worker";
+  } catch {
+    return process.env.LOG_SERVICE === "worker" ? "worker" : "web";
+  }
+  return process.env.LOG_SERVICE === "worker" ? "worker" : "web";
 }
 
 function isPinoLogLevel(value: string): value is PinoLogLevel {

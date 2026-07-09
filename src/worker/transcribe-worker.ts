@@ -15,6 +15,7 @@ import type {TranscriptionRequest} from "@/server/transcription/types";
 import {isGoogleDriveShareUrl, prepareTaskAudioAsset, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
 
 installProcessErrorHandlers({
+  service: "worker",
   requestUrl: "worker://transcribe",
   classPath: "src/worker/transcribe-worker.ts",
   functionName: "process",
