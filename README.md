@@ -107,4 +107,5 @@ pnpm run unused:check
 - 个人版产品需求文档：[product-doc.md](./product-doc.md)
 - Vercel 和云服务商部署文档：[docs/deployment.md](./docs/deployment.md)
 - AWS Ubuntu Worker 部署手册：[docs/aws-ubuntu-worker.md](./docs/aws-ubuntu-worker.md)
+- transcribe-worker.ts 启动说明：[docs/transcribe-worker-startup.md](./docs/transcribe-worker-startup.md)
 - 项目结构、清理规则和中文注释规范：[docs/project-structure.md](./docs/project-structure.md)

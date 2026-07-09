@@ -1,8 +1,10 @@
 import {appendFileSync, mkdirSync} from "node:fs";
-import {EOL} from "node:os";
 import {isAbsolute, join, relative} from "node:path";
+import {format as formatConsoleMessage} from "node:util";
+import pino, {type DestinationStream, type Logger} from "pino";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
+type PinoLogLevel = LogLevel | "trace" | "fatal" | "silent";
 
 export type LogContext = {
   requestUrl?: string | URL | null;
@@ -21,23 +23,22 @@ type StackLocation = {
   column?: number;
 };
 
-type LogEntry = {
-  level: LogLevel;
-  time: string;
+type LogFields = {
   requestUrl: string;
   classPath: string;
   functionName: string;
   line: number;
   column?: number;
-  message: string;
   errorDetail?: unknown;
   meta?: Record<string, unknown>;
 };
 
 const EAST_8_TIME_ZONE = "Asia/Shanghai";
 const DEFAULT_LOG_DIR = "/logs";
+const DEFAULT_LOG_LEVEL: PinoLogLevel = "debug";
 const DEFAULT_REQUEST_URL = "unknown://request";
 const originalConsole = {
+  log: console.log.bind(console),
   debug: console.debug.bind(console),
   info: console.info.bind(console),
   warn: console.warn.bind(console),
@@ -57,6 +58,18 @@ const sensitiveQueryKeys = new Set([
 ]);
 
 let processHandlersInstalled = false;
+let consoleHandlersInstalled = false;
+
+export const logger: Logger = pino({
+  level: resolveLogLevel(),
+  messageKey: "message",
+  timestamp: () => `,"time":"${formatEast8Time()}"`,
+  formatters: {
+    level(label) {
+      return {level: label};
+    }
+  }
+}, createDailyFileDestination());
 
 export function formatEast8Date(date = new Date()) {
   const parts = east8Parts(date);
@@ -84,9 +97,25 @@ export function logDebug(message: string, context: LogContext = {}) {
   writeLog("debug", message, context);
 }
 
+export function installConsoleLogger(context: LogContext = {}) {
+  if (consoleHandlersInstalled) return;
+  consoleHandlersInstalled = true;
+  const consoleContext: LogContext = {
+    requestUrl: context.requestUrl,
+    meta: context.meta
+  };
+
+  console.log = (...args: unknown[]) => writeConsoleMethodLog("info", args, consoleContext);
+  console.debug = (...args: unknown[]) => writeConsoleMethodLog("debug", args, consoleContext);
+  console.info = (...args: unknown[]) => writeConsoleMethodLog("info", args, consoleContext);
+  console.warn = (...args: unknown[]) => writeConsoleMethodLog("warn", args, consoleContext);
+  console.error = (...args: unknown[]) => writeConsoleMethodLog("error", args, consoleContext);
+}
+
 export function installProcessErrorHandlers(context: LogContext = {}) {
   if (processHandlersInstalled || typeof process.on !== "function") return;
   processHandlersInstalled = true;
+  installConsoleLogger(context);
 
   process.on("uncaughtExceptionMonitor", (error) => {
     logError(error, {
@@ -95,42 +124,122 @@ export function installProcessErrorHandlers(context: LogContext = {}) {
       message: context.message ?? "Uncaught exception"
     });
   });
+
+  process.on("unhandledRejection", (reason) => {
+    logError(reason, {
+      ...context,
+      requestUrl: context.requestUrl ?? "process://unhandledRejection",
+      message: context.message ?? "Unhandled rejection"
+    });
+  });
+
+  process.on("warning", (warning) => {
+    logWarn(warning, {
+      ...context,
+      requestUrl: context.requestUrl ?? "process://warning",
+      message: context.message ?? "Process warning"
+    });
+  });
 }
 
 function writeLog(level: LogLevel, messageOrError: unknown, context: LogContext) {
-  const now = new Date();
   const errorDetail = level === "error" || messageOrError instanceof Error ? serializeError(messageOrError) : undefined;
   const location = resolveLocation(messageOrError, context);
-  const entry: LogEntry = {
-    level,
-    time: formatEast8Time(now),
+  const fields: LogFields = {
     requestUrl: sanitizeRequestUrl(context.requestUrl),
     classPath: context.classPath ?? location.classPath,
     functionName: context.functionName ?? location.functionName,
     line: context.line ?? location.line,
     column: context.column ?? location.column,
-    message: context.message ?? messageFrom(messageOrError),
     errorDetail,
-    meta: context.meta
+    meta: context.meta ? serializeLogValue(context.meta) as Record<string, unknown> : undefined
   };
-  const line = safeJsonStringify(entry);
 
+  logger[level](fields, context.message ?? messageFrom(messageOrError));
+}
+
+function writeConsoleMethodLog(level: LogLevel, args: unknown[], context: LogContext) {
+  const message = formatConsoleMessage(...args);
+  const primaryError = args.find((arg) => arg instanceof Error);
+  writeLog(level, primaryError ?? message, {
+    ...context,
+    requestUrl: context.requestUrl ?? "console://global",
+    message,
+    meta: consoleMethodMeta(args, context.meta)
+  });
+}
+
+function consoleMethodMeta(args: unknown[], baseMeta?: Record<string, unknown>) {
+  const shouldIncludeArguments = args.length > 1 || args.some((arg) => typeof arg !== "string");
+  if (!baseMeta && !shouldIncludeArguments) return undefined;
+  return {
+    ...baseMeta,
+    ...(shouldIncludeArguments ? {consoleArguments: args.map((arg) => serializeLogValue(arg))} : {})
+  };
+}
+
+function createDailyFileDestination(): DestinationStream {
+  return {
+    write(chunk) {
+      writeLogFile(chunk);
+      writeLogConsole(chunk);
+    }
+  };
+}
+
+function writeLogFile(chunk: string) {
   try {
     const logDir = resolveLogDir();
     mkdirSync(logDir, {recursive: true});
-    appendFileSync(join(logDir, `${formatEast8Date(now)}.log`), `${line}${EOL}`, "utf8");
+    appendFileSync(join(logDir, `${formatEast8Date()}.log`), chunk.endsWith("\n") ? chunk : `${chunk}\n`, "utf8");
   } catch (writeError) {
     originalConsole.error("[logger] failed to write log file", writeError);
   }
+}
 
-  if (process.env.LOG_TO_CONSOLE !== "false") {
-    originalConsole[level](line);
+function writeLogConsole(chunk: string) {
+  if (process.env.LOG_TO_CONSOLE === "false") return;
+  const output = chunk.endsWith("\n") ? chunk : `${chunk}\n`;
+  try {
+    const level = levelFromLogLine(chunk);
+    if (level === "warn" || level === "error" || level === "fatal") {
+      process.stderr.write(output);
+      return;
+    }
+    process.stdout.write(output);
+  } catch (writeError) {
+    originalConsole.error("[logger] failed to write console log", writeError);
   }
 }
 
 function resolveLogDir() {
   const configured = process.env.LOG_DIR || DEFAULT_LOG_DIR;
   return isAbsolute(configured) ? configured : join(process.cwd(), configured);
+}
+
+function resolveLogLevel(): PinoLogLevel {
+  const configured = process.env.LOG_LEVEL;
+  if (configured && isPinoLogLevel(configured)) return configured;
+  return DEFAULT_LOG_LEVEL;
+}
+
+function isPinoLogLevel(value: string): value is PinoLogLevel {
+  return value === "trace"
+    || value === "debug"
+    || value === "info"
+    || value === "warn"
+    || value === "error"
+    || value === "fatal"
+    || value === "silent";
+}
+
+function levelFromLogLine(line: string): PinoLogLevel | undefined {
+  try {
+    const parsed = JSON.parse(line) as {level?: unknown};
+    return typeof parsed.level === "string" && isPinoLogLevel(parsed.level) ? parsed.level : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function east8Parts(date: Date) {
@@ -242,16 +351,31 @@ function serializeError(value: unknown, seen = new WeakSet<object>()): unknown {
       stack: value.stack
     };
     const cause = (value as Error & {cause?: unknown}).cause;
-    if (cause !== undefined) detail.cause = serializeError(cause, seen);
+    if (cause !== undefined) detail.cause = serializeLogValue(cause, seen);
     for (const key of Object.keys(value)) {
-      detail[key] = serializeError((value as unknown as Record<string, unknown>)[key], seen);
+      detail[key] = serializeLogValue((value as unknown as Record<string, unknown>)[key], seen);
     }
     return detail;
   }
+  return serializeLogValue(value, seen);
+}
+
+function serializeLogValue(value: unknown, seen = new WeakSet<object>()): unknown {
+  if (value instanceof Error) return serializeError(value, seen);
   if (typeof value === "bigint") return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  if (value instanceof URL) return value.toString();
+  if (Array.isArray(value)) {
+    if (seen.has(value)) return "[Circular]";
+    seen.add(value);
+    return value.map((item) => serializeLogValue(item, seen));
+  }
   if (typeof value === "object" && value !== null) {
     if (seen.has(value)) return "[Circular]";
     seen.add(value);
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, serializeLogValue(item, seen)])
+    );
   }
   return value;
 }
@@ -271,14 +395,5 @@ function sanitizeRequestUrl(url: LogContext["requestUrl"]) {
 }
 
 function safeJsonStringify(value: unknown) {
-  const seen = new WeakSet<object>();
-  return JSON.stringify(value, (_key, current) => {
-    if (typeof current === "bigint") return current.toString();
-    if (current instanceof Error) return serializeError(current);
-    if (typeof current === "object" && current !== null) {
-      if (seen.has(current)) return "[Circular]";
-      seen.add(current);
-    }
-    return current;
-  });
+  return JSON.stringify(serializeLogValue(value)) ?? String(value);
 }

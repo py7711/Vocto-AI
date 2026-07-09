@@ -306,3 +306,46 @@ Worker 容器必须能访问 Redis、数据库、R2 和所有 AI 服务商。
 - Worker 使用上一版本镜像或 PM2 进程回滚。
 - 数据库变更必须先备份，重大结构变更使用迁移脚本。
 - 服务商密钥泄漏时立即轮换，并清理 Vercel、云服务器和 CI 环境变量。
+
+
+
+
+新 PNG 规格
+文件	尺寸	用途
+public/votxt-logo-dark.png
+2820 × 1080（6×）
+暗色完整 Logo，透明背景
+
+public/votxt-logo.png
+2820 × 1080
+亮色完整 Logo（一并更新）
+
+public/votxt-app-icon.png
+1200 × 1200
+Google OAuth「应用徽标」专用正方形图标
+
+Google 品牌配置建议
+应用徽标（Application logo）：上传 votxt-app-icon.png（1200×1200 正方形，符合 Google 要求）
+需要完整横版 Logo 的场景：使用 votxt-logo-dark.png
+后续重新导出
+已添加脚本，之后 SVG 有改动可一键重新生成：
+
+# 首次需下载字体（仅一次）
+curl -fsSL "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-900-normal.ttf" \
+  -o scripts/.fonts/Inter-Black.ttf
+pnpm run assets:logos
+导出使用 Inter Black 900 字重 + resvg 6× 栅格化 + 几何精度渲染，文字与圆角应与 SVG 观感一致。可直接用新的 votxt-logo-dark.png 或 votxt-app-icon.png 上传到 Google Cloud Console。
+
+
+日志实际在哪里
+Worker 用的是 console.log / console.warn / console.error，输出到 systemd 日志（journal），不会写入文件。
+
+查看命令：
+# 实时跟踪
+sudo journalctl -u votxt-worker.service -f
+
+# 最近 100 条
+sudo journalctl -u votxt-worker.service -n 100
+
+# 今天的日志
+sudo journalctl -u votxt-worker.service --since today

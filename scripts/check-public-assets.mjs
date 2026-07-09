@@ -8,6 +8,9 @@ const conventionAssets = new Set([
   "/favicon.svg",
   "/votxt-logo.svg",
   "/votxt-logo-dark.svg",
+  "/votxt-logo.png",
+  "/votxt-logo-dark.png",
+  "/votxt-app-icon.png",
   "/votxt-assets/arrow.svg",
   "/blog/mp3-to-srt-online-free/cover.svg",
   "/blog/mp4-to-text-online-free/cover.svg"

@@ -96,6 +96,7 @@ API 目录按调用方分组：
 - `prisma/sql/README.md`
 - `docs/aws-ubuntu-worker.md`
 - `docs/deployment.md`
+- `docs/transcribe-worker-startup.md`
 - `product-doc.md`
 
 个人版页面不展示团队工作区、成员管理和审计日志，但全新数据库仍应保留公开 API、Webhook、分享表需要的兼容表。当前仓库不再保留分散增量 SQL；已有生产库升级前必须先备份，再按 `schema.prisma` 和 `all.sql` 的差异生成迁移方案。
@@ -115,6 +116,7 @@ API 目录按调用方分组：
 - `docs/aws-ubuntu-worker.md`
 - `docs/deployment.md`
 - `docs/project-structure.md`
+- `docs/transcribe-worker-startup.md`
 - `prisma/sql/README.md`
 
 以下内容不作为项目文档保留：

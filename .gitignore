@@ -16,5 +16,6 @@ exports
 !src/app/api/share/\[token\]/exports/\[format\]/
 !src/app/api/share/\[token\]/exports/\[format\]/route.ts
 /uploads/
+scripts/.fonts/
 .DS_Store
 /docs/design-reference/

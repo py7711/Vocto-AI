@@ -8,6 +8,7 @@ const expectedDocs = new Set([
   "docs/aws-ubuntu-worker.md",
   "docs/deployment.md",
   "docs/project-structure.md",
+  "docs/transcribe-worker-startup.md",
   "prisma/sql/README.md"
 ]);
 const forbiddenPatterns = [

@@ -3,6 +3,7 @@
 import {useEffect, useMemo, useState} from "react";
 import {useLocale} from "next-intl";
 import {ArrowLeft, ArrowRight, Eye, EyeOff, Mail} from "lucide-react";
+import clsx from "clsx";
 import {BrandLogo} from "@/components/brand-logo";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
@@ -1757,11 +1758,11 @@ function Divider({label}: {label: string}) {
   );
 }
 
-function GoogleButton({locale, label, nextPath}: {locale: string; label: string; nextPath?: string | null}) {
+function GoogleButton({locale, label, nextPath, className}: {locale: string; label: string; nextPath?: string | null; className?: string}) {
   const nextParam = nextPath ? `&next=${encodeURIComponent(nextPath)}` : "";
   const oauthUrl = `/api/auth/google/start?locale=${locale}${nextParam}`;
   return (
-    <button type="button" onClick={() => { window.location.href = oauthUrl; }} className="focus-ring mt-4 flex h-[52px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-slate-200 bg-white px-4 py-6 text-base font-medium text-[rgb(2,8,23)] ring-offset-background transition-colors hover:bg-slate-50">
+    <button type="button" onClick={() => { window.location.href = oauthUrl; }} className={clsx("focus-ring mt-4 flex h-[52px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border-2 border-slate-200 bg-white px-4 py-6 text-base font-medium text-[rgb(2,8,23)] ring-offset-background transition-colors hover:bg-slate-50", className)}>
       <GoogleMark />
       {label}
     </button>
@@ -1859,10 +1860,10 @@ function SignupCard({
   return (
     <div>
       <h1 className="text-center text-2xl font-semibold leading-8 text-[rgb(2,8,23)]">{text.signupTitle}</h1>
-      <GoogleButton locale={locale} label={text.google} />
+      <GoogleButton locale={locale} label={text.google} className="mx-auto max-w-[286px]" />
       <Divider label={text.signupDivider} />
       {step === "email" ? (
-        <div className="mx-auto w-full max-w-[276px]">
+        <div className="mx-auto w-full max-w-[286px]">
           <label className="block">
             <span className="block text-sm font-medium leading-5 text-[rgb(2,8,23)]">{text.email}</span>
             <input
@@ -1878,7 +1879,7 @@ function SignupCard({
           </button>
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-[276px]">
+        <div className="mx-auto w-full max-w-[286px]">
           <div className="mb-6 rounded-lg bg-ink/[0.03] p-4 ring-1 ring-ink/5">
             <div className="flex items-center justify-between gap-3">
               <div>
