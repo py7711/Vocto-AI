@@ -94,6 +94,7 @@ API 目录按调用方分组：
 - `prisma/schema.prisma`
 - `prisma/sql/all.sql`
 - `prisma/sql/README.md`
+- `docs/aws-ubuntu-worker.md`
 - `docs/deployment.md`
 - `product-doc.md`
 
@@ -111,6 +112,7 @@ API 目录按调用方分组：
 
 - `README.md`
 - `product-doc.md`
+- `docs/aws-ubuntu-worker.md`
 - `docs/deployment.md`
 - `docs/project-structure.md`
 - `prisma/sql/README.md`

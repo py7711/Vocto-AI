@@ -5,6 +5,7 @@ const ignoredDirs = new Set([".git", ".next", "node_modules"]);
 const expectedDocs = new Set([
   "README.md",
   "product-doc.md",
+  "docs/aws-ubuntu-worker.md",
   "docs/deployment.md",
   "docs/project-structure.md",
   "prisma/sql/README.md"

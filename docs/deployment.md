@@ -212,6 +212,8 @@ mysql -h HOST -u USER -p DATABASE < prisma/sql/all.sql
 
 Vercel 不适合长期运行 BullMQ Worker，Worker 应独立部署。
 
+AWS EC2 + Ubuntu 的完整部署步骤、systemd 服务文件、环境变量清单、升级流程和排障手册见 [AWS Ubuntu Worker 部署手册](./aws-ubuntu-worker.md)。
+
 ### 5.1 云服务器部署
 
 1. 准备 Node.js 20。
