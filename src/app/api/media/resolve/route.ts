@@ -32,7 +32,8 @@ function filenameFromUrl(url: string) {
 }
 
 function titleFromUrl(url: string, provider: MediaSourceProvider) {
-  return filenameFromUrl(url) || `${providerLabels[provider]} 媒体`;
+  const title = filenameFromUrl(url);
+  return title && title !== "watch" ? title : `${providerLabels[provider]} 媒体`;
 }
 
 function sourceTypeForProvider(provider: MediaSourceProvider) {
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
         resolvedUrl = metadata.sourceUrl || sourceUrl;
         contentType = metadata.extension ? `video/${metadata.extension}` : undefined;
       } catch {
-        return NextResponse.json({error: "Failed to access media metadata. Please try again later."}, {status: 400});
+        warnings.push("无法读取媒体元数据，已使用链接标题继续。");
       }
     }
 
