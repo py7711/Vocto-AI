@@ -52,6 +52,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   YT_DLP_PATH: z.string().optional(),
+  // 可选：Netscape 格式的 YouTube cookies 文件，用于绕过数据中心 IP 的 bot 检测。
+  YT_DLP_COOKIES_PATH: z.string().optional(),
   FFMPEG_PATH: z.string().optional(),
   FFPROBE_PATH: z.string().optional(),
   AUDIO_CHUNK_TARGET_SECONDS: z.coerce.number().int().positive().default(900),

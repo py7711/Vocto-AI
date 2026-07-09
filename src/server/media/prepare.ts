@@ -79,6 +79,39 @@ function ytDlpUnavailableError(attempted: string[]) {
   );
 }
 
+function ytDlpSpawnEnv() {
+  const pathEntries = [
+    process.env.PATH,
+    "/usr/local/sbin",
+    "/usr/local/bin",
+    "/usr/sbin",
+    "/usr/bin",
+    "/sbin",
+    "/bin",
+    `${process.env.HOME ?? ""}/.local/bin`
+  ].filter(Boolean);
+
+  return {
+    ...process.env,
+    PATH: Array.from(new Set(pathEntries.join(":").split(":").filter(Boolean))).join(":")
+  };
+}
+
+function ytDlpBaseArgs() {
+  const args = [
+    "--js-runtimes",
+    `node:${process.execPath}`,
+    "--extractor-args",
+    "youtube:player_client=android"
+  ];
+
+  if (env.YT_DLP_COOKIES_PATH) {
+    args.push("--cookies", env.YT_DLP_COOKIES_PATH);
+  }
+
+  return args;
+}
+
 async function withYtDlp<T>(operation: (spec: CommandSpec) => Promise<T>) {
   const attempted: string[] = [];
 
@@ -107,7 +140,7 @@ function collect(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS
   return new Promise<string>((resolve, reject) => {
     // collect 用于读取 yt-dlp 的 stdout，例如媒体直链、字幕列表和元数据 JSON。
     // stderr 只在失败时作为错误详情返回，避免把工具自身日志混进业务解析结果。
-    const child = spawn(command, args, {stdio: ["ignore", "pipe", "pipe"]});
+    const child = spawn(command, args, {stdio: ["ignore", "pipe", "pipe"], env: ytDlpSpawnEnv()});
     const chunks: Buffer[] = [];
     const errors: Buffer[] = [];
     const timer = setTimeout(() => {
@@ -133,13 +166,13 @@ function collect(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS
 }
 
 function collectYtDlp(args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
-  return withYtDlp((spec) => collect(spec.command, [...spec.args, ...args], timeoutMs));
+  return withYtDlp((spec) => collect(spec.command, [...spec.args, ...ytDlpBaseArgs(), ...args], timeoutMs));
 }
 
 function run(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
   return new Promise<void>((resolve, reject) => {
     // run 只用于需要 yt-dlp 写临时文件的字幕下载；音频/视频转写走直链解析，不落地转码。
-    const child = spawn(command, args, {stdio: "inherit"});
+    const child = spawn(command, args, {stdio: "inherit", env: ytDlpSpawnEnv()});
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
       reject(new Error(`${command} 执行超过 ${Math.round(timeoutMs / 1000)} 秒后超时。`));
@@ -161,7 +194,7 @@ function run(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
 }
 
 function runYtDlp(args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
-  return withYtDlp((spec) => run(spec.command, [...spec.args, ...args], timeoutMs));
+  return withYtDlp((spec) => run(spec.command, [...spec.args, ...ytDlpBaseArgs(), ...args], timeoutMs));
 }
 
 function ffmpegCandidates() {
@@ -190,7 +223,7 @@ async function withExecutable<T>(candidates: string[], operation: (command: stri
 
 function runCapture(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
   return new Promise<{stdout: string; stderr: string}>((resolve, reject) => {
-    const child = spawn(command, args, {stdio: ["ignore", "pipe", "pipe"]});
+    const child = spawn(command, args, {stdio: ["ignore", "pipe", "pipe"], env: ytDlpSpawnEnv()});
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     const timer = setTimeout(() => {

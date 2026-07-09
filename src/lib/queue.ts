@@ -56,7 +56,8 @@ export function getTranscribeQueue() {
 
 // 以 taskId 派生稳定 jobId，保证同一任务在队列里最多只有一个 job，从根本上避免重复入队与重复转写。
 export function transcribeJobId(taskId: string) {
-  return `transcribe:${taskId}`;
+  // BullMQ 自定义 jobId 不能包含冒号。
+  return `transcribe-${taskId}`;
 }
 
 // 统一入队入口：所有创建/重试路径都应通过它排队。

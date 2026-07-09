@@ -149,13 +149,13 @@ pnpm run prisma:generate
 
 ### 4. 配置环境变量
 
-Web 和 Worker 可共用同一份环境变量文件（当前服务器使用 `env`）：
+Web 和 Worker 可共用同一份环境变量文件 `.env`：
 
 ```bash
 cd /data/votxt-worker/Vocto-AI
-cp .env.example env          # 若已有 env 文件则跳过
-chmod 600 env
-nano env
+cp .env.example .env
+chmod 600 .env
+nano .env
 ```
 
 Web 服务额外需要确认以下配置：
@@ -208,7 +208,7 @@ Web 服务需要先构建生产产物，Worker 不需要此步骤：
 
 ```bash
 cd /data/votxt-worker/Vocto-AI
-set -a && . ./env && set +a
+set -a && . ./.env && set +a
 
 # 内存不足时（t3.small）加限制参数
 NODE_OPTIONS="--max-old-space-size=2048" pnpm build
@@ -220,7 +220,7 @@ NODE_OPTIONS="--max-old-space-size=2048" pnpm build
 
 ```bash
 cd /data/votxt-worker/Vocto-AI
-set -a && . ./env && set +a
+set -a && . ./.env && set +a
 PORT=3091 pnpm start
 ```
 
@@ -230,101 +230,120 @@ PORT=3091 pnpm start
 curl -I http://127.0.0.1:3091/zh
 ```
 
-返回 `200` 或 `307` 即正常。验证通过后按 `Ctrl+C` 停止，改用 systemd 托管。
+返回 `200` 或 `307` 即正常。验证通过后按 `Ctrl+C` 停止，改用 PM2 托管。
 
-### 7. 使用 systemd 托管 Web 服务
+### 7. 使用 PM2 托管（自动重启 + 开机自启）
 
-systemd 同时满足：**崩溃自动重启**（`Restart=always`）、**服务器重启自动启动**（`systemctl enable`）。
+生产环境使用 PM2 管理 Web 和 Worker 两个进程。**不要使用 systemd 单独托管 `votxt-web` / `votxt-worker`**，否则会与 PM2 重复启动两套服务。
 
-创建 Web 服务文件：
-
-```bash
-nano /etc/systemd/system/votxt-web.service
-```
-
-写入以下内容（root 部署版）：
-
-```ini
-[Unit]
-Description=Votxt Next.js Web Application
-After=network-online.target
-Wants=network-online.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-WorkingDirectory=/data/votxt-worker/Vocto-AI
-EnvironmentFile=/data/votxt-worker/Vocto-AI/env
-Environment=NODE_ENV=production
-Environment=PORT=3091
-Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/bin
-ExecStart=/usr/bin/env pnpm start
-Restart=always
-RestartSec=10
-KillSignal=SIGTERM
-TimeoutStopSec=60
-SyslogIdentifier=votxt-web
-
-[Install]
-WantedBy=multi-user.target
-```
-
-启用并启动：
+#### 7.1 安装 PM2
 
 ```bash
+npm install -g pm2
+```
+
+#### 7.2 清理旧的 systemd 服务（重要）
+
+若之前用 systemd 托管过，必须先停止并删除，避免重复启动：
+
+```bash
+systemctl stop votxt-web votxt-worker 2>/dev/null || true
+systemctl disable votxt-web votxt-worker 2>/dev/null || true
+rm -f /etc/systemd/system/votxt-web.service /etc/systemd/system/votxt-worker.service
 systemctl daemon-reload
-systemctl enable votxt-web
-systemctl start votxt-web
-systemctl status votxt-web --no-pager
+systemctl reset-failed 2>/dev/null || true
+
+# 确认已不存在
+systemctl is-enabled votxt-web votxt-worker 2>&1   # 应显示 not-found
 ```
 
-确认状态：
+PM2 自身通过 `pm2-root.service` 实现开机自启，这是唯一需要保留的进程管理 systemd 单元。
+
+#### 7.3 PM2 配置文件
+
+项目已包含 `ecosystem.config.cjs`，会自动读取 `.env` 并启动两个进程：
+
+| 进程 | 命令 | 端口 |
+| --- | --- | --- |
+| `votxt-web` | `pnpm start` | 3091 |
+| `votxt-worker` | `pnpm run worker` | 无 |
+
+启动：
 
 ```bash
-systemctl is-enabled votxt-web    # enabled
-systemctl is-active votxt-web     # active
+cd /data/votxt-worker/Vocto-AI
+pm2 start ecosystem.config.cjs
+pm2 status
+```
+
+确认两个进程均为 `online`：
+
+```bash
+pm2 list
 curl -I http://127.0.0.1:3091/zh
 ```
 
-### 8. Worker 服务（已部署，参考）
-
-Worker 由 `votxt-worker.service` 托管，配置与 Web 类似但不监听端口。若尚未部署，创建 `/etc/systemd/system/votxt-worker.service`：
-
-```ini
-[Unit]
-Description=BullMQ Transcription Worker
-After=network-online.target
-Wants=network-online.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-WorkingDirectory=/data/votxt-worker/Vocto-AI
-EnvironmentFile=/data/votxt-worker/Vocto-AI/env
-Environment=NODE_ENV=production
-Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/bin
-ExecStart=/usr/bin/env pnpm run worker
-Restart=always
-RestartSec=10
-KillSignal=SIGTERM
-TimeoutStopSec=60
-SyslogIdentifier=transcribe-worker
-
-[Install]
-WantedBy=multi-user.target
-```
+#### 7.4 注册开机自启
 
 ```bash
-systemctl daemon-reload
-systemctl enable votxt-worker
-systemctl start votxt-worker
+pm2 save
+pm2 startup systemd -u root --hp /root
+# 按提示执行输出的 systemctl enable 命令（通常会自动执行）
+systemctl is-enabled pm2-root    # 应为 enabled
 ```
 
-### 9. Nginx 反向代理 + HTTPS
+服务器重启后，PM2 会自动 `resurrect` 恢复 `votxt-web` 和 `votxt-worker`。
+
+#### 7.5 yt-dlp 配置（YouTube 元数据必需）
+
+yt-dlp 用于 `/api/media/resolve` 读取 YouTube 标题、时长、缩略图，以及 Worker 解析音频流。
+
+```bash
+# 安装（pipx 或 pip 均可）
+python3 -m pip install --user -U yt-dlp
+/root/.local/bin/yt-dlp --version
+```
+
+在 `.env` 中配置：
+
+```bash
+YT_DLP_PATH="/root/.local/bin/yt-dlp"
+```
+
+代码已自动为 yt-dlp 注入以下参数，无需手动添加：
+
+- `--js-runtimes node:<Node路径>`：解决 "No supported JavaScript runtime" 警告
+- `--extractor-args youtube:player_client=android`：适配 AWS 数据中心 IP
+
+**若部分视频仍报 "Sign in to confirm you're not a bot"**，需导出 YouTube cookies 文件：
+
+1. 在本地浏览器登录 YouTube，用扩展（如 Get cookies.txt LOCALLY）导出 Netscape 格式 cookies。
+2. 上传到服务器，例如 `/data/votxt-worker/Vocto-AI/config/youtube-cookies.txt`。
+3. 在 `.env` 中添加：
+
+```bash
+YT_DLP_COOKIES_PATH="/data/votxt-worker/Vocto-AI/config/youtube-cookies.txt"
+```
+
+4. 重启 PM2：`pm2 restart all`
+
+验证 yt-dlp 和接口：
+
+```bash
+/root/.local/bin/yt-dlp --js-runtimes node --extractor-args "youtube:player_client=android" \
+  --dump-json --no-playlist --skip-download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['title'], d['duration'])"
+
+curl -s -X POST http://127.0.0.1:3091/api/media/resolve \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"}' | python3 -m json.tool
+```
+
+### 8. Nginx 反向代理 + HTTPS
 
 生产环境推荐用 Nginx 在 80/443 接收流量，反代到本机 `127.0.0.1:3091`。3091 不对外开放，AWS 安全组只需开放 **80** 和 **443**（以及 SSH 22）。
 
-#### 9.1 前置条件：DNS 必须指向本机
+#### 8.1 前置条件：DNS 必须指向本机
 
 申请 HTTPS 证书前，域名 A 记录必须解析到 EC2 公网 IP（当前为 `54.83.103.97`）。
 
@@ -346,14 +365,14 @@ dig +short www.votxt.io A
 3. AWS 安全组添加入站规则：TCP 80、TCP 443，来源 `0.0.0.0/0`。
 4. 等待 DNS 生效（通常 5–30 分钟），再次 `dig +short votxt.io A` 确认。
 
-#### 9.2 安装 Nginx
+#### 8.2 安装 Nginx
 
 ```bash
 apt install -y nginx certbot python3-certbot-nginx
 mkdir -p /var/www/certbot
 ```
 
-#### 9.3 创建 Nginx 配置
+#### 8.3 创建 Nginx 配置
 
 ```bash
 nano /etc/nginx/sites-available/votxt.conf
@@ -410,9 +429,9 @@ systemctl restart nginx
 curl -I -H "Host: votxt.io" http://127.0.0.1/zh    # 应返回 200 或 307
 ```
 
-#### 9.4 端口安全（不要绑定 127.0.0.1）
+#### 8.4 端口安全（不要绑定 127.0.0.1）
 
-`votxt-web.service` 通过 `Environment=PORT=3091` 监听 3091。**不要**使用 `next start -H 127.0.0.1`，会导致 next-intl 中间件内部代理失败（页面返回 500）。
+PM2 中 `votxt-web` 通过 `PORT=3091` 监听 3091。**不要**使用 `next start -H 127.0.0.1`，会导致 next-intl 中间件内部代理失败（页面返回 500）。
 
 3091 不对外暴露的方式：AWS 安全组**不开放** 3091，只开放 80/443。Nginx 在本机转发到 `127.0.0.1:3091` 即可。
 
@@ -421,7 +440,7 @@ ss -tlnp | grep 3091    # 监听 *:3091 是正常的
 curl -I -H "Host: votxt.io" http://127.0.0.1/zh    # 应返回 200
 ```
 
-#### 9.5 申请 HTTPS 证书（Let's Encrypt）
+#### 8.5 申请 HTTPS 证书（Let's Encrypt）
 
 **DNS 生效后**执行：
 
@@ -445,12 +464,12 @@ certbot certificates
 systemctl status certbot.timer --no-pager
 ```
 
-#### 9.6 常见问题
+#### 8.6 常见问题
 
 **Certbot 报 `unauthorized` / `Invalid response`**
 
 - 原因：DNS 仍指向其他服务器（如 Vercel `216.198.79.1`），Let's Encrypt 无法访问本机。
-- 解决：按 §9.1 修改 DNS，等待生效后重新执行 `certbot --nginx ...`。
+- 解决：按 §8.1 修改 DNS，等待生效后重新执行 `certbot --nginx ...`。
 
 **访问 HTTPS 显示证书错误或连接被拒**
 
@@ -460,16 +479,17 @@ systemctl status certbot.timer --no-pager
 
 **SSE 任务状态推送中断**
 
-- 确认 Nginx 配置中 `proxy_buffering off` 和 `proxy_read_timeout 300s` 已设置（见 §9.3）。
+- 确认 Nginx 配置中 `proxy_buffering off` 和 `proxy_read_timeout 300s` 已设置（见 §8.3）。
 
-### 10. 验证服务稳定性
+### 9. 验证服务稳定性
 
-**验证 Web 自动重启**：
+**验证 PM2 自动重启**（模拟进程崩溃）：
 
 ```bash
-kill -9 "$(systemctl show -p MainPID --value votxt-web)"
+pm2 pid votxt-web    # 记录 PID
+kill -9 "$(pm2 pid votxt-web)"
 sleep 12
-systemctl is-active votxt-web     # 应为 active
+pm2 status           # votxt-web 应恢复为 online
 curl -I http://127.0.0.1:3091/zh
 ```
 
@@ -478,30 +498,35 @@ curl -I http://127.0.0.1:3091/zh
 ```bash
 reboot
 # 重新登录后：
-systemctl is-active votxt-web
-systemctl is-active votxt-worker
-journalctl -u votxt-web -n 20 --no-pager
+pm2 status           # votxt-web、votxt-worker 均应为 online
+systemctl is-enabled pm2-root
 ```
 
-### 11. 日常运维命令
+### 10. 日常运维命令
 
 ```bash
-# Web 日志
-journalctl -u votxt-web -f
-journalctl -u votxt-web -n 100 --no-pager
-
-# Worker 日志
-journalctl -u votxt-worker -f
-
-# 重启服务
-systemctl restart votxt-web
-systemctl restart votxt-worker
-
 # 查看状态
-systemctl status votxt-web votxt-worker --no-pager
+pm2 status
+pm2 monit
+
+# 实时日志
+pm2 logs
+pm2 logs votxt-web
+pm2 logs votxt-worker
+
+# 重启 / 停止
+pm2 restart votxt-web
+pm2 restart votxt-worker
+pm2 restart all
+pm2 stop all
+
+# 查看详细信息
+pm2 show votxt-web
 ```
 
-### 12. 发布与升级
+Web 代码或环境变量更新后，通常只需 `pm2 restart votxt-web`；**不需要重启 Nginx**。
+
+### 11. 发布与升级
 
 ```bash
 cd /data/votxt-worker/Vocto-AI
@@ -511,26 +536,26 @@ pnpm install --frozen-lockfile
 pnpm run prisma:generate
 
 # Web 需要重新构建
-set -a && . ./env && set +a
+set -a && . ./.env && set +a
 NODE_OPTIONS="--max-old-space-size=2048" pnpm build
 
-# 重启两个服务
-systemctl restart votxt-web votxt-worker
-systemctl status votxt-web votxt-worker --no-pager
+# 重启两个进程
+pm2 restart all
+pm2 status
 ```
 
-### 13. 生产检查清单
+### 12. 生产检查清单
 
 - [ ] `pnpm build` 通过，`.next/` 目录存在
-- [ ] `systemctl is-active votxt-web` 为 `active`，`curl http://127.0.0.1:3091/zh` 返回 200/307
-- [ ] `systemctl is-enabled votxt-web` 为 `enabled`（开机自启）
-- [ ] kill Web 进程后 10 秒内自动拉起
-- [ ] `systemctl is-active votxt-worker` 为 `active`，日志含 `listening on queue`
+- [ ] `pm2 status` 中 `votxt-web`、`votxt-worker` 均为 `online`
+- [ ] `systemctl is-enabled pm2-root` 为 `enabled`（PM2 开机自启）
+- [ ] **不存在** `votxt-web.service` / `votxt-worker.service`（避免与 PM2 重复）
+- [ ] `curl http://127.0.0.1:3091/zh` 返回 200/307
+- [ ] `curl -X POST .../api/media/resolve` 能返回 YouTube 标题、时长、缩略图
+- [ ] `YT_DLP_PATH` 已配置，`yt-dlp --version` 可执行
 - [ ] `TRANSCRIBE_QUEUE` Web 与 Worker 一致
-- [ ] `NEXT_PUBLIC_APP_URL` 与用户实际访问地址一致
-- [ ] AWS 安全组已按访问方式开放对应端口（3091 或 80/443）
-- [ ] 转写服务商回调地址 `https://votxt.io/api/transcription/callback/*` 可达
-- [ ] Web 端创建转写任务后能从排队进入完成状态
+- [ ] kill 进程后 PM2 能在 10 秒内自动拉起
+- [ ] Web 端创建转写任务后能从排队进入完成状态（无 `Custom Id cannot contain :` 错误）
 
 ## 维护检查
 

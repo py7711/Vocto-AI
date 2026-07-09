@@ -65,7 +65,8 @@ export async function POST(request: Request) {
         thumbnailUrl = metadata.thumbnailUrl;
         resolvedUrl = metadata.sourceUrl || sourceUrl;
         contentType = metadata.extension ? `video/${metadata.extension}` : undefined;
-      } catch {
+      } catch (error) {
+        logApiError(error, request);
         warnings.push("无法读取媒体元数据，已使用链接标题继续。");
       }
     }
