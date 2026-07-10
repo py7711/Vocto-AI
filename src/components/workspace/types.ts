@@ -153,4 +153,7 @@ export type UsageSnapshot = {
       } | null;
     }>;
   };
+  billing?: {
+    hasPurchasedMembership: boolean;
+  };
 };

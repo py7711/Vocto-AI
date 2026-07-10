@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     const dailyUsed = user.dailyResetAt && user.dailyResetAt > new Date() ? user.dailyFreeCount : 0;
 
     // 个人版所有仪表盘统计都按 userId 聚合，避免把历史团队数据暴露到产品侧。
-    const [periodTasks, todayTasks, recentLedger, ledgerSum] = await Promise.all([
+    const [periodTasks, todayTasks, recentLedger, ledgerSum, purchasedMembershipOrder] = await Promise.all([
       prisma.mediaTask.aggregate({
         where: {
           userId: user.id,
@@ -123,6 +123,15 @@ export async function GET(request: Request) {
           createdAt: {gte: periodStart, lt: periodEnd}
         },
         _sum: {minutesDelta: true}
+      }),
+      prisma.billingOrder.findFirst({
+        where: {
+          userId: user.id,
+          type: "SUBSCRIPTION",
+          status: {in: ["PAID", "ACTIVE"]},
+          itemCode: {in: ["BASIC", "STANDARD", "PRO"]}
+        },
+        select: {id: true}
       })
     ]);
 
@@ -158,6 +167,9 @@ export async function GET(request: Request) {
       ledger: {
         periodMinutesDelta: ledgerMinutesDelta,
         entries: recentLedger
+      },
+      billing: {
+        hasPurchasedMembership: Boolean(purchasedMembershipOrder)
       }
     });
   } catch (error) {

@@ -203,6 +203,17 @@ GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
 STRIPE_SECRET_KEY=""
 STRIPE_WEBHOOK_SECRET=""
+STRIPE_PRICE_BASIC_MONTHLY=""
+STRIPE_PRICE_STANDARD_MONTHLY=""
+STRIPE_PRICE_PRO_MONTHLY=""
+STRIPE_PRICE_BASIC_ANNUAL=""
+STRIPE_PRICE_STANDARD_ANNUAL=""
+STRIPE_PRICE_PRO_ANNUAL=""
+STRIPE_PRICE_LITE=""
+STRIPE_PRICE_PLUS=""
+STRIPE_PRICE_ADDON_BASIC=""
+STRIPE_PRICE_ADDON_STANDARD=""
+STRIPE_PRICE_ADDON_PRO=""
 ```
 
 关键注意事项：
@@ -212,6 +223,40 @@ STRIPE_WEBHOOK_SECRET=""
 - `REDIS_URL` 本地部署填 `redis://127.0.0.1:6379`；云 Redis 填 `rediss://` 协议地址，不能填 Upstash REST URL。
 - Google OAuth 回调地址需在 Google Cloud Console 配置为 `https://votxt.io/api/auth/google/callback`。
 - Stripe Webhook 回调地址为 `https://votxt.io/api/billing/webhook`。
+
+#### Stripe 后台配置步骤
+
+1. 在 Stripe Dashboard 创建或确认产品：
+   - `Votxt Basic`：订阅套餐，1200 分钟/月。
+   - `Votxt Standard`：订阅套餐，3000 分钟/月。
+   - `Votxt Pro`：订阅套餐，6000 分钟/月。
+   - `Votxt Lite Pack`：一次性分钟包，300 分钟，90 天有效。
+   - `Votxt Plus Pack`：一次性分钟包，600 分钟，90 天有效。
+   - `Votxt Add-on Basic/Standard/Pro`：已订阅用户加购包，分别为 500/1000/3000 分钟。
+2. 为订阅产品分别创建 recurring Price：
+   - Basic 月付：`$10 / month`，填入 `STRIPE_PRICE_BASIC_MONTHLY`。
+   - Standard 月付：`$20 / month`，填入 `STRIPE_PRICE_STANDARD_MONTHLY`。
+   - Pro 月付：`$30 / month`，填入 `STRIPE_PRICE_PRO_MONTHLY`。
+   - Basic 年付：`$72 / year`，填入 `STRIPE_PRICE_BASIC_ANNUAL`。
+   - Standard 年付：`$144 / year`，填入 `STRIPE_PRICE_STANDARD_ANNUAL`。
+   - Pro 年付：`$216 / year`，填入 `STRIPE_PRICE_PRO_ANNUAL`。
+3. 为一次性和加购产品创建 one-time Price：
+   - Lite：`$12.90`，填入 `STRIPE_PRICE_LITE`。
+   - Plus：`$19.90`，填入 `STRIPE_PRICE_PLUS`。
+   - Add-on Basic：`$10`，填入 `STRIPE_PRICE_ADDON_BASIC`。
+   - Add-on Standard：`$15`，填入 `STRIPE_PRICE_ADDON_STANDARD`。
+   - Add-on Pro：`$20`，填入 `STRIPE_PRICE_ADDON_PRO`。
+4. 在 Developers -> API keys 复制 Secret key，填入 `STRIPE_SECRET_KEY`。生产环境使用 `sk_live_...`，本地/测试环境使用 `sk_test_...`。
+5. 在 Developers -> Webhooks 新建 endpoint：`https://votxt.io/api/billing/webhook`，订阅事件：
+   - `checkout.session.completed`
+   - `checkout.session.async_payment_succeeded`
+   - `checkout.session.async_payment_failed`
+   - `checkout.session.expired`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+6. 复制 Webhook signing secret，填入 `STRIPE_WEBHOOK_SECRET`。本地调试可使用 Stripe CLI 转发到 `http://localhost:3000/api/billing/webhook`，并使用 CLI 输出的 `whsec_...`。
+7. 部署后重启 Web 服务，使新的环境变量生效。点击任一套餐按钮时，系统会先创建 `BillingOrder`，再把订单 ID 写入 Stripe Checkout 的 `client_reference_id` 和 metadata；Webhook 回来后会更新订单、订阅和分钟额度。
 
 ### 4.1 部署本地 Redis（推荐）
 

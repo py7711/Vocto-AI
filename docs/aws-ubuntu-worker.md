@@ -95,7 +95,7 @@ cd /data/votxt-worker/Vocto-AI
 
 ### 4.2 方式 B：直接使用 root（快速上手 / 个人测试）
 
-**未创建 `appworker`、全程用 root SSH 登录时走本路径。** 无需 `su - appworker`，也**不要** `cd /home/appworker`（该目录不存在是正常的）。
+**未创建** `appworker`**、全程用 root SSH 登录时走本路径。** 无需 `su - appworker`，也**不要** `cd /home/appworker`（该目录不存在是正常的）。
 
 ```bash
 mkdir -p /data/votxt-worker
@@ -112,6 +112,8 @@ root 部署注意：
 - `.env.worker` 含数据库与 API 密钥，权限设为 `chmod 600`。
 - 文档里带 `sudo` 的命令在 root 下可去掉 `sudo` 直接执行。
 
+
+
 ### 4.3 家目录缺失时的修复（仅方式 A）
 
 若已创建 `appworker` 但 `/home/appworker` 不存在：
@@ -122,7 +124,11 @@ chown appworker:appworker /home/appworker
 usermod -d /home/appworker -s /bin/bash appworker
 ```
 
+
+
 ## 5. 安装系统依赖
+
+
 
 ### 5.1 依赖清单
 
@@ -141,8 +147,10 @@ Worker 运行需要以下依赖，缺一不可：
 
 说明：
 
-- Worker 通过 `pnpm run worker`（即 `tsx src/worker/transcribe-worker.ts`）直接运行 TypeScript 源码，**不需要预编译**。`tsx` 位于 `devDependencies`，因此安装依赖时必须安装完整依赖，**不能使用 `--prod` / `NODE_ENV=production` 裁剪 devDependencies**，否则 Worker 无法启动。
+- Worker 通过 `pnpm run worker`（即 `tsx src/worker/transcribe-worker.ts`）直接运行 TypeScript 源码，**不需要预编译**。`tsx` 位于 `devDependencies`，因此安装依赖时必须安装完整依赖，**不能使用** `--prod` **/** `NODE_ENV=production` **裁剪 devDependencies**，否则 Worker 无法启动。
 - Worker 依赖 `@prisma/client`，安装后必须执行 `pnpm run prisma:generate` 生成客户端，否则启动会报模块错误。
+
+
 
 ### 5.2 安装基础工具与 FFmpeg
 
@@ -150,6 +158,8 @@ Worker 运行需要以下依赖，缺一不可：
 sudo apt update
 sudo apt install -y git curl ca-certificates build-essential python3 python3-pip ffmpeg
 ```
+
+
 
 ### 5.3 安装 Node.js 22 LTS
 
@@ -173,6 +183,8 @@ sudo apt install -y nodejs
 node -v
 ```
 
+
+
 ### 5.4 启用 pnpm
 
 Node.js 22 就绪后再启用 pnpm，否则 corepack 下载的最新 pnpm 会因 Node.js 版本过低而启动失败。
@@ -182,6 +194,8 @@ sudo corepack enable
 corepack prepare pnpm@latest --activate
 pnpm -v
 ```
+
+
 
 ### 5.5 安装 yt-dlp
 
@@ -217,6 +231,8 @@ YT_DLP_PATH="/home/appworker/.local/bin/yt-dlp"
 YT_DLP_PATH="/root/.local/bin/yt-dlp"
 ```
 
+
+
 ## 6. 拉取代码
 
 进入部署根目录并 clone（**root 或 appworker 均可**）。目标目录名须与下文路径一致（示例为 `Vocto-AI`；若 clone 时用了其他名字，后续所有 `/data/votxt-worker/Vocto-AI` 请改成实际目录名）：
@@ -247,12 +263,14 @@ pnpm run prisma:generate
 - `pnpm install --frozen-lockfile`：严格按 `pnpm-lock.yaml` 安装，包含 `tsx` 等 devDependencies（Worker 必需）。
 - `pnpm run prisma:generate`：生成 `@prisma/client`，Worker 启动前必须执行。
 
+
+
 ### 6.2 关于“打包构建”
 
 本项目分两类进程，构建要求不同：
 
 - **Web 应用**（Vercel/Next.js）：需要 `pnpm build`（`next build`）产物。
-- **Worker（本机部署）**：由 `tsx` 在运行时直接执行 TypeScript 源码，**不需要 `next build`，也没有独立的 dist 产物**。所谓“部署”，就是把源码 + 完整依赖 + 生成的 Prisma 客户端放到服务器，再用 systemd 拉起 `pnpm run worker`。
+- **Worker（本机部署）**：由 `tsx` 在运行时直接执行 TypeScript 源码，**不需要** `next build`**，也没有独立的 dist 产物**。所谓“部署”，就是把源码 + 完整依赖 + 生成的 Prisma 客户端放到服务器，再用 systemd 拉起 `pnpm run worker`。
 
 因此 Worker 服务器的最小可运行集合是：
 
@@ -260,6 +278,8 @@ pnpm run prisma:generate
 2. `pnpm install --frozen-lockfile` 安装的 `node_modules`（含 devDependencies）。
 3. `pnpm run prisma:generate` 生成的 Prisma 客户端。
 4. 配置好的环境变量文件 `.env.worker`。
+
+
 
 ### 6.3 可选：构建自检
 
@@ -349,6 +369,8 @@ ls -l /data/votxt-worker/Vocto-AI/.env.worker
 -rw------- 1 root root ... .env.worker
 ```
 
+
+
 ## 8. 手动启动验证
 
 先创建日志目录，再用一条命令验证 Worker 可以连接 Redis 和数据库：
@@ -380,13 +402,15 @@ listening on queue transcribe-jobs.
 - **崩溃循环也不会被永久放弃**：`StartLimitIntervalSec=0` 关闭“启动频率超限即停止重试”的保护。
 - **服务器重启后自动启动**：`systemctl enable` + `WantedBy=multi-user.target`。
 
+
+
 ### 9.1 创建服务文件
 
 ```bash
 sudo nano /etc/systemd/system/votxt-worker.service
 ```
 
-写入以下内容。**未创建 `appworker`、用 root 部署时选「方式 B」**（不要写 `User=appworker`，否则服务会因用户不存在而启动失败）。
+写入以下内容。**未创建** `appworker`**、用 root 部署时选「方式 B」**（不要写 `User=appworker`，否则服务会因用户不存在而启动失败）。
 
 方式 A（`appworker`，§4.1）：
 
@@ -451,6 +475,8 @@ WantedBy=multi-user.target
 - `StartLimitIntervalSec=0` 是稳定运行的关键：systemd 默认在 10 秒内重启超过 5 次会放弃并置为 `failed`，Worker 场景不希望被永久放弃，这里显式关闭该限制。
 - `KillSignal=SIGTERM` + `TimeoutStopSec=60` 给正在处理的任务留出退出时间；即使被强制结束，BullMQ 的 stalled 机制配合任务幂等保护也会安全重试。
 
+
+
 ### 9.2 启用并启动（开机自启的关键是 enable）
 
 ```bash
@@ -479,6 +505,8 @@ systemctl is-enabled votxt-worker    # 预期输出 enabled
 sudo systemctl enable --now votxt-worker
 ```
 
+
+
 ### 9.3 常用运维命令
 
 查看实时日志：
@@ -493,6 +521,8 @@ journalctl -u votxt-worker -f
 sudo systemctl restart votxt-worker
 sudo systemctl stop votxt-worker
 ```
+
+
 
 ### 9.4 验证“自动重启”与“开机自启”
 
@@ -514,6 +544,8 @@ sudo reboot
 systemctl is-active votxt-worker    # 应为 active
 journalctl -u votxt-worker -n 50 --no-pager
 ```
+
+
 
 ## 10. PM2 备选方案
 
@@ -585,6 +617,8 @@ systemctl restart votxt-worker
 
 ## 12. 健康检查
 
+
+
 ### 12.1 进程检查
 
 ```bash
@@ -592,6 +626,8 @@ systemctl is-active votxt-worker
 systemctl status votxt-worker --no-pager
 journalctl -u votxt-worker -n 100 --no-pager
 ```
+
+
 
 ### 12.2 Redis 队列检查
 
@@ -618,6 +654,8 @@ node -e "const {Queue}=require('bullmq'); const IORedis=require('ioredis'); cons
 }
 ```
 
+
+
 ### 12.3 端到端检查
 
 1. 打开 Web 应用，登录测试账号。
@@ -625,6 +663,8 @@ node -e "const {Queue}=require('bullmq'); const IORedis=require('ioredis'); cons
 3. 确认任务状态从 `QUEUED` 变为 `PROCESSING`、`TRANSCRIBING`，最终变为 `COMPLETED`。
 4. 在 Worker 日志中确认没有 Redis、数据库、R2、yt-dlp 或转写服务错误。
 5. 导出 TXT/SRT 或打开分享页，确认转写结果已写入数据库。
+
+
 
 ## 13. 日志与磁盘维护
 
@@ -658,6 +698,8 @@ journalctl --disk-usage
 Worker 媒体预处理会使用系统临时目录，代码会清理临时文件，但生产仍建议监控 `/tmp` 和根分区空间。
 
 ## 14. 常见故障
+
+
 
 ### 14.1 systemd 报 `Failed to load environment files` 且 `Result: resources`
 
@@ -705,6 +747,8 @@ journalctl -u votxt-worker -n 200 --no-pager
 - `REDIS_URL` 使用了 `https://` REST 地址。
 - `DATABASE_URL` 不存在或数据库拒绝连接。
 
+
+
 ### 14.3 日志提示 BullMQ 需要 Redis 协议地址
 
 把 Upstash 控制台里的 Redis 协议地址填入：
@@ -719,6 +763,8 @@ REDIS_URL="rediss://default:PASSWORD@HOST.upstash.io:6379"
 UPSTASH_REDIS_REST_URL="https://..."
 ```
 
+
+
 ### 14.4 任务一直停在 QUEUED
 
 排查顺序：
@@ -728,6 +774,8 @@ UPSTASH_REDIS_REST_URL="https://..."
 3. 确认 Web 和 Worker 使用同一个 `REDIS_URL`。
 4. 用 Redis 队列检查命令查看 `waiting`、`active`、`failed` 数量。
 5. 查看 Worker 日志是否有数据库、R2 或服务商错误。
+
+
 
 ### 14.5 YouTube 或公开视频任务失败
 
@@ -751,6 +799,8 @@ YT_DLP_PATH="/root/.local/bin/yt-dlp"
 sudo systemctl restart votxt-worker
 ```
 
+
+
 ### 14.6 音频处理或时长识别失败
 
 确认 FFmpeg 和 FFprobe：
@@ -767,6 +817,8 @@ FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 ```
 
+
+
 ### 14.7 回调没有生效但任务最后仍完成
 
 Worker 会优先提交服务商异步任务并等待回调，同时按 `TRANSCRIPTION_POLL_INTERVAL_SECONDS` 轮询。若超出 `TRANSCRIPTION_CALLBACK_TIMEOUT_SECONDS`，会进入同步兜底链路。因此偶发回调失败不一定导致任务失败。
@@ -778,6 +830,8 @@ Worker 会优先提交服务商异步任务并等待回调，同时按 `TRANSCRI
 - 服务商控制台是否能访问回调地址。
 - Web 应用日志是否有 callback token 校验失败。
 
+
+
 ### 14.8 任务失败后用户分钟数异常
 
 Worker 的失败事件会调用额度释放逻辑。请检查：
@@ -785,71 +839,4 @@ Worker 的失败事件会调用额度释放逻辑。请检查：
 - Worker 日志里是否执行到 `failed` 事件。
 - 数据库 `UsageLedger` 是否有对应释放流水。
 - 任务是否被取消；取消任务不会按普通失败逻辑重复释放。
-
-### 14.9 pnpm 报 `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite`
-
-**现象：**
-
-```text
-warn: This version of pnpm requires at least Node.js v22.13
-warn: The current version of Node.js is v20.x.x
-Error [ERR_UNKNOWN_BUILTIN_MODULE]: No such built-in module: node:sqlite
-```
-
-**原因：** `corepack prepare pnpm@latest --activate` 安装了 pnpm 11.x，而 pnpm 10+ 依赖 `node:sqlite`（Node.js 22.5 引入），当前 Node.js 20 不包含该内置模块，导致 pnpm 自身无法启动。
-
-**修复步骤：** 升级 Node.js 到 22.x LTS，不能仅降级 pnpm（降级 pnpm 只是回避问题，且 pnpm 9.x 已停止维护）。
-
-```bash
-# 卸载 Node.js 20
-sudo apt remove -y nodejs
-sudo apt autoremove -y
-
-# 安装 Node.js 22 LTS
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-node -v      # 确认输出 v22.x.x
-
-# 重新激活 pnpm（corepack 缓存里的旧版 pnpm 已绑定旧 Node，需重新准备）
-sudo corepack enable
-corepack prepare pnpm@latest --activate
-pnpm -v      # 确认正常输出版本号，不再报错
-```
-
-升级完成后验证依赖和 Worker 是否正常：
-
-```bash
-cd /data/votxt-worker/Vocto-AI
-pnpm install --frozen-lockfile
-pnpm run prisma:generate
-sudo systemctl restart votxt-worker
-sudo systemctl status votxt-worker --no-pager
-```
-
-## 15. 生产检查清单
-
-- EC2 绑定 Elastic IP，数据库和 Redis 白名单已放行。
-- 安全组入站只开放 SSH，Worker 不暴露公网 HTTP 端口。
-- Node.js 22.x（`node -v` ≥ v22.13）、pnpm、yt-dlp、ffmpeg、ffprobe 均可执行。
-- `/data/votxt-worker/Vocto-AI/.env.worker` 权限为 `600`，未提交到 Git。
-- systemd unit 的 `WorkingDirectory` 与 `EnvironmentFile` 指向 `/data/votxt-worker/Vocto-AI`（或你的实际 clone 目录名）。
-- `REDIS_URL` 是 `redis://` 或 `rediss://`。
-- Web 和 Worker 使用相同 `TRANSCRIBE_QUEUE`。
-- `NEXT_PUBLIC_APP_URL` 和 `TRANSCRIPTION_CALLBACK_BASE_URL` 指向 Web 应用公网域名。
-- `DATABASE_URL`、R2、转写服务商、AI 洞察和翻译密钥已配置。
-- `pnpm install --frozen-lockfile`（含 devDependencies，未用 `--prod` 裁剪）、`pnpm run prisma:generate` 通过；`pnpm build` 为可选自检。
-- `systemctl status votxt-worker` 为 active。
-- 日志包含 `listening on queue transcribe-jobs.`
-- `LOG_DIR` 指向可写目录，已创建且无 “failed to write log file” 报错。
-- `systemctl is-enabled votxt-worker` 为 `enabled`（开机自启）；kill 进程后能在 `RestartSec` 内自动拉起。
-- Web 上传一个短音频后任务能从排队进入完成状态。
-- journald 日志占用和磁盘空间有监控。
-
-## 16. 运维建议
-
-- 使用 systemd 作为默认守护方式，减少 Node.js 进程管理层级。
-- 生产密钥只放在服务器环境变量、AWS Systems Manager Parameter Store 或 Secrets Manager，不提交到仓库。
-- 队列积压时优先横向增加 Worker 实例；扩容前确认 Redis、数据库和转写服务商限额足够。
-- 大版本发布前先在一台灰度 Worker 上验证，再滚动重启其他 Worker。
-- 服务商密钥泄漏时立即轮换，并同步更新 Web、Worker、CI 和部署平台环境变量。
 

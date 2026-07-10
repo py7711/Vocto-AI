@@ -43,7 +43,7 @@ import {
   X
 } from "lucide-react";
 import clsx from "clsx";
-import {PricingAction} from "@/components/pricing-actions";
+import {PricingAction, type PricingCampaign} from "@/components/pricing-actions";
 import {SiteFooter, SiteHeader} from "@/components/site-shell";
 import {TranslationEditor} from "@/components/translation-editor";
 import {fallbackMessages, getWorkspaceCopy, localeLanguageOptions} from "./copy";
@@ -411,8 +411,10 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   const [dashboardLinkResolving, setDashboardLinkResolving] = useState(false);
   const [dashboardLinkResolveError, setDashboardLinkResolveError] = useState<string | null>(null);
   const [dashboardUpgradePromptOpen, setDashboardUpgradePromptOpen] = useState(false);
+  const [dashboardUpgradeCampaign, setDashboardUpgradeCampaign] = useState<PricingCampaign | undefined>(undefined);
   const [dashboardPlansOpen, setDashboardPlansOpen] = useState(false);
   const [dashboardPlansInitialMode, setDashboardPlansInitialMode] = useState<DashboardPricingMode>("monthly");
+  const [dashboardPlansCampaign, setDashboardPlansCampaign] = useState<PricingCampaign | undefined>(undefined);
   const [premiumSpeakerNoticeOpen, setPremiumSpeakerNoticeOpen] = useState(false);
 
   const t = (key: string) => {
@@ -424,6 +426,8 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   };
   const currentSubscription = usageSnapshot?.subscription ?? currentUser?.subscriptions?.[0] ?? null;
   const hasPaidMembership = Boolean(subscriptionGrantsMembership(currentSubscription) || currentUser?.subscriptions?.some(subscriptionGrantsMembership));
+  const hasPurchasedMembership = usageSnapshot?.billing?.hasPurchasedMembership ?? hasPaidMembership;
+  const showDashboardUpgradeCard = Boolean(currentUser?.id && usageSnapshot && !hasPurchasedMembership);
   const isFreePlanUser = Boolean(currentUser?.id && !hasPaidMembership && (currentSubscription?.plan?.toUpperCase() ?? "FREE") === "FREE");
   const availableTranscriptionMinutes = Math.max(0, currentSubscription?.remainingMinutes ?? 120);
   const freeMinutesErrorForDuration = useCallback((durationSeconds: number | null | undefined) => {
@@ -440,8 +444,19 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   }, [isFreePlanUser]);
   const file = files[0] ?? null;
 
-  function openDashboardPlans(mode: DashboardPricingMode = "monthly") {
+  function openDashboardUpgradePrompt(campaign?: PricingCampaign) {
+    setDashboardUpgradeCampaign(campaign);
+    setDashboardUpgradePromptOpen(true);
+  }
+
+  function closeDashboardUpgradePrompt() {
+    setDashboardUpgradePromptOpen(false);
+    setDashboardUpgradeCampaign(undefined);
+  }
+
+  function openDashboardPlans(mode: DashboardPricingMode = "monthly", campaign?: PricingCampaign) {
     setDashboardPlansInitialMode(mode);
+    setDashboardPlansCampaign(campaign);
     setDashboardPlansOpen(true);
   }
 
@@ -1620,7 +1635,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
               setAssetSearch={setAssetSearch}
               activeTaskId={task?.id}
               onSelectTask={loadTaskDetail}
-              onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)}
+              onOpenUpgradePrompt={() => openDashboardUpgradePrompt()}
             />
           </div>
           <section className="min-w-0 flex-1 overflow-y-auto p-4 md:p-8">
@@ -1630,7 +1645,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
                   <WorkspaceLanguageSwitcher locale={locale} copy={copy} placement="below" />
                 </div>
               </div>
-              <DashboardUpgradeCard copy={copy} onOpenUpgradePrompt={() => setDashboardUpgradePromptOpen(true)} onShowPlans={openDashboardPlans} />
+              {showDashboardUpgradeCard ? <DashboardUpgradeCard copy={copy} onShowPlans={openDashboardPlans} /> : null}
 
             <div className="flex flex-1 flex-col bg-white">
               <div className="flex min-w-[358px] items-center justify-between gap-3">
@@ -2072,8 +2087,11 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
                 onSubmit={() => retranscribeTask(task.id)}
               />
             ) : null}
-            {dashboardUpgradePromptOpen ? <DashboardUpgradePrompt copy={copy} onClose={() => setDashboardUpgradePromptOpen(false)} onShowPlans={openDashboardPlans} /> : null}
-            {dashboardPlansOpen ? <DashboardPricingOverlay locale={locale} initialMode={dashboardPlansInitialMode} onClose={() => setDashboardPlansOpen(false)} /> : null}
+            {dashboardUpgradePromptOpen ? <DashboardUpgradePrompt copy={copy} campaign={dashboardUpgradeCampaign} onClose={closeDashboardUpgradePrompt} onShowPlans={openDashboardPlans} /> : null}
+            {dashboardPlansOpen ? <DashboardPricingOverlay locale={locale} initialMode={dashboardPlansInitialMode} campaign={dashboardPlansCampaign} onClose={() => {
+              setDashboardPlansOpen(false);
+              setDashboardPlansCampaign(undefined);
+            }} /> : null}
             </div>
           </section>
       </section>
@@ -2262,7 +2280,7 @@ function MarketingHero({
   );
 }
 
-function DashboardUpgradePrompt({copy, onClose, onShowPlans}: {copy: ReturnType<typeof getWorkspaceCopy>; onClose: () => void; onShowPlans: (mode: DashboardPricingMode) => void}) {
+function DashboardUpgradePrompt({copy, campaign, onClose, onShowPlans}: {copy: ReturnType<typeof getWorkspaceCopy>; campaign?: PricingCampaign; onClose: () => void; onShowPlans: (mode: DashboardPricingMode, campaign?: PricingCampaign) => void}) {
   const [selectedCycle, setSelectedCycle] = useState<"annual" | "monthly">("annual");
   const promptCopy = copy.dashboardPricing.upgradePrompt;
 
@@ -2367,6 +2385,7 @@ function DashboardUpgradePrompt({copy, onClose, onShowPlans}: {copy: ReturnType<
             <PricingAction
               plan="BASIC"
               mode={selectedCycle === "annual" ? "annual" : "monthly"}
+              campaign={selectedCycle === "annual" ? campaign : undefined}
               label={promptCopy.upgradeNow}
               showIcon={false}
               wrapperClassName="mt-0"
@@ -2377,7 +2396,7 @@ function DashboardUpgradePrompt({copy, onClose, onShowPlans}: {copy: ReturnType<
                 type="button"
                 onClick={() => {
                   onClose();
-                  onShowPlans("annual");
+                  onShowPlans("annual", campaign);
                 }}
                 className="text-sm font-bold leading-5 text-slate-500 underline decoration-slate-300 underline-offset-4 transition hover:text-primary"
               >
@@ -2397,7 +2416,7 @@ function DashboardUpgradePrompt({copy, onClose, onShowPlans}: {copy: ReturnType<
   );
 }
 
-function DashboardUpgradeCard({copy, onOpenUpgradePrompt, onShowPlans}: {copy: ReturnType<typeof getWorkspaceCopy>; onOpenUpgradePrompt: () => void; onShowPlans: (mode: DashboardPricingMode) => void}) {
+function DashboardUpgradeCard({copy, onShowPlans}: {copy: ReturnType<typeof getWorkspaceCopy>; onShowPlans: (mode: DashboardPricingMode, campaign?: PricingCampaign) => void}) {
   const [countdown, setCountdown] = useState(() => dashboardPromotionInitialCountdown);
   const cardCopy = copy.dashboardPricing.upgradeCard;
 
@@ -2437,13 +2456,17 @@ function DashboardUpgradeCard({copy, onOpenUpgradePrompt, onShowPlans}: {copy: R
             </div>
 
             <div className="mt-4 max-w-[542.4px] max-md:mt-6">
-              <button type="button" onClick={onOpenUpgradePrompt} className="inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary bg-gradient-to-r from-primary/70 to-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-all duration-200 hover:from-primary hover:to-primary/80 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-                <Sparkles size={19} />
-                {cardCopy.upgradeNow}
-              </button>
+              <PricingAction
+                plan="BASIC"
+                mode="annual"
+                campaign="BASIC_ANNUAL_BFY60"
+                label={cardCopy.upgradeNow}
+                wrapperClassName="mt-0"
+                buttonClassName="h-10 rounded-md bg-primary bg-gradient-to-r from-primary/70 to-primary text-sm font-medium text-primary-foreground shadow-lg transition-all duration-200 hover:from-primary hover:to-primary/80 hover:shadow-xl focus-visible:ring-primary"
+              />
               <button
                 type="button"
-                onClick={() => onShowPlans("monthly")}
+                onClick={() => onShowPlans("monthly", "BASIC_ANNUAL_BFY60")}
                 className="mx-auto mt-3.5 flex h-5 items-center justify-center text-sm font-medium leading-5 text-slate-500 underline decoration-slate-400 underline-offset-4 transition hover:text-primary max-md:mt-4 max-md:block"
                 aria-expanded="false"
                 aria-controls="dashboard-all-plans"
@@ -2474,7 +2497,7 @@ function DashboardUpgradeCard({copy, onOpenUpgradePrompt, onShowPlans}: {copy: R
   );
 }
 
-export function DashboardPricingOverlay({locale, onClose, initialMode = "monthly"}: {locale: string; onClose: () => void; initialMode?: DashboardPricingMode}) {
+export function DashboardPricingOverlay({locale, onClose, initialMode = "monthly", campaign}: {locale: string; onClose: () => void; initialMode?: DashboardPricingMode; campaign?: PricingCampaign}) {
   const [pricingMode, setPricingMode] = useState<DashboardPricingMode>(initialMode);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -2532,7 +2555,7 @@ export function DashboardPricingOverlay({locale, onClose, initialMode = "monthly
         <div className={clsx("min-w-0 max-w-full overflow-x-auto px-14 pb-8 [scrollbar-width:thin]", activePricing.note ? "mt-3" : "mt-8")}>
           <div className={clsx("mx-auto flex min-w-max items-stretch gap-4", pricingMode === "one-time" && "justify-center")}>
             {activePricing.plans.map((plan) => (
-              <DashboardPlanCard key={plan.name} plan={plan} locale={locale} pricingMode={pricingMode} pricingCopy={pricingCopy} />
+              <DashboardPlanCard key={plan.name} plan={plan} locale={locale} pricingMode={pricingMode} pricingCopy={pricingCopy} campaign={campaign} />
             ))}
           </div>
         </div>
@@ -2597,7 +2620,7 @@ function DashboardPricingFeatureLabel({feature, pricingCopy}: {feature: Dashboar
   );
 }
 
-function DashboardPlanCard({plan, locale, pricingMode, pricingCopy}: {plan: DashboardPricingPlan; locale: string; pricingMode: DashboardPricingMode; pricingCopy: DashboardPricingCopy}) {
+function DashboardPlanCard({plan, locale, pricingMode, pricingCopy, campaign}: {plan: DashboardPricingPlan; locale: string; pricingMode: DashboardPricingMode; pricingCopy: DashboardPricingCopy; campaign?: PricingCampaign}) {
   const ctaClassName = clsx(
     "h-10 w-full rounded-md px-4 py-2 text-sm font-medium",
     plan.popular ? "bg-primary text-white hover:bg-primary/90" : "border border-slate-200 bg-white text-ink hover:border-primary hover:bg-white"
@@ -2629,6 +2652,7 @@ function DashboardPlanCard({plan, locale, pricingMode, pricingCopy}: {plan: Dash
             pack={plan.pack}
             label={planCta}
             mode={pricingMode}
+            campaign={pricingMode === "annual" && plan.plan === "BASIC" ? campaign : undefined}
             variant={plan.popular ? "primary" : "outline"}
             wrapperClassName="!mt-0 mb-6"
             buttonClassName={ctaClassName}

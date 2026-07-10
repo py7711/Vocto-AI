@@ -82,16 +82,25 @@ DEEPSEEK_FLASH_MODEL="deepseek-v4-flash"
 ```bash
 STRIPE_SECRET_KEY=""
 STRIPE_WEBHOOK_SECRET=""
-STRIPE_PRICE_BASIC=""
-STRIPE_PRICE_STANDARD=""
-STRIPE_PRICE_PRO=""
+STRIPE_PRICE_BASIC_MONTHLY=""
+STRIPE_PRICE_STANDARD_MONTHLY=""
+STRIPE_PRICE_PRO_MONTHLY=""
+STRIPE_PRICE_BASIC_ANNUAL=""
+STRIPE_PRICE_STANDARD_ANNUAL=""
+STRIPE_PRICE_PRO_ANNUAL=""
+STRIPE_PRICE_LITE=""
+STRIPE_PRICE_PLUS=""
+STRIPE_PRICE_ADDON_BASIC=""
+STRIPE_PRICE_ADDON_STANDARD=""
+STRIPE_PRICE_ADDON_PRO=""
 ```
 
-当前已实现 Stripe 支付会话、客户订阅管理入口和 Webhook 路由。生产环境还需要在 Stripe 后台创建三个订阅价格，并把价格 ID 填入：
+当前已实现 Stripe 支付会话、客户订阅管理入口、Webhook 路由和本地订单记录。生产环境需要在 Stripe 后台创建以下 Price，并把 Price ID 填入：
 
-- `STRIPE_PRICE_BASIC`：Basic 月付价格。
-- `STRIPE_PRICE_STANDARD`：Standard 月付价格。
-- `STRIPE_PRICE_PRO`：Pro 月付价格。
+- `STRIPE_PRICE_BASIC_MONTHLY`、`STRIPE_PRICE_STANDARD_MONTHLY`、`STRIPE_PRICE_PRO_MONTHLY`：Basic/Standard/Pro 月付订阅价格。
+- `STRIPE_PRICE_BASIC_ANNUAL`、`STRIPE_PRICE_STANDARD_ANNUAL`、`STRIPE_PRICE_PRO_ANNUAL`：Basic/Standard/Pro 年付订阅价格。
+- `STRIPE_PRICE_LITE`、`STRIPE_PRICE_PLUS`：Lite/Plus 一次性分钟包价格。
+- `STRIPE_PRICE_ADDON_BASIC`、`STRIPE_PRICE_ADDON_STANDARD`、`STRIPE_PRICE_ADDON_PRO`：付费订阅用户加购分钟包价格。
 
 Stripe Webhook 回调地址配置为：
 
@@ -102,6 +111,9 @@ https://你的域名/api/billing/webhook
 建议订阅以下事件：
 
 - `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
@@ -273,13 +285,14 @@ Worker 容器必须能访问 Redis、数据库、R2 和所有 AI 服务商。
 - `User` 表包含 `password_hash`、`role`、`email_verified_at`、`last_login_at` 字段。
 - 数据库包含 `OAuthAccount` 和 `EmailVerificationToken` 表。
 - 数据库包含 `UsageLedger` 表，任务创建会预留分钟，任务完成会按实际时长结算，任务失败会释放预留分钟。
+- 数据库包含 `BillingOrder` 表，套餐按钮点击后会先创建订单，再进入 Stripe Checkout。
 - 数据库包含 `ShareLink` 表。
 - 数据库结构已与 `prisma/schema.prisma` 对齐；空库可使用 `prisma/sql/all.sql`，已有生产库需使用经过审核的迁移方案。
 - `/api/account/usage` 可返回当前个人账号的套餐、今日文件数、账期分钟、剩余分钟、本月任务数和最近流水。
 - 仪表盘能显示真实今日文件数、账期分钟、剩余分钟、本月任务数、转写和翻译资产双视图、个人任务列表和用量流水。
 - `/api/tasks/:taskId/share` 可创建公开分享链接，`/[locale]/share/:token` 和 `/api/share/:token/exports/:format` 可公开只读访问。
-- Stripe 已配置 `STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`STRIPE_PRICE_BASIC`、`STRIPE_PRICE_STANDARD`、`STRIPE_PRICE_PRO`。
-- Stripe Webhook 回调地址指向 `/api/billing/webhook`，并订阅支付会话与订阅事件。
+- Stripe 已配置 `STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、3 个订阅套餐的月付/年付 Price ID、2 个一次性分钟包 Price ID 和 3 个加购分钟包 Price ID。
+- Stripe Webhook 回调地址指向 `/api/billing/webhook`，并订阅 `checkout.session.*` 支付结果事件与 `customer.subscription.*` 订阅事件。
 - `/api/upload/generate-signed-url` 在 R2 配置后可返回上传 URL；`/api/uploads` 作为旧工作台兼容别名保留。
 - `/api/tasks` 在 Redis 和数据库配置后可创建任务，也可返回当前个人账号历史任务列表。
 - Worker 能消费 `TRANSCRIBE_QUEUE` 配置的队列，默认是 `votxt-transcribe`。

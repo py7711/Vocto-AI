@@ -4,6 +4,7 @@ import {getCurrentUser} from "@/lib/auth";
 import {createBillingPortalSession} from "@/lib/billing";
 import {getRequestOrigin} from "@/lib/request-origin";
 import {logApiError} from "@/lib/api-logger";
+import {billingActionCopy, normalizeBillingLocale} from "@/lib/billing-copy";
 
 const portalSchema = z.object({
   returnPath: z.string().max(240).optional()
@@ -16,14 +17,30 @@ function normalizeReturnPath(path: string | undefined, fallback: string) {
   return path;
 }
 
+function localeFromPath(path?: string | null) {
+  if (!path) return null;
+  try {
+    const [, locale] = path.startsWith("/") ? path.split("/") : new URL(path).pathname.split("/");
+    return normalizeBillingLocale(locale);
+  } catch {
+    return null;
+  }
+}
+
+function localeFromReferer(referer?: string | null) {
+  return localeFromPath(referer);
+}
+
 export async function POST(request: Request) {
+  let responseLocale = localeFromReferer(request.headers.get("referer")) ?? "en";
   try {
     const input = portalSchema.parse(await request.json().catch(() => ({})));
     const user = await getCurrentUser();
     const stripeCustomerId = user?.subscriptions?.[0]?.stripeCustomerId;
+    responseLocale = localeFromPath(input.returnPath) ?? localeFromReferer(request.headers.get("referer")) ?? normalizeBillingLocale(user?.locale) ?? "en";
 
     if (!user || !stripeCustomerId) {
-      return NextResponse.json({error: "当前账号还没有可管理的 Stripe 客户记录。"}, {status: 400});
+      return NextResponse.json({error: billingActionCopy[responseLocale].noPortalCustomer}, {status: 400});
     }
 
     const appUrl = getRequestOrigin(request);
@@ -36,7 +53,6 @@ export async function POST(request: Request) {
     return NextResponse.json({url: session.url});
   } catch (error) {
     logApiError(error, request);
-    const message = error instanceof Error ? error.message : "无法打开客户门户。";
-    return NextResponse.json({error: message}, {status: 400});
+    return NextResponse.json({error: billingActionCopy[responseLocale].portalError}, {status: 502});
   }
 }

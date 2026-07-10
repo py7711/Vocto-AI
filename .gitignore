@@ -19,3 +19,5 @@ exports
 scripts/.fonts/
 .DS_Store
 /docs/design-reference/
+.agents/
+skills-lock.json

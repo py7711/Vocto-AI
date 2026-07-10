@@ -32,6 +32,7 @@ DROP TABLE IF EXISTS `AIInsight`;
 DROP TABLE IF EXISTS `TranscriptRating`;
 DROP TABLE IF EXISTS `Transcript`;
 DROP TABLE IF EXISTS `UsageLedger`;
+DROP TABLE IF EXISTS `BillingOrder`;
 DROP TABLE IF EXISTS `MediaAsset`;
 DROP TABLE IF EXISTS `MediaTask`;
 DROP TABLE IF EXISTS `Folder`;
@@ -204,6 +205,44 @@ CREATE TABLE `Subscription` (
   CONSTRAINT `Subscription_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订阅表，保存套餐、额度、Stripe 订阅和账期信息';
 
+CREATE TABLE `BillingOrder` (
+  `id` VARCHAR(32) NOT NULL COMMENT '订单记录 ID，应用层使用 cuid 生成',
+  `userId` VARCHAR(32) NOT NULL COMMENT '关联用户 ID',
+  `subscriptionId` VARCHAR(32) NULL COMMENT '关联订阅 ID，订阅创建前可为空',
+  `type` ENUM('SUBSCRIPTION', 'ONE_TIME_PACK', 'ADDON_PACK') NOT NULL COMMENT '订单类型：订阅、一次性分钟包或订阅加购包',
+  `status` ENUM('PENDING', 'CHECKOUT_OPEN', 'PAID', 'ACTIVE', 'CANCELED', 'EXPIRED', 'FAILED') NOT NULL DEFAULT 'PENDING' COMMENT '订单状态',
+  `interval` ENUM('MONTHLY', 'ANNUAL', 'ONE_TIME') NOT NULL COMMENT '账单周期：月付、年付或一次性',
+  `itemCode` VARCHAR(64) NOT NULL COMMENT '业务套餐代码，例如 BASIC、PLUS、ADDON_PRO',
+  `itemName` VARCHAR(120) NOT NULL COMMENT '用户可见的套餐名称',
+  `minutes` INT NOT NULL COMMENT '订单包含的分钟额度',
+  `currency` VARCHAR(8) NOT NULL DEFAULT 'usd' COMMENT '币种，使用小写 ISO 货币代码，例如 usd',
+  `amountSubtotal` INT NOT NULL COMMENT '订单小计，单位为最小货币单位，例如美分',
+  `amountTotal` INT NOT NULL COMMENT '订单总额，单位为最小货币单位，例如美分',
+  `stripePriceId` VARCHAR(128) NOT NULL COMMENT 'Stripe Price ID',
+  `stripeCustomerId` VARCHAR(128) NULL COMMENT 'Stripe Customer ID',
+  `stripeCheckoutSessionId` VARCHAR(128) NULL COMMENT 'Stripe Checkout Session ID',
+  `stripePaymentIntentId` VARCHAR(128) NULL COMMENT 'Stripe PaymentIntent ID，一次性支付订单使用',
+  `stripeSubscriptionId` VARCHAR(128) NULL COMMENT 'Stripe Subscription ID，订阅订单使用',
+  `stripeInvoiceId` VARCHAR(128) NULL COMMENT 'Stripe Invoice ID',
+  `stripePaymentStatus` VARCHAR(64) NULL COMMENT 'Stripe 支付状态，例如 paid、unpaid、no_payment_required',
+  `checkoutUrl` VARCHAR(2048) NULL COMMENT 'Stripe Checkout Session URL，便于排查未完成支付',
+  `checkoutExpiresAt` DATETIME(3) NULL COMMENT 'Stripe Checkout Session 过期时间',
+  `paidAt` DATETIME(3) NULL COMMENT '订单支付完成时间',
+  `canceledAt` DATETIME(3) NULL COMMENT '订单取消时间',
+  `metadata` JSON NULL COMMENT 'Stripe 事件、优惠、税费等扩展元数据',
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '订单创建时间',
+  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '订单更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `BillingOrder_stripeCheckoutSessionId_key` (`stripeCheckoutSessionId`),
+  KEY `BillingOrder_userId_createdAt_idx` (`userId`, `createdAt`),
+  KEY `BillingOrder_subscriptionId_idx` (`subscriptionId`),
+  KEY `BillingOrder_status_createdAt_idx` (`status`, `createdAt`),
+  KEY `BillingOrder_stripeCustomerId_idx` (`stripeCustomerId`),
+  KEY `BillingOrder_stripeSubscriptionId_idx` (`stripeSubscriptionId`),
+  CONSTRAINT `BillingOrder_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `BillingOrder_subscriptionId_fkey` FOREIGN KEY (`subscriptionId`) REFERENCES `Subscription` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='账单订单表，记录套餐点击后生成的 Stripe 支付和订阅订单';
+
 CREATE TABLE `OAuthAccount` (
   `id` VARCHAR(32) NOT NULL COMMENT 'OAuth 账号绑定 ID，应用层使用 cuid 生成',
   `userId` VARCHAR(32) NOT NULL COMMENT '关联用户 ID',
@@ -326,8 +365,10 @@ CREATE TABLE `UsageLedger` (
   `type` ENUM('RESERVE', 'SETTLE', 'RELEASE', 'ADJUST') NOT NULL COMMENT '流水类型：预留、结算、释放或手工调整',
   `minutesDelta` INT NOT NULL COMMENT '分钟变化量，扣减为负数，释放或赠送为正数',
   `reason` VARCHAR(255) NULL COMMENT '流水备注，便于排查额度变化原因',
+  `idempotencyKey` VARCHAR(191) NULL COMMENT '外部事件幂等键，例如 Stripe Checkout Session，用于防止重复发放权益',
   `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '用量流水创建时间',
   PRIMARY KEY (`id`),
+  UNIQUE KEY `UsageLedger_idempotencyKey_key` (`idempotencyKey`),
   KEY `UsageLedger_userId_createdAt_idx` (`userId`, `createdAt`),
   KEY `UsageLedger_subscriptionId_createdAt_idx` (`subscriptionId`, `createdAt`),
   KEY `UsageLedger_mediaTaskId_idx` (`mediaTaskId`),
