@@ -281,6 +281,25 @@ export async function createBillingPortalSession(input: {customerId: string; ret
   return stripeRequest<{url: string}>("/billing_portal/sessions", body);
 }
 
+export async function retrieveCheckoutSession(sessionId: string) {
+  return stripeGet<{
+    id: string;
+    mode?: string;
+    status?: string;
+    payment_status?: string;
+    customer?: string;
+    subscription?: string;
+    payment_intent?: string;
+    invoice?: string;
+    client_reference_id?: string;
+    metadata?: Record<string, string>;
+    created?: number;
+    currency?: string;
+    amount_subtotal?: number;
+    amount_total?: number;
+  }>(`/checkout/sessions/${encodeURIComponent(sessionId)}`, new URLSearchParams());
+}
+
 export function verifyStripeWebhookSignature(payload: string, signatureHeader: string | null) {
   if (!env.STRIPE_WEBHOOK_SECRET) {
     throw new Error("STRIPE_WEBHOOK_SECRET 未配置。");

@@ -40,6 +40,13 @@ function normalizeReturnPath(path: string | undefined, fallback: string) {
   return path;
 }
 
+function withCheckoutSessionPlaceholder(path: string) {
+  const [pathname, hash = ""] = path.split("#", 2);
+  const separator = pathname.includes("?") ? "&" : "?";
+  const nextPath = pathname.includes("session_id=") ? pathname : `${pathname}${separator}session_id={CHECKOUT_SESSION_ID}`;
+  return hash ? `${nextPath}#${hash}` : nextPath;
+}
+
 function normalizeLocale(value?: string | null) {
   return normalizeBillingLocale(value);
 }
@@ -114,7 +121,7 @@ export async function POST(request: Request) {
     let checkoutCustomerId = stripeCustomerId;
 
     const appUrl = getRequestOrigin(request);
-    const successPath = normalizeReturnPath(input.successPath, `/${responseLocale}/dashboard?checkout=success`);
+    const successPath = withCheckoutSessionPlaceholder(normalizeReturnPath(input.successPath, `/${responseLocale}/dashboard?checkout=success`));
     const cancelPath = normalizeReturnPath(input.cancelPath, input.pack || input.addon ? `/${responseLocale}/dashboard?checkout=cancel` : `/${responseLocale}/pricing?checkout=cancel`);
     const orderDraft = (() => {
       if (input.addon) {

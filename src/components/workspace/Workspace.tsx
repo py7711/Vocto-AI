@@ -361,6 +361,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   const inputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<BlobPart[]>([]);
+  const confirmedCheckoutSessionsRef = useRef<Set<string>>(new Set());
   const [mode, setMode] = useState<InputMode>("upload");
   const [files, setFiles] = useState<File[]>([]);
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -644,6 +645,32 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
         setTaskListInitialized(true);
       });
   }, [refreshTaskList, refreshUsageSnapshot, variant]);
+
+  useEffect(() => {
+    if (variant !== "dashboard" || !currentUser?.id) return;
+    if (searchParams.get("checkout") !== "success") return;
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId || confirmedCheckoutSessionsRef.current.has(sessionId)) return;
+    confirmedCheckoutSessionsRef.current.add(sessionId);
+
+    fetch("/api/billing/checkout/confirm", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({sessionId, locale})
+    })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error ?? copy.readUsageError);
+        return body as {reconciled?: boolean; reason?: string};
+      })
+      .then(() => {
+        refreshUsageSnapshot().catch(() => undefined);
+      })
+      .catch((cause) => {
+        confirmedCheckoutSessionsRef.current.delete(sessionId);
+        setError(cause instanceof Error ? cause.message : String(cause));
+      });
+  }, [copy.readUsageError, currentUser?.id, locale, refreshUsageSnapshot, searchParams, variant]);
 
   useEffect(() => {
     if (variant !== "dashboard" || !currentUser?.id) return;
