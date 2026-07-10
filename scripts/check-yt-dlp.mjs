@@ -30,6 +30,23 @@ function run(command, args) {
 
 console.log("yt-dlp path:", ytDlpPath, existsSync(ytDlpPath) ? "OK" : "MISSING");
 console.log("cookies path:", cookiesPath, existsSync(cookiesPath) ? "OK" : "MISSING");
+if (existsSync(cookiesPath)) {
+  const content = await import("node:fs").then((fs) => fs.readFileSync(cookiesPath, "utf8"));
+  const names = new Set();
+  for (const line of content.split("\n")) {
+    if (!line || line.startsWith("#")) continue;
+    const parts = line.split("\t");
+    if (parts.length >= 6 && parts[0].includes("youtube.com")) names.add(parts[5].trim());
+  }
+  const missing = ["SID", "HSID", "SSID"].filter((n) => !names.has(n));
+  const hasSecure = names.has("__Secure-1PSID") || names.has("__Secure-3PSID");
+  if (missing.length || !hasSecure) {
+    console.error("cookies validation: INCOMPLETE (missing:", missing.join(", ") || "session", ")");
+    console.error("Hint: export from logged-in browser using Get cookies.txt LOCALLY extension.");
+  } else {
+    console.log("cookies validation: OK");
+  }
+}
 console.log("node path:", process.execPath);
 console.log("test url:", testUrl);
 
@@ -55,7 +72,7 @@ if (result.code === 0) {
 
 console.error("yt-dlp metadata: FAILED");
 console.error(result.stderr.trim() || result.stdout.trim());
-if (/not a bot/i.test(result.stderr) && !existsSync(cookiesPath)) {
-  console.error("\nHint: export YouTube cookies to config/youtube-cookies.txt then rerun.");
+if (/not a bot/i.test(result.stderr)) {
+  console.error("\nHint: cookies missing, invalid, or expired. Re-export from logged-in browser.");
 }
 process.exit(1);

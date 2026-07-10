@@ -1,5 +1,5 @@
 import {spawn} from "node:child_process";
-import {existsSync} from "node:fs";
+import {existsSync, readFileSync} from "node:fs";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdtemp, readdir, readFile, rm, stat} from "node:fs/promises";
 import {tmpdir} from "node:os";
@@ -109,6 +109,46 @@ function resolveYoutubeCookiesPath() {
   }
 
   return undefined;
+}
+
+function validateYoutubeCookiesFile(cookiesPath: string) {
+  const content = readFileSync(cookiesPath, "utf8");
+  const names = new Set<string>();
+  for (const line of content.split("\n")) {
+    if (!line || line.startsWith("#")) continue;
+    const parts = line.split("\t");
+    if (parts.length >= 6 && parts[0].includes("youtube.com")) {
+      names.add(parts[5].trim());
+    }
+  }
+
+  const missing = ["SID", "HSID", "SSID"].filter((name) => !names.has(name));
+  const hasSecureSession = names.has("__Secure-1PSID") || names.has("__Secure-3PSID");
+  if (missing.length > 0 || !hasSecureSession) {
+    return {
+      ok: false,
+      message: `cookies 文件不完整（缺少 ${missing.join("、") || "会话字段"}）。请在已登录 YouTube 的浏览器中用 Get cookies.txt LOCALLY 扩展导出完整 Netscape 格式，覆盖 ${cookiesPath}。`
+    };
+  }
+
+  return {ok: true as const};
+}
+
+function youtubeCookiesGuidance(cookiesPath?: string) {
+  const target = cookiesPath || "config/youtube-cookies.txt";
+  return `请在浏览器登录 YouTube 后，用 Get cookies.txt LOCALLY 扩展导出完整 Netscape 格式 cookies，上传到 ${target}，执行 chmod 600 ${target} && pm2 restart all。`;
+}
+
+function formatYoutubeDownloadError(message: string, cookiesPath?: string) {
+  if (!isYoutubeBotBlockedError(message)) return message;
+
+  if (cookiesPath) {
+    const validation = validateYoutubeCookiesFile(cookiesPath);
+    if (!validation.ok) return validation.message;
+    return `YouTube cookies 已配置但无效或已过期，服务器仍被识别为机器人。${youtubeCookiesGuidance(cookiesPath)}`;
+  }
+
+  return `YouTube 阻止了服务器下载音频。${youtubeCookiesGuidance()}`;
 }
 
 function isYoutubeBotBlockedError(message: string) {
@@ -317,27 +357,8 @@ function collectYtDlp(args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
 }
 
 function run(command: string, args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
-  return new Promise<void>((resolve, reject) => {
-    // run 只用于需要 yt-dlp 写临时文件的字幕下载；音频/视频转写走直链解析，不落地转码。
-    const child = spawn(command, args, {stdio: "inherit", env: ytDlpSpawnEnv()});
-    const timer = setTimeout(() => {
-      child.kill("SIGTERM");
-      reject(new Error(`${command} 执行超过 ${Math.round(timeoutMs / 1000)} 秒后超时。`));
-    }, timeoutMs);
-
-    child.on("error", (error) => {
-      clearTimeout(timer);
-      reject(friendlyToolError(command, error));
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`${command} 退出，退出码 ${code}`));
-      }
-    });
-  });
+  // 与 collect/runCapture 一致捕获 stderr，避免 Worker 日志只显示「退出码 1」而看不到 bot 拦截详情。
+  return runCapture(command, args, timeoutMs).then(() => undefined);
 }
 
 function runYtDlp(args: string[], timeoutMs = DEFAULT_TIMEOUT_MS) {
@@ -512,10 +533,9 @@ async function downloadRemoteMedia(input: {
       ], 15 * 60_000);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (isYoutubeBotBlockedError(message) && !resolveYoutubeCookiesPath()) {
-        throw new Error(
-          "YouTube 阻止了服务器下载音频。请上传浏览器导出的 cookies 到 config/youtube-cookies.txt，或在 .env 设置 YT_DLP_COOKIES_PATH，然后执行 pm2 restart all。"
-        );
+      const cookiesPath = resolveYoutubeCookiesPath();
+      if (isYoutubeBotBlockedError(message) || (cookiesPath && /退出，退出码 1/.test(message))) {
+        throw new Error(formatYoutubeDownloadError(message, cookiesPath));
       }
       throw error;
     }
