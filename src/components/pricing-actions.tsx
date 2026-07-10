@@ -46,6 +46,24 @@ function toPublicBillingError(message: string | undefined, fallback: string) {
   return internalBillingErrorPatterns.some((pattern) => pattern.test(message)) ? fallback : message;
 }
 
+function openCheckoutWindow() {
+  const checkoutWindow = window.open("about:blank", "_blank");
+  if (checkoutWindow) {
+    checkoutWindow.opener = null;
+    checkoutWindow.document.title = "Stripe Checkout";
+    checkoutWindow.document.body.innerHTML = "<p style=\"font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; color: #475569;\">Opening Stripe Checkout...</p>";
+  }
+  return checkoutWindow;
+}
+
+function redirectToCheckout(url: string, checkoutWindow: Window | null) {
+  if (checkoutWindow && !checkoutWindow.closed) {
+    checkoutWindow.location.href = url;
+    return;
+  }
+  window.open(url, "_blank", "noopener,noreferrer") ?? window.location.assign(url);
+}
+
 export function PricingAction({plan, pack, addon, label, showPortal = false, mode, campaign, successPath, cancelPath, variant = "primary", wrapperClassName, buttonClassName, showIcon = true}: PricingActionProps) {
   const locale = useLocale();
   const normalizedLocale = isLocale(locale) ? locale : "en";
@@ -61,6 +79,7 @@ export function PricingAction({plan, pack, addon, label, showPortal = false, mod
 
     setBusy(true);
     setError(null);
+    const checkoutWindow = openCheckoutWindow();
     try {
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -78,12 +97,14 @@ export function PricingAction({plan, pack, addon, label, showPortal = false, mod
       });
       const data = await readJson(response);
       if (response.status === 401) {
+        checkoutWindow?.close();
         window.location.href = `/${locale}/auth/signin`;
         return;
       }
       if (!response.ok || !data.url) throw new Error(toPublicBillingError(data.error, copy.checkoutError));
-      window.location.href = data.url;
+      redirectToCheckout(data.url, checkoutWindow);
     } catch (cause) {
+      checkoutWindow?.close();
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setBusy(false);
