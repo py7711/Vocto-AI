@@ -36,6 +36,28 @@ function cleanDriveFileName(name: string) {
   return name.replace(/[^\w.\-]+/g, "_").slice(-120) || "google-drive-media";
 }
 
+function driveFileSizeBytes(file: DriveFile) {
+  if (!file.size) return undefined;
+  const sizeBytes = Number(file.size);
+  return Number.isFinite(sizeBytes) && sizeBytes > 0 ? sizeBytes : undefined;
+}
+
+async function assertDriveFileWithinUploadLimit(userId: string, file: DriveFile) {
+  const sizeBytes = driveFileSizeBytes(file);
+  if (!sizeBytes) return;
+
+  const subscription = await prisma.subscription.findFirst({
+    where: {userId, status: {in: ["TRIALING", "ACTIVE"]}},
+    orderBy: {createdAt: "desc"},
+    select: {maxUploadBytes: true}
+  });
+  const maxUploadBytes = Number(subscription?.maxUploadBytes ?? BigInt(10 * 1024 * 1024 * 1024));
+  if (sizeBytes > maxUploadBytes) {
+    const maxMegabytes = Math.max(1, Math.floor(maxUploadBytes / 1024 / 1024));
+    throw new Error(`文件超过当前套餐的单文件大小上限（${maxMegabytes} MB）。`);
+  }
+}
+
 async function importDriveMediaToStorage(input: {
   file: DriveFile;
   accessToken: string;
@@ -51,14 +73,18 @@ async function importDriveMediaToStorage(input: {
     const message = await response.text().catch(() => "");
     throw new Error(message || "无法下载 Google Drive 媒体文件。");
   }
+  if (!response.body) {
+    throw new Error("Google Drive 未返回媒体文件内容。");
+  }
 
-  const body = new Uint8Array(await response.arrayBuffer());
+  const responseContentLength = Number(response.headers.get("content-length"));
+  const contentLength = driveFileSizeBytes(input.file) ?? (Number.isFinite(responseContentLength) && responseContentLength > 0 ? responseContentLength : undefined);
   const key = `uploads/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${cleanDriveFileName(input.file.name)}`;
   return putObject({
     key,
-    body,
+    body: response.body,
     contentType: input.file.mimeType || response.headers.get("content-type") || "application/octet-stream",
-    contentLength: body.byteLength
+    contentLength
   });
 }
 
@@ -76,6 +102,7 @@ export async function POST(request: Request) {
     if (!file.mimeType?.startsWith("audio/") && !file.mimeType?.startsWith("video/")) {
       return NextResponse.json({error: "只能导入音频或视频文件。"}, {status: 400});
     }
+    await assertDriveFileWithinUploadLimit(user.id, file);
     const stored = await importDriveMediaToStorage({
       file,
       accessToken: connection.accessToken

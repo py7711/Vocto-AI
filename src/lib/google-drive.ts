@@ -4,8 +4,8 @@ import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 
 const driveScopes = [
-  // Match the target OAuth flow: ask only for Drive file access and copy selected media into object storage.
-  "https://www.googleapis.com/auth/drive.file"
+  // 只读读取用户选择/搜索到的媒体文件；导入时会复制到 Votxt 对象存储，不修改用户云盘。
+  "https://www.googleapis.com/auth/drive.readonly"
 ];
 
 type GoogleTokenResponse = {
@@ -23,11 +23,11 @@ export function googleDriveScopes() {
   return driveScopes.join(" ");
 }
 
-export function googleDriveRedirectUri() {
-  return `${env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/auth/google-drive/callback`;
+export function googleDriveRedirectUri(appUrl = env.NEXT_PUBLIC_APP_URL) {
+  return `${appUrl.replace(/\/$/, "")}/auth/google-drive/callback`;
 }
 
-export async function exchangeDriveCode(code: string) {
+export async function exchangeDriveCode(code: string, redirectUri = googleDriveRedirectUri()) {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     throw new Error("Google OAuth 未配置。");
   }
@@ -37,7 +37,7 @@ export async function exchangeDriveCode(code: string) {
   body.set("client_secret", env.GOOGLE_CLIENT_SECRET);
   body.set("code", code);
   body.set("grant_type", "authorization_code");
-  body.set("redirect_uri", googleDriveRedirectUri());
+  body.set("redirect_uri", redirectUri);
 
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",

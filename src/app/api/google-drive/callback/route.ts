@@ -1,9 +1,9 @@
 import {NextResponse} from "next/server";
 import {consumeSignedStateCookie, getCurrentUser} from "@/lib/auth";
-import {env} from "@/lib/env";
 import {exchangeDriveCode} from "@/lib/google-drive";
 import {prisma} from "@/lib/prisma";
 import {logApiError} from "@/lib/api-logger";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const stateCookie = "votxt_drive_state";
 
@@ -16,20 +16,22 @@ async function fetchDriveEmail(accessToken: string) {
 }
 
 export async function GET(request: Request) {
-  const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  const appUrl = getRequestOrigin(request);
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const oauthError = url.searchParams.get("error_description") || url.searchParams.get("error");
   const state = url.searchParams.get("state") || "";
   const [rawState, locale = "en"] = state.split(":");
 
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error("请先登录。");
+    if (oauthError) throw new Error(oauthError);
     if (!code || !rawState || !consumeSignedStateCookie(stateCookie, rawState)) {
       throw new Error("Google Drive 授权状态已过期。");
     }
 
-    const token = await exchangeDriveCode(code);
+    const token = await exchangeDriveCode(code, `${appUrl}/auth/google-drive/callback`);
     const email = (await fetchDriveEmail(token.access_token!)) ?? user.email.toLowerCase();
     const existing = await prisma.googleDriveConnection.findUnique({where: {userId: user.id}});
     await prisma.googleDriveConnection.upsert({

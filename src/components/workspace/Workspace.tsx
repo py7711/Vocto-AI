@@ -1280,6 +1280,10 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       setMode("drive");
       await refreshTaskList().catch(() => undefined);
       await refreshUsageSnapshot().catch(() => undefined);
+      if (variant === "upload") {
+        window.location.href = `/${locale}/transcriptions/${created.id}`;
+        return;
+      }
       setNotice(copy.driveFileQueued);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));

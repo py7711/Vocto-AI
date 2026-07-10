@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {createRawToken, getCurrentUser, setSignedStateCookie} from "@/lib/auth";
 import {env} from "@/lib/env";
 import {googleDriveRedirectUri, googleDriveScopes} from "@/lib/google-drive";
+import {getRequestOrigin} from "@/lib/request-origin";
 
 const stateCookie = "votxt_drive_state";
 
@@ -14,10 +15,11 @@ export async function GET(request: Request) {
   const locale = url.searchParams.get("locale") || user.locale || "en";
   const state = createRawToken();
   setSignedStateCookie(stateCookie, state);
+  const redirectUri = googleDriveRedirectUri(getRequestOrigin(request));
 
   const authorizationUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authorizationUrl.searchParams.set("client_id", env.GOOGLE_CLIENT_ID);
-  authorizationUrl.searchParams.set("redirect_uri", googleDriveRedirectUri());
+  authorizationUrl.searchParams.set("redirect_uri", redirectUri);
   authorizationUrl.searchParams.set("response_type", "code");
   authorizationUrl.searchParams.set("scope", googleDriveScopes());
   authorizationUrl.searchParams.set("state", `${state}:${locale}`);
