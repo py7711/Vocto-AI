@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const locale = url.searchParams.get("locale") || "zh";
+  const locale = url.searchParams.get("locale") || "en";
   const requestedNext = url.searchParams.get("next");
   const nextPath = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "";
   const state = createRawToken();

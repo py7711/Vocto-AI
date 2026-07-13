@@ -8,6 +8,7 @@ import {
   type TranscriptionResult,
   type TranscriptionSubmitResult
 } from "./types";
+import {normalizeTranscriptSegments} from "./segments";
 
 function client() {
   if (!env.ASSEMBLYAI_API_KEY) {
@@ -37,7 +38,7 @@ function assemblyParams(input: TranscriptionRequest) {
 
 function mapAssemblyResult(transcript: Transcript): TranscriptionResult {
   const utterances = transcript.utterances ?? [];
-  const segments: TranscriptSegment[] =
+  const rawSegments: TranscriptSegment[] =
     utterances.length > 0
       ? utterances.map((utterance) => ({
           start: utterance.start / 1000,
@@ -54,21 +55,29 @@ function mapAssemblyResult(transcript: Transcript): TranscriptionResult {
             speaker: undefined
           }
         ];
+  const words = transcript.words?.map((word) => ({
+    start: word.start / 1000,
+    end: word.end / 1000,
+    word: word.text,
+    confidence: word.confidence,
+    speaker: word.speaker ? `发言人 ${word.speaker}` : undefined
+  }));
+  const text = transcript.text ?? rawSegments.map((segment) => segment.text).join("\n");
+  const segments = normalizeTranscriptSegments({
+    text,
+    durationSeconds: transcript.audio_duration ?? undefined,
+    segments: rawSegments,
+    words
+  });
 
   return {
     provider: "assemblyai",
     language: transcript.language_code ?? undefined,
     // audio_duration 已是秒，直接使用，避免时长被错误缩小 1000 倍影响计费与播放。
     durationSeconds: transcript.audio_duration ?? undefined,
-    text: transcript.text ?? segments.map((segment) => segment.text).join("\n"),
+    text,
     segments,
-    words: transcript.words?.map((word) => ({
-      start: word.start / 1000,
-      end: word.end / 1000,
-      word: word.text,
-      confidence: word.confidence,
-      speaker: word.speaker ? `发言人 ${word.speaker}` : undefined
-    })),
+    words,
     speakerCount: new Set(segments.map((segment) => segment.speaker).filter(Boolean)).size || undefined
   };
 }

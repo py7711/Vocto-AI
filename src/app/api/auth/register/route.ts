@@ -12,7 +12,7 @@ const registerSchema = z.object({
   passwordCredential: z.string().refine(isPasswordCredential),
   firstName: z.string().min(1).max(80).optional(),
   lastName: z.string().min(1).max(80).optional(),
-  locale: z.string().default("zh")
+  locale: z.string().default("en")
 });
 
 export async function POST(request: Request) {

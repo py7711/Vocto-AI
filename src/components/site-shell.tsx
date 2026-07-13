@@ -739,7 +739,7 @@ export function SiteFooter() {
   const base = `/${locale}`;
   const groups = [
     [text.freeTools, [[Link2, text.videoToAudioExtractor, `${base}/tools/video-to-audio-extractor`], [Link2, text.wavToMp3Converter, `${base}/tools/wav-to-mp3-converter`]]],
-    [text.company, [[HelpCircle, text.termsOfService, `${base}/terms-of-service`], [LockKeyhole, text.privacyPolicy, `${base}/privacy-policy`], [CreditCard, text.refundPolicy, `${base}/pricing#faq-refund`], [LockKeyhole, text.securityPrivacy, `${base}/security`], [Users, text.affiliateProgram, `${base}/affiliate`], [Mail, text.support, "mailto:hi@votxt.co"]]]
+    [text.company, [[HelpCircle, text.termsOfService, `${base}/terms-of-service`], [LockKeyhole, text.privacyPolicy, `${base}/privacy-policy`], [CreditCard, text.refundPolicy, `${base}/pricing#faq-refund`], [LockKeyhole, text.securityPrivacy, `${base}/security`], [Users, text.affiliateProgram, `${base}/affiliate`], [Mail, text.support, "mailto:support@votxt.io"]]]
   ] as const;
 
   return (
@@ -752,7 +752,7 @@ export function SiteFooter() {
                 <BrandLogo />
               </a>
               <div className="mt-4 flex space-x-6">
-                <a href="mailto:hi@votxt.co" className="text-muted-foreground/60 hover:text-muted-foreground">
+                <a href="mailto:support@votxt.io" className="text-muted-foreground/60 hover:text-muted-foreground">
                   <span className="sr-only">{text.email}</span>
                   <Mail className="h-6 w-6" />
                 </a>

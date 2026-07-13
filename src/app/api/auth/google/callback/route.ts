@@ -60,7 +60,7 @@ export async function GET(request: Request) {
   const appUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state") || "";
-  const [rawState, locale = "zh", encodedNext = ""] = state.split(":");
+  const [rawState, locale = "en", encodedNext = ""] = state.split(":");
   const requestedNext = encodedNext ? decodeURIComponent(encodedNext) : "";
   const nextPath = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : `/${locale}/dashboard?oauth=google`;
 

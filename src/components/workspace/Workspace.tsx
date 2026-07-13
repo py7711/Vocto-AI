@@ -2,7 +2,7 @@
 
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject} from "react";
 import {useLocale, useTranslations} from "next-intl";
-import {useSearchParams} from "next/navigation";
+import {useRouter, useSearchParams} from "next/navigation";
 import Image from "next/image";
 import {createPortal} from "react-dom";
 import {
@@ -354,6 +354,7 @@ type DriveFileItem = {
 };
 
 export function Workspace({variant = "marketing"}: {variant?: "marketing" | "dashboard" | "upload"}) {
+  const router = useRouter();
   const translate = useTranslations("app");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -1179,8 +1180,10 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
         setTask(created);
         // 上传页，以及 Media Link（youtube/drive）转写都直接跳转到转录详情页。
         if (variant === "upload" || mode === "youtube" || mode === "drive") {
-          window.location.href = `/${locale}/transcriptions/${created.id}`;
+          router.push(`/${locale}/transcriptions/${created.id}`);
+          return true;
         }
+        return false;
       };
       const createTask = async (input: {
         sourceType: "UPLOAD" | "YOUTUBE" | "GOOGLE_DRIVE";
@@ -1220,7 +1223,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           originalName: resolvedMedia?.filename || resolvedMedia?.title,
           durationSeconds: resolvedMedia?.durationSeconds
         });
-        openCreatedTask(created);
+        if (openCreatedTask(created)) return true;
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
         return true;
@@ -1233,7 +1236,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
           originalName: resolvedMedia?.filename || resolvedMedia?.title || `${copy.googleDrive} ${copy.media}`,
           durationSeconds: resolvedMedia?.durationSeconds
         });
-        openCreatedTask(created);
+        if (openCreatedTask(created)) return true;
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
         return true;
@@ -1278,7 +1281,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
         }
 
         if (createdTasks[0]) {
-          openCreatedTask(createdTasks[0]);
+          if (openCreatedTask(createdTasks[0])) return true;
         } else {
           setTask(null);
         }
@@ -1323,7 +1326,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       await refreshTaskList().catch(() => undefined);
       await refreshUsageSnapshot().catch(() => undefined);
       if (variant === "upload") {
-        window.location.href = `/${locale}/transcriptions/${created.id}`;
+        router.push(`/${locale}/transcriptions/${created.id}`);
         return;
       }
       setNotice(copy.driveFileQueued);

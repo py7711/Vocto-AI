@@ -3,6 +3,7 @@ import {basename} from "node:path";
 import Groq from "groq-sdk";
 import {env} from "@/lib/env";
 import type {TranscriptSegment, TranscriptionProvider, TranscriptionRequest, TranscriptionResult} from "./types";
+import {normalizeTranscriptSegments} from "./segments";
 
 function client() {
   if (!env.GROQ_API_KEY) {
@@ -34,7 +35,11 @@ async function transcribeGroqFile(file: File, language?: string): Promise<Transc
     language: "language" in transcription ? String(transcription.language) : language,
     durationSeconds: "duration" in transcription ? Number(transcription.duration) : undefined,
     text: transcription.text,
-    segments: mapGroqSegments(transcription)
+    segments: normalizeTranscriptSegments({
+      text: transcription.text,
+      durationSeconds: "duration" in transcription ? Number(transcription.duration) : undefined,
+      segments: mapGroqSegments(transcription)
+    })
   };
 }
 

@@ -1,7 +1,7 @@
 import {FileText, ShieldCheck} from "lucide-react";
 import {PageHero, SiteFooter, SiteHeader} from "@/components/site-shell";
-import {isLocale, type Locale} from "@/lib/locales";
 
+type LegalPageType = "terms" | "privacy";
 type LegalSection = readonly [string, string];
 type LegalPageCopy = {
   eyebrow: string;
@@ -9,546 +9,88 @@ type LegalPageCopy = {
   description: string;
   sections: readonly LegalSection[];
 };
-type LegalCopy = {
-  terms: LegalPageCopy;
-  privacy: LegalPageCopy;
-};
+type LegalCopy = Record<LegalPageType, LegalPageCopy>;
 
-const legalCopy: Record<Locale, LegalCopy> = {
-  zh: {
-    terms: {
-      eyebrow: "服务条款",
-      title: "Votxt 服务条款",
-      description: "这些条款说明个人账号、订阅、转写任务、分享链接和内容使用边界。",
-      sections: [
-        ["账号与安全", "你需要对个人账号和密码负责。请勿共享登录凭证，发现异常登录后应立即修改密码并联系支持。"],
-        ["媒体与转写任务", "你应确保上传、粘贴链接或录音的内容拥有合法处理权。Votxt 会按任务配置调用转写、AI 洞察和翻译服务商，并在失败时自动降级。"],
-        ["订阅与额度", "免费和付费套餐包含不同的月度分钟数、单文件限制和队列权益。任务创建会预留额度，完成后按实际时长结算，失败会释放预留额度。"],
-        ["个人功能", "公开分享链接用于个人内容分发，是只读页面，请谨慎分发给外部人员。"],
-        ["可接受使用", "不得使用 Votxt 处理违法内容、侵犯他人权益的素材、恶意自动化请求或规避平台限制的任务。"]
-      ]
-    },
-    privacy: {
-      eyebrow: "隐私政策",
-      title: "Votxt 隐私政策",
-      description: "本政策说明 Votxt 如何处理账号信息、媒体文件、转写文本、AI 洞察、支付信息和个人使用记录。",
-      sections: [
-        ["我们处理的数据", "Votxt 会处理账号邮箱、名称、头像、登录状态、订阅信息、上传媒体 URL、转写文本、AI 洞察、导出文件和用量流水。"],
-        ["媒体与服务商", "为了完成转写、摘要和翻译，Votxt 会把必要的媒体或文本发送给已配置的 Groq、Deepgram、AssemblyAI、DeepSeek、Gemini、DeepL 等服务商。"],
-        ["安全措施", "上传使用短期预签名 URL，登录使用 httpOnly Cookie，分享令牌只保存哈希，不保存明文。"],
-        ["个人数据控制", "用户可以管理自己的任务、分享链接、导出文件和订阅。后续会提供更细的删除和数据导出能力。"],
-        ["联系与删除", "如需删除账号、任务或个人数据，可联系支持处理。删除请求会按照适用的数据保留、备份和安全政策执行。"]
-      ]
-    }
+const supportEmail = "support@votxt.io";
+
+const legalCopy: LegalCopy = {
+  terms: {
+    eyebrow: "Terms",
+    title: "Votxt Terms of Service",
+    description: "Updated October 9, 2025",
+    sections: [
+      ["Agreement to These Terms", "These Terms of Service govern access to and use of Votxt, including the website, transcription, translation, AI analysis, export, sharing, account, billing, customer support, and related services. By creating an account, purchasing a plan, uploading content, inviting others to access shared content, or otherwise using the services, you agree to these terms."],
+      ["Who May Use Votxt", "You must be legally able to enter into a binding agreement and must provide accurate account and billing information. If you use Votxt on behalf of a company, organization, or other legal entity, you represent that you have authority to bind that entity and that entity is responsible for your use."],
+      ["Account Security", "You are responsible for maintaining the confidentiality of your credentials, restricting access to your account, and all activity under your account. You must promptly notify us if you suspect unauthorized access, credential compromise, or misuse of your account. We may require additional verification before acting on account, billing, deletion, or data-access requests."],
+      ["Your Content and Required Rights", "You retain ownership of audio, video, recordings, URLs, files, text, transcripts, translations, summaries, prompts, exports, shared pages, and other content you submit or generate through Votxt. You grant Votxt a limited, non-exclusive, worldwide license to host, store, copy, process, transmit, transcribe, translate, analyze, summarize, display, export, and share that content solely to provide, secure, support, improve, and maintain the services. You are responsible for having all rights, consents, notices, and lawful bases required to collect, upload, record, process, analyze, export, and share content."],
+      ["Recording, Privacy, and Third-Party Rights", "You must comply with all applicable recording, communications, employment, privacy, data protection, intellectual property, confidentiality, and consumer protection laws. Do not upload or process content if doing so would violate another person's rights, a contractual obligation, platform rule, court order, professional duty, or applicable law."],
+      ["AI and Transcription Output", "Transcripts, translations, speaker labels, chapters, summaries, mind maps, action items, and other AI-generated or machine-generated outputs may be incomplete, delayed, inaccurate, offensive, or unsuitable for your purpose. You are solely responsible for reviewing, correcting, validating, and deciding whether to rely on outputs. Votxt does not provide legal, medical, financial, employment, tax, compliance, or other professional advice, and outputs must not be used as the sole basis for high-impact decisions."],
+      ["Acceptable Use", "You may not use Votxt to break the law, infringe rights, process content without authorization, facilitate surveillance or profiling in violation of law, create or distribute malware, spam, phishing, or abusive content, harass or harm others, overload or disrupt the service, bypass usage limits or security controls, scrape or resell the service, reverse engineer restricted components, or use shared links to disclose confidential, unlawful, or harmful content."],
+      ["Plans, Usage Limits, and Availability", "Plans may include different minute balances, upload limits, processing priority, storage periods, export formats, collaboration features, and AI capabilities. We may enforce fair-use, anti-abuse, file-size, rate, storage, queue, model, and feature limits. The services may be interrupted, delayed, degraded, or unavailable because of maintenance, incidents, third-party services, model changes, network conditions, or events outside our reasonable control."],
+      ["Billing, Taxes, and Payment Providers", "Paid plans, renewals, one-time purchases, upgrades, downgrades, discounts, taxes, and currency conversion terms are presented at checkout or in your account. Payments are processed by third-party payment providers such as Stripe. Votxt does not store full payment card numbers. You authorize us and our payment providers to charge applicable fees, taxes, and recurring amounts for the plan you select."],
+      ["Cancellations, Expiration, and Refunds", "You may cancel a subscription through available billing controls or by contacting support where self-service controls are not available. Unless checkout terms, a separate written policy, or applicable law requires otherwise, fees are non-refundable, and unused minutes, credits, promotional benefits, trial access, or one-time plan balances may expire or be forfeited according to the applicable plan terms."],
+      ["Suspension and Termination", "We may suspend, restrict, or terminate access, remove content, disable shared links, or refuse processing if we reasonably believe there is unlawful activity, a terms violation, payment failure, security risk, abuse, rights infringement, excessive operational burden, or risk to Votxt, users, providers, or third parties. You may stop using Votxt at any time. After termination, content may become unavailable and may be deleted or retained according to our Privacy Policy, backup schedules, legal obligations, dispute needs, security requirements, and legitimate business records."],
+      ["Third-Party Services and Processors", "Votxt uses third-party infrastructure, hosting, storage, database, payment, email, analytics, security, support, transcription, translation, and AI providers. Their services may be governed by their own terms and may change or become unavailable. We are not responsible for third-party services outside our reasonable control, but we use commercially reasonable efforts to select and manage providers appropriate for the services."],
+      ["Intellectual Property", "Votxt, including its software, user interface, workflows, documentation, templates, designs, logos, branding, and service materials, is owned by Votxt or its licensors. Except for your content and rights expressly granted to you, these terms do not transfer any Votxt intellectual property. You may not copy, modify, resell, sublicense, make derivative works of, or commercially exploit Votxt except as permitted by these terms or written permission."],
+      ["Confidentiality and Security", "You must use reasonable safeguards when uploading, exporting, downloading, or sharing sensitive content. Shared links may allow anyone with access to the link to view the shared material unless additional controls are available and enabled. You are responsible for managing recipients, permissions, downloads, and onward disclosure of exported or shared content."],
+      ["Compliance With Laws", "You are responsible for determining whether Votxt is appropriate for your use case and for complying with laws that apply to your content, users, industry, and jurisdiction, including Hong Kong data protection requirements, overseas privacy laws, export controls, sanctions, and sector-specific confidentiality duties. You must not use Votxt where prohibited by law."],
+      ["Disclaimers", "To the maximum extent permitted by law, Votxt is provided on an as-is and as-available basis. We disclaim all implied warranties, including merchantability, fitness for a particular purpose, title, non-infringement, uninterrupted operation, error-free operation, and accuracy of outputs. We do not warrant that the services will meet every legal, regulatory, professional, evidentiary, archival, accessibility, or business continuity requirement."],
+      ["Limitation of Liability", "To the maximum extent permitted by law, Votxt and its owners, officers, employees, contractors, affiliates, licensors, and providers will not be liable for indirect, incidental, special, consequential, exemplary, punitive, or enhanced damages, lost profits, lost revenue, lost data, business interruption, reputational harm, replacement services, or loss arising from content, outputs, shared links, third-party services, or inability to use the services."],
+      ["Indemnity", "You agree to defend, indemnify, and hold harmless Votxt and its owners, officers, employees, contractors, affiliates, licensors, and providers from claims, losses, liabilities, damages, penalties, costs, and expenses, including reasonable legal fees, arising from your content, your use of the services, your violation of these terms, or your violation of law or third-party rights."],
+      ["Changes to Terms", "We may update these terms from time to time by posting a revised version. The updated date above indicates when these terms were last changed. Continued use of Votxt after changes become effective means you accept the revised terms."],
+      ["Contact", "Questions about these terms, billing, or the services may be sent to support@votxt.io."]
+    ]
   },
-  en: {
-    terms: {
-      eyebrow: "Terms",
-      title: "Terms of Service",
-      description: "Last updated: Oct 9, 2024",
-      sections: [
-        ["Account Terms", "When we say Company, we, our, or us, we are referring to Votxt. You are responsible for maintaining the security of your account, for all activity under your account, and for using the Services only for lawful purposes. Accounts registered by bots or other automated methods are not permitted."],
-        ["Payment, Refunds, and Plan Changes", "Paid services may include trials, upgrades, subscriptions, taxes, and plan changes. Fees are charged according to the selected plan. Purchases are generally non-refundable unless otherwise stated, and paid subscriptions can be cancelled from your account."],
-        ["Cancellation and Termination", "You are responsible for properly cancelling your account. After cancellation, account content becomes inaccessible and may be deleted from active systems and backups according to the retention policy. We may suspend or terminate accounts that violate these terms."],
-        ["Uptime and Security", "Services are provided on an as-is and as-available basis. Votxt takes uptime, backups, redundancy, and encryption seriously, and uses third-party vendors and hosting partners to operate the service."],
-        ["Copyright and Content Ownership", "You retain ownership of materials you upload. Content posted through the Services must comply with copyright law, and the Votxt name, look, feel, HTML, CSS, JavaScript, and visual design elements may not be copied without permission."],
-        ["Features and Bugs", "We design Votxt with care, but every product has limitations and bugs. Features may change as the service evolves."],
-        ["Liability", "Your use of the Services is at your sole risk. These terms include limitations of liability to the extent permitted by law."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privacy",
-      title: "Votxt Privacy Policy",
-      description: "Effective June 8, 2025",
-      sections: [
-        ["Introduction", "Your privacy is critically important to us. This policy explains how Votxt, Votxt, we, or us collects, uses, and shares personal information when you use our services."],
-        ["Information We Collect", "We collect account information, user input such as audio, video, YouTube links and text, communications information, payment details processed by Stripe, usage information, device information, approximate location, cookies, and information from platforms our services rely on."],
-        ["How We Use Information", "We use personal information to set up accounts, provide transcription and AI services, analyze and improve the product, communicate with you, send product news, and remember preferences through cookies."],
-        ["Third Parties", "Votxt relies on selected third parties such as cloud providers, support providers, AI service providers, analytics providers, and payment processors. These parties receive information needed to provide their services."],
-        ["Security", "Votxt maintains physical, administrative, and technical safeguards to protect the confidentiality, integrity, and availability of personal information, while recognizing that internet transmission carries inherent risks."],
-        ["International Transfers and Retention", "Our services operate in the United States. Personal information may be transferred and stored there. We keep information as long as necessary for the purposes in this policy or as required by law."],
-        ["Deletion and Rights", "When you delete your account or a transcription, associated data is removed according to the deletion policy. Depending on your location, you may have rights to access, correct, delete, or restrict processing of personal information."],
-        ["Children and Updates", "The services are not aimed at children under 13. We may update this policy and will make updated versions available on this page."],
-        ["Contact", "Questions about privacy, your data, or your rights can be sent to hi@votxt.co."]
-      ]
-    }
-  },
-  id: {
-    terms: {
-      eyebrow: "Ketentuan",
-      title: "Ketentuan Layanan Votxt",
-      description: "Ketentuan ini menjelaskan akun pribadi, langganan, tugas transkripsi, tautan berbagi, dan batas penggunaan konten.",
-      sections: [
-        ["Akun dan keamanan", "Anda bertanggung jawab atas keamanan akun, kata sandi, dan semua aktivitas yang terjadi melalui akun Anda."],
-        ["Media dan tugas transkripsi", "Pastikan Anda memiliki hak untuk memproses file, tautan, atau rekaman yang dikirim ke Votxt."],
-        ["Langganan dan kuota", "Paket gratis dan berbayar memiliki menit bulanan, batas file, dan hak antrean yang berbeda."],
-        ["Berbagi dan ekspor", "Tautan berbagi bersifat baca-saja. Bagikan hanya kepada orang yang memang boleh melihat konten tersebut."],
-        ["Penggunaan yang diterima", "Jangan gunakan Votxt untuk konten ilegal, pelanggaran hak, otomatisasi berbahaya, atau upaya menghindari batas platform."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privasi",
-      title: "Kebijakan Privasi Votxt",
-      description: "Kebijakan ini menjelaskan cara Votxt menangani informasi akun, media, transkrip, insight AI, pembayaran, dan riwayat penggunaan.",
-      sections: [
-        ["Data yang kami proses", "Kami memproses email akun, nama, status masuk, langganan, media yang diunggah, transkrip, insight AI, ekspor, dan penggunaan."],
-        ["Media dan penyedia layanan", "Untuk menyelesaikan transkripsi, ringkasan, dan terjemahan, data yang diperlukan dapat dikirim ke penyedia AI atau transkripsi yang dikonfigurasi."],
-        ["Keamanan", "Unggahan memakai URL bertanda tangan sementara, sesi memakai cookie httpOnly, dan token berbagi disimpan dalam bentuk hash."],
-        ["Kontrol data", "Anda dapat mengelola tugas, tautan berbagi, ekspor, dan langganan dari akun Anda."],
-        ["Kontak dan penghapusan", "Hubungi dukungan untuk permintaan penghapusan akun, tugas, atau data pribadi sesuai kebijakan retensi."]
-      ]
-    }
-  },
-  ru: {
-    terms: {
-      eyebrow: "Условия",
-      title: "Условия обслуживания Votxt",
-      description: "Эти условия описывают личные аккаунты, подписки, задачи транскрипции, ссылки общего доступа и границы использования контента.",
-      sections: [
-        ["Аккаунт и безопасность", "Вы отвечаете за безопасность аккаунта, пароля и все действия, совершенные через ваш аккаунт."],
-        ["Медиа и задачи", "Убедитесь, что у вас есть право обрабатывать загружаемые файлы, ссылки или записи."],
-        ["Подписки и квоты", "Бесплатные и платные планы имеют разные месячные минуты, ограничения файлов и приоритет очереди."],
-        ["Общий доступ", "Публичные ссылки являются страницами только для чтения. Передавайте их только тем, кому можно видеть контент."],
-        ["Допустимое использование", "Запрещено использовать Votxt для незаконного контента, нарушения прав, вредной автоматизации или обхода ограничений платформ."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Конфиденциальность",
-      title: "Политика конфиденциальности Votxt",
-      description: "Политика объясняет обработку данных аккаунта, медиафайлов, транскриптов, AI-инсайтов, платежей и истории использования.",
-      sections: [
-        ["Какие данные мы обрабатываем", "Мы обрабатываем email, имя, статус входа, подписки, загруженные медиа, транскрипты, AI-инсайты, экспорты и данные использования."],
-        ["Медиа и поставщики", "Для транскрипции, резюме и перевода необходимые данные могут отправляться настроенным AI- и транскрипционным поставщикам."],
-        ["Защита", "Загрузки используют краткосрочные подписанные URL, сессии используют httpOnly cookie, а токены ссылок хранятся как хэши."],
-        ["Контроль данных", "Вы можете управлять задачами, ссылками, экспортами и подписками в своем аккаунте."],
-        ["Контакт и удаление", "Для удаления аккаунта, задач или персональных данных обратитесь в поддержку; запросы выполняются с учетом политики хранения."]
-      ]
-    }
-  },
-  es: {
-    terms: {
-      eyebrow: "Términos",
-      title: "Términos de servicio de Votxt",
-      description: "Estos términos explican cuentas personales, suscripciones, tareas de transcripción, enlaces compartidos y límites de uso del contenido.",
-      sections: [
-        ["Cuenta y seguridad", "Eres responsable de proteger tu cuenta, contraseña y toda actividad realizada desde ella."],
-        ["Medios y tareas", "Debes tener derecho a procesar los archivos, enlaces o grabaciones que envíes a Votxt."],
-        ["Suscripciones y cuota", "Los planes gratis y de pago incluyen diferentes minutos mensuales, límites de archivo y ventajas de cola."],
-        ["Compartir y exportar", "Los enlaces públicos son páginas de solo lectura. Compártelos solo con personas autorizadas."],
-        ["Uso aceptable", "No uses Votxt para contenido ilegal, infracción de derechos, automatización maliciosa o evasión de límites."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privacidad",
-      title: "Política de privacidad de Votxt",
-      description: "Esta política explica cómo Votxt trata datos de cuenta, archivos multimedia, transcripciones, insights de IA, pagos y registros de uso.",
-      sections: [
-        ["Datos tratados", "Tratamos email, nombre, sesión, suscripciones, medios subidos, transcripciones, insights de IA, exportaciones y uso."],
-        ["Medios y proveedores", "Para transcribir, resumir o traducir, los datos necesarios pueden enviarse a proveedores configurados de IA o transcripción."],
-        ["Seguridad", "Las subidas usan URLs firmadas temporales, las sesiones usan cookies httpOnly y los tokens compartidos se guardan como hashes."],
-        ["Control de datos", "Puedes gestionar tareas, enlaces compartidos, exportaciones y suscripciones desde tu cuenta."],
-        ["Contacto y eliminación", "Contacta con soporte para eliminar cuenta, tareas o datos personales según la política de retención."]
-      ]
-    }
-  },
-  vi: {
-    terms: {
-      eyebrow: "Điều khoản",
-      title: "Điều khoản dịch vụ Votxt",
-      description: "Các điều khoản này giải thích tài khoản cá nhân, gói đăng ký, tác vụ chép lời, liên kết chia sẻ và giới hạn sử dụng nội dung.",
-      sections: [
-        ["Tài khoản và bảo mật", "Bạn chịu trách nhiệm bảo vệ tài khoản, mật khẩu và mọi hoạt động phát sinh từ tài khoản."],
-        ["Media và tác vụ", "Bạn cần có quyền xử lý các tệp, liên kết hoặc bản ghi gửi lên Votxt."],
-        ["Gói và hạn mức", "Gói miễn phí và trả phí có số phút tháng, giới hạn tệp và quyền hàng đợi khác nhau."],
-        ["Chia sẻ và xuất", "Liên kết công khai là trang chỉ đọc. Chỉ chia sẻ với người được phép xem nội dung."],
-        ["Sử dụng được chấp nhận", "Không dùng Votxt cho nội dung bất hợp pháp, xâm phạm quyền, tự động hóa độc hại hoặc né giới hạn nền tảng."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Quyền riêng tư",
-      title: "Chính sách quyền riêng tư Votxt",
-      description: "Chính sách này mô tả cách Votxt xử lý thông tin tài khoản, media, bản chép lời, insight AI, thanh toán và lịch sử sử dụng.",
-      sections: [
-        ["Dữ liệu được xử lý", "Chúng tôi xử lý email, tên, trạng thái đăng nhập, gói, media tải lên, bản chép lời, insight AI, tệp xuất và dữ liệu sử dụng."],
-        ["Media và nhà cung cấp", "Để chép lời, tóm tắt hoặc dịch, dữ liệu cần thiết có thể được gửi tới nhà cung cấp AI hoặc chép lời đã cấu hình."],
-        ["Bảo mật", "Tải lên dùng URL ký tạm thời, phiên dùng cookie httpOnly, token chia sẻ được lưu dưới dạng hash."],
-        ["Kiểm soát dữ liệu", "Bạn có thể quản lý tác vụ, liên kết chia sẻ, tệp xuất và gói đăng ký trong tài khoản."],
-        ["Liên hệ và xóa", "Liên hệ hỗ trợ để yêu cầu xóa tài khoản, tác vụ hoặc dữ liệu cá nhân theo chính sách lưu giữ."]
-      ]
-    }
-  },
-  ar: {
-    terms: {
-      eyebrow: "الشروط",
-      title: "شروط خدمة Votxt",
-      description: "توضح هذه الشروط الحسابات الشخصية والاشتراكات ومهام النسخ وروابط المشاركة وحدود استخدام المحتوى.",
-      sections: [
-        ["الحساب والأمان", "أنت مسؤول عن حماية حسابك وكلمة المرور وكل نشاط يتم من خلال حسابك."],
-        ["الوسائط والمهام", "يجب أن تملك الحق في معالجة الملفات أو الروابط أو التسجيلات التي ترسلها إلى Votxt."],
-        ["الاشتراكات والحصص", "تتضمن الخطط المجانية والمدفوعة دقائق شهرية وحدود ملفات وامتيازات انتظار مختلفة."],
-        ["المشاركة والتصدير", "روابط المشاركة العامة صفحات للقراءة فقط. شاركها فقط مع من يحق له مشاهدة المحتوى."],
-        ["الاستخدام المقبول", "لا تستخدم Votxt لمحتوى غير قانوني أو انتهاك حقوق أو أتمتة ضارة أو تجاوز حدود المنصات."]
-      ]
-    },
-    privacy: {
-      eyebrow: "الخصوصية",
-      title: "سياسة خصوصية Votxt",
-      description: "تشرح هذه السياسة كيفية تعامل Votxt مع بيانات الحساب والوسائط والنصوص ورؤى الذكاء الاصطناعي والمدفوعات وسجل الاستخدام.",
-      sections: [
-        ["البيانات التي نعالجها", "نعالج البريد الإلكتروني والاسم وحالة الدخول والاشتراك والوسائط المرفوعة والنصوص والرؤى والتصديرات وبيانات الاستخدام."],
-        ["الوسائط ومزودو الخدمة", "لإكمال النسخ أو التلخيص أو الترجمة، قد ترسل البيانات المطلوبة إلى مزودي AI أو النسخ الذين تم تكوينهم."],
-        ["الأمان", "تستخدم التحميلات روابط موقعة قصيرة الأجل، والجلسات تستخدم ملفات cookie httpOnly، وتحفظ رموز المشاركة كهاش."],
-        ["التحكم في البيانات", "يمكنك إدارة المهام وروابط المشاركة والتصديرات والاشتراكات من حسابك."],
-        ["التواصل والحذف", "اتصل بالدعم لطلبات حذف الحساب أو المهام أو البيانات الشخصية وفق سياسة الاحتفاظ."]
-      ]
-    }
-  },
-  pt: {
-    terms: {
-      eyebrow: "Termos",
-      title: "Termos de Serviço do Votxt",
-      description: "Estes termos explicam contas pessoais, assinaturas, tarefas de transcrição, links compartilhados e limites de uso de conteúdo.",
-      sections: [
-        ["Conta e segurança", "Você é responsável por proteger sua conta, senha e toda atividade realizada por ela."],
-        ["Mídia e tarefas", "Você deve ter direito de processar os arquivos, links ou gravações enviados ao Votxt."],
-        ["Assinaturas e cota", "Planos gratuitos e pagos incluem minutos mensais, limites de arquivo e benefícios de fila diferentes."],
-        ["Compartilhamento e exportação", "Links públicos são páginas somente leitura. Compartilhe apenas com pessoas autorizadas."],
-        ["Uso aceitável", "Não use o Votxt para conteúdo ilegal, violação de direitos, automação maliciosa ou evasão de limites."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privacidade",
-      title: "Política de Privacidade do Votxt",
-      description: "Esta política explica como o Votxt trata dados de conta, mídia, transcrições, insights de IA, pagamentos e histórico de uso.",
-      sections: [
-        ["Dados processados", "Processamos email, nome, sessão, assinaturas, mídia enviada, transcrições, insights de IA, exportações e dados de uso."],
-        ["Mídia e provedores", "Para transcrever, resumir ou traduzir, dados necessários podem ser enviados a provedores configurados de IA ou transcrição."],
-        ["Segurança", "Uploads usam URLs assinadas temporárias, sessões usam cookies httpOnly e tokens de compartilhamento são armazenados como hashes."],
-        ["Controle de dados", "Você pode gerenciar tarefas, links compartilhados, exportações e assinaturas na sua conta."],
-        ["Contato e exclusão", "Contate o suporte para excluir conta, tarefas ou dados pessoais conforme a política de retenção."]
-      ]
-    }
-  },
-  fr: {
-    terms: {
-      eyebrow: "Conditions",
-      title: "Conditions d'utilisation de Votxt",
-      description: "Ces conditions couvrent les comptes personnels, abonnements, tâches de transcription, liens de partage et limites d'utilisation du contenu.",
-      sections: [
-        ["Compte et sécurité", "Vous êtes responsable de la sécurité de votre compte, de votre mot de passe et de toute activité liée au compte."],
-        ["Médias et tâches", "Vous devez disposer du droit de traiter les fichiers, liens ou enregistrements envoyés à Votxt."],
-        ["Abonnements et quota", "Les offres gratuites et payantes incluent des minutes mensuelles, limites de fichiers et priorités de file différentes."],
-        ["Partage et exports", "Les liens publics sont des pages en lecture seule. Partagez-les uniquement avec des personnes autorisées."],
-        ["Utilisation acceptable", "N'utilisez pas Votxt pour du contenu illégal, une atteinte aux droits, une automatisation malveillante ou le contournement de limites."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Confidentialité",
-      title: "Politique de confidentialité Votxt",
-      description: "Cette politique explique le traitement des données de compte, médias, transcriptions, insights IA, paiements et historiques d'utilisation.",
-      sections: [
-        ["Données traitées", "Nous traitons email, nom, session, abonnement, médias importés, transcriptions, insights IA, exports et données d'usage."],
-        ["Médias et prestataires", "Pour transcrire, résumer ou traduire, les données nécessaires peuvent être envoyées aux prestataires IA ou transcription configurés."],
-        ["Sécurité", "Les uploads utilisent des URL signées temporaires, les sessions des cookies httpOnly et les jetons de partage sont stockés sous forme de hash."],
-        ["Contrôle des données", "Vous pouvez gérer tâches, liens de partage, exports et abonnements depuis votre compte."],
-        ["Contact et suppression", "Contactez le support pour supprimer compte, tâches ou données personnelles selon la politique de conservation."]
-      ]
-    }
-  },
-  "zh-TW": {
-    terms: {
-      eyebrow: "服務條款",
-      title: "Votxt 服務條款",
-      description: "這些條款說明個人帳號、訂閱、轉寫任務、分享連結與內容使用邊界。",
-      sections: [
-        ["帳號與安全", "你需要負責保護帳號、密碼以及帳號下的所有活動。"],
-        ["媒體與轉寫任務", "你應確保上傳檔案、貼上連結或錄音內容具有合法處理權。"],
-        ["訂閱與額度", "免費與付費方案包含不同的每月分鐘數、單檔限制與佇列權益。"],
-        ["分享與匯出", "公開分享連結為唯讀頁面，請只分享給有權查看內容的人。"],
-        ["可接受使用", "不得使用 Votxt 處理違法內容、侵權素材、惡意自動化或規避平台限制的任務。"]
-      ]
-    },
-    privacy: {
-      eyebrow: "隱私權",
-      title: "Votxt 隱私權政策",
-      description: "本政策說明 Votxt 如何處理帳號資訊、媒體檔案、逐字稿、AI 洞察、付款資訊與使用紀錄。",
-      sections: [
-        ["我們處理的資料", "我們會處理帳號 email、名稱、登入狀態、訂閱、上傳媒體、逐字稿、AI 洞察、匯出與用量資料。"],
-        ["媒體與服務商", "為完成轉寫、摘要或翻譯，必要資料可能傳送給已設定的 AI 或轉寫服務商。"],
-        ["安全措施", "上傳使用短期簽名 URL，登入使用 httpOnly Cookie，分享權杖以雜湊形式保存。"],
-        ["資料控制", "你可以在帳號中管理任務、分享連結、匯出檔案與訂閱。"],
-        ["聯絡與刪除", "如需刪除帳號、任務或個人資料，可聯絡支援並依資料保留政策處理。"]
-      ]
-    }
-  },
-  de: {
-    terms: {
-      eyebrow: "Bedingungen",
-      title: "Votxt Nutzungsbedingungen",
-      description: "Diese Bedingungen beschreiben persönliche Konten, Abonnements, Transkriptionsaufgaben, Freigabelinks und Nutzungsgrenzen.",
-      sections: [
-        ["Konto und Sicherheit", "Du bist für die Sicherheit deines Kontos, Passworts und aller Aktivitäten in deinem Konto verantwortlich."],
-        ["Medien und Aufgaben", "Du musst berechtigt sein, Dateien, Links oder Aufnahmen zu verarbeiten, die du an Votxt sendest."],
-        ["Abonnements und Kontingente", "Kostenlose und kostenpflichtige Pläne enthalten unterschiedliche Monatsminuten, Dateigrenzen und Warteschlangenrechte."],
-        ["Teilen und Exportieren", "Öffentliche Links sind schreibgeschützte Seiten. Teile sie nur mit berechtigten Personen."],
-        ["Zulässige Nutzung", "Nutze Votxt nicht für illegale Inhalte, Rechtsverletzungen, schädliche Automatisierung oder Umgehung von Plattformlimits."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Datenschutz",
-      title: "Votxt Datenschutzrichtlinie",
-      description: "Diese Richtlinie erklärt, wie Votxt Kontodaten, Medien, Transkripte, KI-Insights, Zahlungen und Nutzungsdaten verarbeitet.",
-      sections: [
-        ["Verarbeitete Daten", "Wir verarbeiten E-Mail, Name, Sitzung, Abonnement, hochgeladene Medien, Transkripte, KI-Insights, Exporte und Nutzungsdaten."],
-        ["Medien und Anbieter", "Für Transkription, Zusammenfassung oder Übersetzung können erforderliche Daten an konfigurierte KI- oder Transkriptionsanbieter gesendet werden."],
-        ["Sicherheit", "Uploads verwenden kurzlebige signierte URLs, Sitzungen httpOnly-Cookies und Freigabetokens werden als Hash gespeichert."],
-        ["Datenkontrolle", "Du kannst Aufgaben, Freigabelinks, Exporte und Abonnements in deinem Konto verwalten."],
-        ["Kontakt und Löschung", "Wende dich für Löschanfragen zu Konto, Aufgaben oder personenbezogenen Daten an den Support."]
-      ]
-    }
-  },
-  it: {
-    terms: {
-      eyebrow: "Termini",
-      title: "Termini di servizio Votxt",
-      description: "Questi termini spiegano account personali, abbonamenti, attività di trascrizione, link condivisi e limiti d'uso dei contenuti.",
-      sections: [
-        ["Account e sicurezza", "Sei responsabile della sicurezza dell'account, della password e di ogni attività svolta tramite l'account."],
-        ["Media e attività", "Devi avere il diritto di trattare file, link o registrazioni inviati a Votxt."],
-        ["Abbonamenti e quota", "Piani gratuiti e a pagamento includono minuti mensili, limiti file e vantaggi di coda diversi."],
-        ["Condivisione ed export", "I link pubblici sono pagine di sola lettura. Condividili solo con persone autorizzate."],
-        ["Uso accettabile", "Non usare Votxt per contenuti illegali, violazioni di diritti, automazione dannosa o aggiramento di limiti."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privacy",
-      title: "Informativa privacy Votxt",
-      description: "Questa informativa spiega come Votxt tratta dati account, media, trascrizioni, insight AI, pagamenti e uso.",
-      sections: [
-        ["Dati trattati", "Trattiamo email, nome, sessione, abbonamento, media caricati, trascrizioni, insight AI, export e dati d'uso."],
-        ["Media e fornitori", "Per trascrivere, riassumere o tradurre, i dati necessari possono essere inviati ai fornitori AI o di trascrizione configurati."],
-        ["Sicurezza", "Gli upload usano URL firmati temporanei, le sessioni cookie httpOnly e i token condivisi sono archiviati come hash."],
-        ["Controllo dei dati", "Puoi gestire attività, link condivisi, export e abbonamenti dal tuo account."],
-        ["Contatto e cancellazione", "Contatta il supporto per eliminare account, attività o dati personali secondo la politica di conservazione."]
-      ]
-    }
-  },
-  th: {
-    terms: {
-      eyebrow: "ข้อกำหนด",
-      title: "ข้อกำหนดการให้บริการ Votxt",
-      description: "ข้อกำหนดนี้อธิบายบัญชีส่วนตัว การสมัครสมาชิก งานถอดเสียง ลิงก์แชร์ และขอบเขตการใช้เนื้อหา",
-      sections: [
-        ["บัญชีและความปลอดภัย", "คุณต้องรับผิดชอบต่อความปลอดภัยของบัญชี รหัสผ่าน และกิจกรรมทั้งหมดในบัญชีของคุณ"],
-        ["สื่อและงานถอดเสียง", "คุณต้องมีสิทธิ์ในการประมวลผลไฟล์ ลิงก์ หรือการบันทึกที่ส่งไปยัง Votxt"],
-        ["แพ็กเกจและโควต้า", "แพ็กเกจฟรีและแบบชำระเงินมีจำนวนนาทีรายเดือน ข้อจำกัดไฟล์ และสิทธิ์คิวต่างกัน"],
-        ["การแชร์และส่งออก", "ลิงก์สาธารณะเป็นหน้าอ่านอย่างเดียว โปรดแชร์เฉพาะกับผู้ที่ได้รับอนุญาต"],
-        ["การใช้งานที่ยอมรับได้", "ห้ามใช้ Votxt กับเนื้อหาผิดกฎหมาย ละเมิดสิทธิ์ ระบบอัตโนมัติที่เป็นอันตราย หรือเลี่ยงข้อจำกัดแพลตฟอร์ม"]
-      ]
-    },
-    privacy: {
-      eyebrow: "ความเป็นส่วนตัว",
-      title: "นโยบายความเป็นส่วนตัว Votxt",
-      description: "นโยบายนี้อธิบายวิธีที่ Votxt จัดการข้อมูลบัญชี สื่อ ข้อความถอดเสียง ข้อมูลเชิงลึก AI การชำระเงิน และประวัติการใช้งาน",
-      sections: [
-        ["ข้อมูลที่ประมวลผล", "เราประมวลผลอีเมล ชื่อ สถานะเข้าสู่ระบบ แพ็กเกจ สื่อที่อัปโหลด ข้อความถอดเสียง ข้อมูล AI ไฟล์ส่งออก และข้อมูลการใช้งาน"],
-        ["สื่อและผู้ให้บริการ", "เพื่อถอดเสียง สรุป หรือแปล ข้อมูลที่จำเป็นอาจถูกส่งไปยังผู้ให้บริการ AI หรือถอดเสียงที่ตั้งค่าไว้"],
-        ["ความปลอดภัย", "การอัปโหลดใช้ URL ลงนามชั่วคราว เซสชันใช้ cookie แบบ httpOnly และ token แชร์จัดเก็บเป็น hash"],
-        ["การควบคุมข้อมูล", "คุณสามารถจัดการงาน ลิงก์แชร์ ไฟล์ส่งออก และแพ็กเกจได้จากบัญชีของคุณ"],
-        ["ติดต่อและลบข้อมูล", "ติดต่อฝ่ายสนับสนุนเพื่อขอลบบัญชี งาน หรือข้อมูลส่วนตัวตามนโยบายการเก็บรักษา"]
-      ]
-    }
-  },
-  uk: {
-    terms: {
-      eyebrow: "Умови",
-      title: "Умови обслуговування Votxt",
-      description: "Ці умови пояснюють особисті акаунти, підписки, задачі транскрипції, посилання для поширення та межі використання контенту.",
-      sections: [
-        ["Акаунт і безпека", "Ви відповідаєте за безпеку акаунта, пароля та всі дії, виконані через акаунт."],
-        ["Медіа і задачі", "Ви повинні мати право обробляти файли, посилання або записи, надіслані до Votxt."],
-        ["Підписки і квоти", "Безкоштовні й платні плани мають різні місячні хвилини, обмеження файлів і права черги."],
-        ["Поширення та експорт", "Публічні посилання є сторінками тільки для читання. Діліться ними лише з уповноваженими особами."],
-        ["Прийнятне використання", "Не використовуйте Votxt для незаконного контенту, порушення прав, шкідливої автоматизації або обходу лімітів."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Конфіденційність",
-      title: "Політика конфіденційності Votxt",
-      description: "Політика пояснює обробку даних акаунта, медіа, транскриптів, AI-інсайтів, платежів і історії використання.",
-      sections: [
-        ["Дані, які ми обробляємо", "Ми обробляємо email, ім'я, стан входу, підписки, завантажені медіа, транскрипти, AI-інсайти, експорти і дані використання."],
-        ["Медіа і постачальники", "Для транскрипції, підсумків або перекладу потрібні дані можуть надсилатися налаштованим AI- або транскрипційним постачальникам."],
-        ["Безпека", "Завантаження використовує короткочасні підписані URL, сесії — httpOnly cookie, а токени поширення зберігаються як хеші."],
-        ["Контроль даних", "Ви можете керувати задачами, посиланнями, експортами і підписками у своєму акаунті."],
-        ["Контакт і видалення", "Зверніться до підтримки щодо видалення акаунта, задач або персональних даних відповідно до політики зберігання."]
-      ]
-    }
-  },
-  tr: {
-    terms: {
-      eyebrow: "Şartlar",
-      title: "Votxt Hizmet Şartları",
-      description: "Bu şartlar kişisel hesapları, abonelikleri, transkripsiyon görevlerini, paylaşım bağlantılarını ve içerik kullanım sınırlarını açıklar.",
-      sections: [
-        ["Hesap ve güvenlik", "Hesabınızın, şifrenizin ve hesabınızdaki tüm etkinliklerin güvenliğinden siz sorumlusunuz."],
-        ["Medya ve görevler", "Votxt'a gönderdiğiniz dosya, bağlantı veya kayıtları işleme hakkına sahip olmalısınız."],
-        ["Abonelikler ve kota", "Ücretsiz ve ücretli planlar farklı aylık dakika, dosya limiti ve kuyruk hakları içerir."],
-        ["Paylaşım ve dışa aktarma", "Genel bağlantılar salt okunur sayfalardır. Yalnızca içeriği görme yetkisi olan kişilerle paylaşın."],
-        ["Kabul edilebilir kullanım", "Votxt'ı yasa dışı içerik, hak ihlali, zararlı otomasyon veya platform limitlerini aşmak için kullanmayın."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Gizlilik",
-      title: "Votxt Gizlilik Politikası",
-      description: "Bu politika Votxt'ın hesap bilgileri, medya, transkriptler, AI içgörüleri, ödeme ve kullanım geçmişini nasıl işlediğini açıklar.",
-      sections: [
-        ["İşlenen veriler", "E-posta, ad, oturum, abonelikler, yüklenen medya, transkriptler, AI içgörüleri, dışa aktarımlar ve kullanım verilerini işleriz."],
-        ["Medya ve sağlayıcılar", "Transkripsiyon, özet veya çeviri için gerekli veriler yapılandırılmış AI veya transkripsiyon sağlayıcılarına gönderilebilir."],
-        ["Güvenlik", "Yüklemeler kısa süreli imzalı URL'ler, oturumlar httpOnly cookie'ler kullanır; paylaşım tokenları hash olarak saklanır."],
-        ["Veri kontrolü", "Görevleri, paylaşım bağlantılarını, dışa aktarımları ve abonelikleri hesabınızdan yönetebilirsiniz."],
-        ["İletişim ve silme", "Hesap, görev veya kişisel veri silme talepleri için saklama politikasına göre destekle iletişime geçin."]
-      ]
-    }
-  },
-  ja: {
-    terms: {
-      eyebrow: "利用規約",
-      title: "Votxt 利用規約",
-      description: "この規約は、個人アカウント、サブスクリプション、文字起こしタスク、共有リンク、コンテンツ利用範囲を説明します。",
-      sections: [
-        ["アカウントと安全性", "アカウント、パスワード、およびアカウント上のすべての操作の安全性はユーザーの責任です。"],
-        ["メディアとタスク", "Votxt に送信するファイル、リンク、録音を処理する権利を持っている必要があります。"],
-        ["サブスクリプションと割当", "無料・有料プランには月間分数、ファイル制限、キュー権限の違いがあります。"],
-        ["共有とエクスポート", "公開共有リンクは読み取り専用ページです。閲覧権限のある相手にのみ共有してください。"],
-        ["許容される利用", "違法コンテンツ、権利侵害、有害な自動化、プラットフォーム制限回避に Votxt を使わないでください。"]
-      ]
-    },
-    privacy: {
-      eyebrow: "プライバシー",
-      title: "Votxt プライバシーポリシー",
-      description: "このポリシーは、アカウント情報、メディア、文字起こし、AI インサイト、支払い、利用履歴の取り扱いを説明します。",
-      sections: [
-        ["処理するデータ", "メール、名前、ログイン状態、サブスクリプション、アップロードメディア、文字起こし、AI インサイト、エクスポート、利用データを処理します。"],
-        ["メディアとサービス提供者", "文字起こし、要約、翻訳のために必要なデータが設定済みの AI または文字起こし提供者へ送信される場合があります。"],
-        ["安全対策", "アップロードは短期署名 URL、セッションは httpOnly Cookie、共有トークンはハッシュ保存を利用します。"],
-        ["データ管理", "タスク、共有リンク、エクスポート、サブスクリプションをアカウントから管理できます。"],
-        ["連絡と削除", "アカウント、タスク、個人データ削除の依頼は保持ポリシーに従ってサポートへ連絡してください。"]
-      ]
-    }
-  },
-  nl: {
-    terms: {
-      eyebrow: "Voorwaarden",
-      title: "Votxt Servicevoorwaarden",
-      description: "Deze voorwaarden beschrijven persoonlijke accounts, abonnementen, transcriptietaken, deellinks en grenzen voor contentgebruik.",
-      sections: [
-        ["Account en beveiliging", "Je bent verantwoordelijk voor de beveiliging van je account, wachtwoord en alle activiteit in je account."],
-        ["Media en taken", "Je moet het recht hebben om bestanden, links of opnames die je naar Votxt stuurt te verwerken."],
-        ["Abonnementen en quota", "Gratis en betaalde plannen hebben verschillende maandminuten, bestandslimieten en wachtrijrechten."],
-        ["Delen en exporteren", "Openbare links zijn alleen-lezen pagina's. Deel ze alleen met bevoegde personen."],
-        ["Aanvaardbaar gebruik", "Gebruik Votxt niet voor illegale content, rechteninbreuk, schadelijke automatisering of het omzeilen van platformlimieten."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Privacy",
-      title: "Votxt Privacybeleid",
-      description: "Dit beleid legt uit hoe Votxt accountgegevens, media, transcripties, AI-inzichten, betalingen en gebruiksgeschiedenis verwerkt.",
-      sections: [
-        ["Verwerkte gegevens", "We verwerken e-mail, naam, sessie, abonnement, geüploade media, transcripties, AI-inzichten, exports en gebruiksgegevens."],
-        ["Media en leveranciers", "Voor transcriptie, samenvatting of vertaling kunnen noodzakelijke gegevens naar ingestelde AI- of transcriptieleveranciers worden gestuurd."],
-        ["Beveiliging", "Uploads gebruiken tijdelijke ondertekende URL's, sessies httpOnly cookies en deeltokens worden als hash opgeslagen."],
-        ["Datacontrole", "Je kunt taken, deellinks, exports en abonnementen beheren vanuit je account."],
-        ["Contact en verwijdering", "Neem contact op met support voor verwijdering van account, taken of persoonlijke gegevens volgens het bewaarbeleid."]
-      ]
-    }
-  },
-  pl: {
-    terms: {
-      eyebrow: "Warunki",
-      title: "Warunki korzystania z Votxt",
-      description: "Warunki opisują konta osobiste, subskrypcje, zadania transkrypcji, linki udostępniania i granice użycia treści.",
-      sections: [
-        ["Konto i bezpieczeństwo", "Odpowiadasz za bezpieczeństwo konta, hasła i wszystkich działań wykonywanych na koncie."],
-        ["Media i zadania", "Musisz mieć prawo do przetwarzania plików, linków lub nagrań wysyłanych do Votxt."],
-        ["Subskrypcje i limity", "Plany darmowe i płatne mają różne minuty miesięczne, limity plików i uprawnienia kolejki."],
-        ["Udostępnianie i eksport", "Publiczne linki są stronami tylko do odczytu. Udostępniaj je tylko osobom uprawnionym."],
-        ["Akceptowalne użycie", "Nie używaj Votxt do treści nielegalnych, naruszeń praw, szkodliwej automatyzacji ani omijania limitów platform."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Prywatność",
-      title: "Polityka prywatności Votxt",
-      description: "Polityka wyjaśnia przetwarzanie danych konta, mediów, transkryptów, insightów AI, płatności i historii użycia.",
-      sections: [
-        ["Przetwarzane dane", "Przetwarzamy email, nazwę, sesję, subskrypcję, przesłane media, transkrypty, insighty AI, eksporty i dane użycia."],
-        ["Media i dostawcy", "Do transkrypcji, podsumowania lub tłumaczenia niezbędne dane mogą trafiać do skonfigurowanych dostawców AI lub transkrypcji."],
-        ["Bezpieczeństwo", "Uploady używają tymczasowych podpisanych URL, sesje cookie httpOnly, a tokeny udostępniania są przechowywane jako hashe."],
-        ["Kontrola danych", "Możesz zarządzać zadaniami, linkami, eksportami i subskrypcjami z konta."],
-        ["Kontakt i usuwanie", "Skontaktuj się z supportem, aby usunąć konto, zadania lub dane osobowe zgodnie z polityką retencji."]
-      ]
-    }
-  },
-  ko: {
-    terms: {
-      eyebrow: "약관",
-      title: "Votxt 서비스 약관",
-      description: "이 약관은 개인 계정, 구독, 전사 작업, 공유 링크, 콘텐츠 사용 범위를 설명합니다.",
-      sections: [
-        ["계정과 보안", "계정, 비밀번호, 계정에서 발생하는 모든 활동의 보안은 사용자 책임입니다."],
-        ["미디어와 작업", "Votxt에 보내는 파일, 링크, 녹음을 처리할 권리가 있어야 합니다."],
-        ["구독과 할당량", "무료 및 유료 플랜은 월간 분수, 파일 제한, 큐 권한이 다릅니다."],
-        ["공유와 내보내기", "공개 공유 링크는 읽기 전용 페이지입니다. 볼 권한이 있는 사람에게만 공유하세요."],
-        ["허용되는 사용", "불법 콘텐츠, 권리 침해, 유해한 자동화, 플랫폼 제한 우회에 Votxt를 사용하지 마세요."]
-      ]
-    },
-    privacy: {
-      eyebrow: "개인정보",
-      title: "Votxt 개인정보 처리방침",
-      description: "이 정책은 계정 정보, 미디어, 전사, AI 인사이트, 결제, 사용 기록 처리 방식을 설명합니다.",
-      sections: [
-        ["처리하는 데이터", "이메일, 이름, 로그인 상태, 구독, 업로드 미디어, 전사, AI 인사이트, 내보내기, 사용 데이터를 처리합니다."],
-        ["미디어와 제공업체", "전사, 요약, 번역을 위해 필요한 데이터가 설정된 AI 또는 전사 제공업체로 전송될 수 있습니다."],
-        ["보안", "업로드는 단기 서명 URL, 세션은 httpOnly 쿠키, 공유 토큰은 해시 저장을 사용합니다."],
-        ["데이터 제어", "계정에서 작업, 공유 링크, 내보내기, 구독을 관리할 수 있습니다."],
-        ["문의와 삭제", "계정, 작업, 개인 데이터 삭제 요청은 보존 정책에 따라 지원팀에 문의하세요."]
-      ]
-    }
-  },
-  hu: {
-    terms: {
-      eyebrow: "Feltételek",
-      title: "Votxt szolgáltatási feltételek",
-      description: "Ezek a feltételek ismertetik a személyes fiókokat, előfizetéseket, átírási feladatokat, megosztási linkeket és tartalomhasználati határokat.",
-      sections: [
-        ["Fiók és biztonság", "Te felelsz a fiókod, jelszavad és a fiókban végzett minden tevékenység biztonságáért."],
-        ["Média és feladatok", "Jogosultnak kell lenned a Votxt-nak küldött fájlok, linkek vagy felvételek feldolgozására."],
-        ["Előfizetések és kvóták", "Az ingyenes és fizetős csomagok eltérő havi perceket, fájlkorlátokat és sorjogosultságokat tartalmaznak."],
-        ["Megosztás és export", "A nyilvános linkek csak olvasható oldalak. Csak jogosult személyekkel oszd meg."],
-        ["Elfogadható használat", "Ne használd a Votxt-ot illegális tartalomra, jogsértésre, káros automatizálásra vagy platformkorlátok megkerülésére."]
-      ]
-    },
-    privacy: {
-      eyebrow: "Adatvédelem",
-      title: "Votxt adatvédelmi irányelvek",
-      description: "Ez az irányelv ismerteti a fiókadatok, média, leiratok, AI insightok, fizetés és használati előzmények kezelését.",
-      sections: [
-        ["Kezelt adatok", "Kezeljük az emailt, nevet, munkamenetet, előfizetést, feltöltött médiát, leiratot, AI insightokat, exportokat és használati adatokat."],
-        ["Média és szolgáltatók", "Átírás, összefoglalás vagy fordítás céljából szükséges adatok konfigurált AI- vagy átírási szolgáltatókhoz kerülhetnek."],
-        ["Biztonság", "A feltöltések rövid életű aláírt URL-eket, a munkamenetek httpOnly cookie-kat használnak; a megosztási tokenek hashként tárolódnak."],
-        ["Adatkontroll", "A fiókodban kezelheted a feladatokat, megosztási linkeket, exportokat és előfizetéseket."],
-        ["Kapcsolat és törlés", "Fiók, feladat vagy személyes adat törléséhez fordulj a támogatáshoz a megőrzési szabályzat szerint."]
-      ]
-    }
+  privacy: {
+    eyebrow: "Privacy",
+    title: "Votxt Privacy Policy",
+    description: "Effective May 1, 2026",
+    sections: [
+      ["Scope", "This Privacy Policy explains how Votxt collects, uses, discloses, retains, transfers, and protects personal data when you use the website, transcription, translation, AI analysis, export, sharing, account, billing, support, and related services. It is intended to support compliance with Hong Kong's Personal Data (Privacy) Ordinance, including the Data Protection Principles, and other privacy laws that may apply depending on where you and your users are located."],
+      ["Our Role", "For personal data that we control, Votxt acts as a data user or controller. For personal data we process only on your instructions, such as content you upload for transcription or analysis, Votxt may act as a service provider or processor. You are responsible for determining your own legal basis, notices, consents, and compliance obligations for content and personal data you submit to Votxt."],
+      ["Personal Data We Collect From You", "We collect information you provide directly, including name, email address, password or authentication details, account settings, language preference, billing selections, support messages, uploaded audio and video, recordings, URLs, files, text, prompts, edited transcripts, translations, summaries, exports, shared-link settings, and other content or metadata you choose to submit."],
+      ["Personal Data Collected Automatically", "We may collect technical, usage, log, and diagnostic information, including IP address, device and browser type, operating system, referring and exit pages, pages viewed, timestamps, session identifiers, cookie identifiers, feature usage, upload status, processing status, error reports, approximate location inferred from technical signals, and security events."],
+      ["Payment Data", "Payments are processed by third-party payment providers such as Stripe. Votxt may receive limited billing information, plan type, subscription status, transaction identifiers, payment status, invoice records, tax information, and fraud-prevention signals. We do not store full payment card numbers."],
+      ["Purposes of Collection and Use", "We use personal data to create and administer accounts, authenticate users, provide transcription, translation, AI analysis, export, and sharing features, process uploads, manage billing, deliver customer support, communicate service notices, maintain security, prevent fraud and abuse, troubleshoot errors, improve reliability and product quality, enforce terms, protect rights, comply with law, and keep required business records."],
+      ["Hong Kong Data Protection Principles", "We aim to collect personal data for lawful purposes directly related to Votxt's functions and activities, collect data that is necessary and not excessive, use data for the purposes stated in this policy or directly related purposes unless consent or law permits otherwise, take practicable steps to keep data accurate, retain data only as long as necessary, protect data against unauthorized or accidental access, processing, erasure, loss, or use, maintain transparent practices, and provide access and correction rights where required."],
+      ["Legal Bases and Consent", "Where laws such as GDPR, UK GDPR, or similar regimes require a legal basis, we process personal data to perform a contract, comply with legal obligations, pursue legitimate interests such as service security and improvement, protect rights and safety, and rely on consent where required. Where Hong Kong direct marketing rules apply, we will seek the required informed consent or indication of no objection before using personal data for direct marketing or transferring it to another party for direct marketing."],
+      ["AI, Transcription, and Media Processing", "To provide requested features, we may transmit necessary content, metadata, prompts, transcripts, translations, and outputs to transcription, translation, AI, hosting, storage, and infrastructure providers. We require appropriate arrangements with processors or service providers where required, including confidentiality, security, purpose limitation, and retention controls. Do not submit content unless you have authority and any required consent to have it processed by Votxt and its providers."],
+      ["Disclosure of Personal Data", "We may disclose personal data to service providers, payment processors, infrastructure providers, analytics and security providers, professional advisers, affiliates, business transaction counterparties, law enforcement, regulators, courts, or other parties where necessary to provide the services, comply with law, enforce terms, protect rights and safety, investigate abuse, complete a merger, financing, acquisition, or asset transfer, or with your direction or consent."],
+      ["International Transfers", "Votxt and its providers may process, store, and transfer personal data in Hong Kong, the United States, the European Economic Area, the United Kingdom, Singapore, and other locations where we or our providers operate. Where applicable law requires transfer safeguards, we use appropriate contractual, organizational, and technical measures designed to protect transferred personal data."],
+      ["Retention", "We retain personal data for as long as necessary for the purposes described in this policy, including providing the services, maintaining accounts, completing transactions, complying with legal and tax obligations, resolving disputes, enforcing agreements, preserving security, preventing abuse, and maintaining backups. Retention periods may vary based on account status, plan type, content type, legal requirements, security needs, and user deletion settings."],
+      ["Deletion and Account Closure", "You may delete certain tasks, exports, shared links, or account information through available product controls. You may also contact us to request deletion of personal data. We will delete, de-identify, or restrict data where required, subject to legal, security, fraud-prevention, backup, dispute, financial-record, and legitimate business retention requirements."],
+      ["Access, Correction, and Other Rights", "Depending on your location, you may have rights to request access to personal data, correction of inaccurate data, deletion, restriction, portability, objection, withdrawal of consent, and information about how data is used or disclosed. Under Hong Kong law, data subjects have rights to request access to and correction of personal data. We may need to verify your identity and may refuse or limit requests where permitted by law."],
+      ["Cookies and Similar Technologies", "We use cookies and similar technologies for authentication, security, preferences, analytics, performance, fraud prevention, and service operation. You can control cookies through browser settings, but disabling required cookies may prevent account login, uploads, billing, or other features from working correctly."],
+      ["Security Measures", "We use reasonable administrative, technical, and organizational safeguards designed to protect personal data, including encrypted transport, access controls, secure session handling, provider access restrictions, monitoring, logging, backup practices, and role-based access. No system is completely secure, and you remain responsible for securing your devices, credentials, exports, downloads, and shared links."],
+      ["Breach and Incident Handling", "If we become aware of a security incident affecting personal data, we will assess the incident, take appropriate containment and remediation steps, and notify affected users, regulators, or other parties where required by applicable law or where we otherwise determine notification is appropriate."],
+      ["Children", "Votxt is not directed to children under 13, and we do not knowingly collect personal data from children under 13. If you believe a child has provided personal data to Votxt, contact us so we can take appropriate action."],
+      ["Business Transfers", "If Votxt is involved in a merger, acquisition, financing, restructuring, bankruptcy, sale of assets, or similar transaction, personal data may be transferred or disclosed as part of that transaction, subject to reasonable confidentiality and data protection safeguards."],
+      ["Changes to This Policy", "We may update this Privacy Policy from time to time to reflect legal, technical, operational, or business changes. The effective date above indicates when this policy became effective. Material changes may be communicated through the service or other appropriate means where required."],
+      ["Contact and Privacy Requests", "Questions, privacy requests, access requests, correction requests, deletion requests, or concerns about personal data may be sent to support@votxt.io."]
+    ]
   }
 };
 
-export function getLegalPageCopy(locale: string, type: "terms" | "privacy") {
-  const normalizedLocale = isLocale(locale) ? locale : "en";
-  return legalCopy[normalizedLocale][type];
+export function getLegalPageCopy(_locale: string, type: LegalPageType) {
+  return legalCopy[type];
 }
 
-export function LegalPage({type, locale}: {type: "terms" | "privacy"; locale: string}) {
+function renderLegalBody(body: string) {
+  const [beforeEmail, afterEmail] = body.split(supportEmail);
+  if (afterEmail === undefined) return body;
+
+  return (
+    <>
+      {beforeEmail}
+      <a className="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-700" href={`mailto:${supportEmail}`}>
+        {supportEmail}
+      </a>
+      {afterEmail}
+    </>
+  );
+}
+
+export function LegalPage({type, locale}: {type: LegalPageType; locale: string}) {
   const copy = getLegalPageCopy(locale, type);
   const Icon = type === "privacy" ? ShieldCheck : FileText;
 
@@ -560,7 +102,7 @@ export function LegalPage({type, locale}: {type: "terms" | "privacy"; locale: st
         {copy.sections.map(([heading, body]) => (
           <article key={heading} className="border-b border-ink/10 bg-transparent py-6">
             <h2 className="flex items-center gap-2 text-xl font-black text-ink"><Icon size={19} className="text-tide" />{heading}</h2>
-            <p className="mt-3 text-sm leading-7 text-ink/70">{body}</p>
+            <p className="mt-3 text-sm leading-7 text-ink/70">{renderLegalBody(body)}</p>
           </article>
         ))}
       </section>

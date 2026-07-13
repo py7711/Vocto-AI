@@ -7,6 +7,7 @@ import type {
   TranscriptionResult,
   TranscriptionSubmitResult
 } from "./types";
+import {normalizeTranscriptSegments} from "./segments";
 
 function client() {
   if (!env.DEEPGRAM_API_KEY) {
@@ -31,7 +32,8 @@ function mapDeepgramResult(result: any): TranscriptionResult {
   const channel = result.results?.channels?.[0];
   const alternative = channel?.alternatives?.[0];
   const utterances = result.results?.utterances ?? [];
-  const segments: TranscriptSegment[] =
+  const durationSeconds = result.metadata?.duration;
+  const rawSegments: TranscriptSegment[] =
     utterances.length > 0
       ? utterances.map((utterance: any) => ({
           start: utterance.start,
@@ -42,27 +44,30 @@ function mapDeepgramResult(result: any): TranscriptionResult {
       : [
           {
             start: 0,
-            end: result.metadata?.duration ?? 0,
+            end: durationSeconds ?? 0,
             text: alternative?.transcript ?? "",
             speaker: undefined
           }
         ];
+  const words = alternative?.words?.map((word: any) => ({
+    start: word.start,
+    end: word.end,
+    word: word.punctuated_word ?? word.word,
+    confidence: word.confidence,
+    speaker: word.speaker !== undefined ? `发言人 ${Number(word.speaker) + 1}` : undefined
+  }));
+  const text = alternative?.transcript ?? rawSegments.map((segment) => segment.text).join("\n");
+  const segments = normalizeTranscriptSegments({text, durationSeconds, segments: rawSegments, words});
 
   const speakers = new Set(segments.map((segment) => segment.speaker).filter(Boolean));
 
   return {
     provider: "deepgram",
     language: result.results?.channels?.[0]?.detected_language,
-    durationSeconds: result.metadata?.duration,
-    text: alternative?.transcript ?? segments.map((segment) => segment.text).join("\n"),
+    durationSeconds,
+    text,
     segments,
-    words: alternative?.words?.map((word: any) => ({
-      start: word.start,
-      end: word.end,
-      word: word.word,
-      confidence: word.confidence,
-      speaker: word.speaker !== undefined ? `发言人 ${Number(word.speaker) + 1}` : undefined
-    })),
+    words,
     speakerCount: speakers.size || undefined
   };
 }

@@ -1154,7 +1154,7 @@ X-API-Key: your_api_key
 
             <DocSection id="support" title={docs.support} className="md:-mt-4">
               <ul className="list-disc space-y-1 pl-5">
-                <li><a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a></li>
+                <li><a href="mailto:support@votxt.io" className="font-semibold text-violet underline underline-offset-2">support@votxt.io</a></li>
                 <li><a href="https://discord.gg/RJTaS28UWU" className="font-semibold text-violet underline underline-offset-2">Discord</a></li>
               </ul>
             </DocSection>
@@ -1644,7 +1644,7 @@ X-API-Key: your_api_key
             <ul className="list-disc space-y-1 pl-5">
               <li>Default: 60 requests per minute, 1000 requests per day</li>
               <li>Rate limits are per API key</li>
-              <li>Higher limits can be discussed and adjusted based on your usage requirements. Contact <a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a> if you need a higher limit</li>
+              <li>Higher limits can be discussed and adjusted based on your usage requirements. Contact <a href="mailto:support@votxt.io" className="font-semibold text-violet underline underline-offset-2">support@votxt.io</a> if you need a higher limit</li>
               <li>Exceeded limits return HTTP 429 with retry information</li>
             </ul>
           </DocSection>
@@ -1784,7 +1784,7 @@ curl -X GET https://api.votxt.co/api/v1/transcriptions/1234567890 \\
 
           <DocSection id="support" title="Support" className="md:-mt-4">
             <ul className="list-disc space-y-1 pl-5">
-              <li>Support Email: <a href="mailto:hi@votxt.co" className="font-semibold text-violet underline underline-offset-2">hi@votxt.co</a></li>
+              <li>Support Email: <a href="mailto:support@votxt.io" className="font-semibold text-violet underline underline-offset-2">support@votxt.io</a></li>
               <li>Discord: <a href="https://discord.gg/RJTaS28UWU" className="font-semibold text-violet underline underline-offset-2">https://discord.gg/RJTaS28UWU</a></li>
             </ul>
             <p>For technical questions or integration assistance, please contact our support team.</p>

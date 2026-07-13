@@ -46,30 +46,44 @@ function toPublicBillingError(message: string | undefined, fallback: string) {
   return internalBillingErrorPatterns.some((pattern) => pattern.test(message)) ? fallback : message;
 }
 
-function openCheckoutWindow() {
-  const checkoutWindow = window.open("about:blank", "_blank");
-  if (checkoutWindow) {
-    checkoutWindow.opener = null;
-    checkoutWindow.document.title = "Stripe Checkout";
-    checkoutWindow.document.body.innerHTML = "<p style=\"font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; color: #475569;\">Opening Stripe Checkout...</p>";
-  }
-  return checkoutWindow;
-}
+const checkoutOpenCopy = {
+  ar: {button: "فتح صفحة الدفع عبر Stripe", blocked: "إذا لم تُفتح صفحة الدفع تلقائيًا، استخدم الزر أدناه."},
+  de: {button: "Stripe-Zahlungsseite öffnen", blocked: "Wenn sich die Zahlungsseite nicht automatisch öffnet, nutze die Schaltfläche unten."},
+  en: {button: "Open Stripe checkout", blocked: "If the payment page did not open automatically, use the button below."},
+  es: {button: "Abrir pago de Stripe", blocked: "Si la página de pago no se abrió automáticamente, usa el botón de abajo."},
+  fr: {button: "Ouvrir le paiement Stripe", blocked: "Si la page de paiement ne s'est pas ouverte automatiquement, utilisez le bouton ci-dessous."},
+  hu: {button: "Stripe fizetés megnyitása", blocked: "Ha a fizetési oldal nem nyílt meg automatikusan, használd az alábbi gombot."},
+  id: {button: "Buka pembayaran Stripe", blocked: "Jika halaman pembayaran tidak terbuka otomatis, gunakan tombol di bawah."},
+  it: {button: "Apri pagamento Stripe", blocked: "Se la pagina di pagamento non si è aperta automaticamente, usa il pulsante qui sotto."},
+  ja: {button: "Stripe 決済を開く", blocked: "決済ページが自動で開かない場合は、下のボタンを使用してください。"},
+  ko: {button: "Stripe 결제 열기", blocked: "결제 페이지가 자동으로 열리지 않았다면 아래 버튼을 사용하세요."},
+  nl: {button: "Stripe-betaling openen", blocked: "Als de betaalpagina niet automatisch is geopend, gebruik dan de knop hieronder."},
+  pl: {button: "Otwórz płatność Stripe", blocked: "Jeśli strona płatności nie otworzyła się automatycznie, użyj przycisku poniżej."},
+  pt: {button: "Abrir pagamento Stripe", blocked: "Se a página de pagamento não abriu automaticamente, use o botão abaixo."},
+  ru: {button: "Открыть оплату Stripe", blocked: "Если страница оплаты не открылась автоматически, используйте кнопку ниже."},
+  th: {button: "เปิดหน้าชำระเงิน Stripe", blocked: "หากหน้าชำระเงินไม่เปิดโดยอัตโนมัติ ให้ใช้ปุ่มด้านล่าง"},
+  tr: {button: "Stripe ödeme sayfasını aç", blocked: "Ödeme sayfası otomatik açılmadıysa aşağıdaki düğmeyi kullanın."},
+  uk: {button: "Відкрити оплату Stripe", blocked: "Якщо сторінка оплати не відкрилася автоматично, скористайтеся кнопкою нижче."},
+  vi: {button: "Mở thanh toán Stripe", blocked: "Nếu trang thanh toán không tự mở, hãy dùng nút bên dưới."},
+  zh: {button: "打开 Stripe 支付页面", blocked: "如果支付页面没有自动打开，请点击下方按钮继续。"},
+  "zh-TW": {button: "開啟 Stripe 付款頁面", blocked: "如果付款頁面沒有自動開啟，請點擊下方按鈕繼續。"}
+};
 
-function redirectToCheckout(url: string, checkoutWindow: Window | null) {
-  if (checkoutWindow && !checkoutWindow.closed) {
-    checkoutWindow.location.href = url;
-    return;
-  }
-  window.open(url, "_blank", "noopener,noreferrer") ?? window.location.assign(url);
+function openCheckoutUrl(url: string) {
+  const checkoutWindow = window.open(url, "_blank");
+  if (!checkoutWindow) return false;
+  checkoutWindow.opener = null;
+  return true;
 }
 
 export function PricingAction({plan, pack, addon, label, showPortal = false, mode, campaign, successPath, cancelPath, variant = "primary", wrapperClassName, buttonClassName, showIcon = true}: PricingActionProps) {
   const locale = useLocale();
   const normalizedLocale = isLocale(locale) ? locale : "en";
   const copy = billingActionCopy[normalizedLocale];
+  const checkoutCopy = checkoutOpenCopy[normalizedLocale];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
   async function startCheckout() {
     if (!plan && !pack && !addon) {
@@ -79,7 +93,7 @@ export function PricingAction({plan, pack, addon, label, showPortal = false, mod
 
     setBusy(true);
     setError(null);
-    const checkoutWindow = openCheckoutWindow();
+    setCheckoutUrl(null);
     try {
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -97,14 +111,12 @@ export function PricingAction({plan, pack, addon, label, showPortal = false, mod
       });
       const data = await readJson(response);
       if (response.status === 401) {
-        checkoutWindow?.close();
         window.location.href = `/${locale}/auth/signin`;
         return;
       }
       if (!response.ok || !data.url) throw new Error(toPublicBillingError(data.error, copy.checkoutError));
-      redirectToCheckout(data.url, checkoutWindow);
+      if (!openCheckoutUrl(data.url)) setCheckoutUrl(data.url);
     } catch (cause) {
-      checkoutWindow?.close();
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setBusy(false);
@@ -154,6 +166,15 @@ export function PricingAction({plan, pack, addon, label, showPortal = false, mod
           <ExternalLink size={16} />
           {copy.manage}
         </button>
+      ) : null}
+      {checkoutUrl ? (
+        <div className="animate-fade-in rounded-xl border border-violet/20 bg-violet/5 px-3 py-3 text-xs font-bold leading-5 text-slate-600">
+          <p>{checkoutCopy.blocked}</p>
+          <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-violet px-3 text-sm font-bold text-white transition hover:bg-violet/90">
+            <ExternalLink size={15} />
+            {checkoutCopy.button}
+          </a>
+        </div>
       ) : null}
       {error ? <p className="animate-fade-in rounded-xl border border-coral/25 bg-coral/10 px-3 py-2 text-xs font-bold leading-5 text-coral">{error}</p> : null}
     </div>

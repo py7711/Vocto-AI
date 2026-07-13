@@ -174,7 +174,7 @@ function AccountMenu({locale, user, copy}: {locale: string; user: CurrentUser | 
   const displayName = user?.name || copy.anonymousUser;
   const email = user?.email || copy.loginSyncHint;
   const avatarUrl = safeImageSrc(user?.image || user?.oauthAccounts?.find((account) => account.avatarUrl)?.avatarUrl);
-  const supportEmail = "hi@votxt.co";
+  const supportEmail = "support@votxt.io";
 
   async function signOut() {
     await fetch("/api/auth/logout", {method: "POST"}).catch(() => undefined);

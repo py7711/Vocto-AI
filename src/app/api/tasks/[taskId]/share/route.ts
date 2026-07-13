@@ -8,7 +8,7 @@ import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
 import {logApiError} from "@/lib/api-logger";
 
 const createShareSchema = z.object({
-  locale: z.string().min(2).max(16).default("zh"),
+  locale: z.string().min(2).max(16).default("en"),
   title: z.string().max(160).optional(),
   expiresInDays: z.number().int().min(1).max(365).optional()
 });
@@ -17,7 +17,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
     const url = new URL(request.url);
-    const locale = url.searchParams.get("locale") || "zh";
+    const locale = url.searchParams.get("locale") || "en";
     const now = new Date();
     const shareLink = await prisma.shareLink.findFirst({
       where: {

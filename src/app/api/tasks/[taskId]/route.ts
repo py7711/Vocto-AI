@@ -18,7 +18,7 @@ const updateTaskSchema = z.object({
 });
 
 function serializeTaskForWorkspace<T extends {shareLinks?: Array<Parameters<typeof serializeShareLinkForOwner>[0]>}>(task: T, request: Request) {
-  const locale = new URL(request.url).searchParams.get("locale") || "zh";
+  const locale = new URL(request.url).searchParams.get("locale") || "en";
   const appUrl = getRequestOrigin(request);
   return {
     ...task,
