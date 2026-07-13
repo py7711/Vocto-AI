@@ -601,17 +601,30 @@ function ThemeSegmentedControl() {
   );
 }
 
-export function SiteHeader({primaryCta, showAuthPair = false}: {primaryCta?: {href: string; label: string; icon?: ReactNode}; showAuthPair?: boolean}) {
+export function SiteHeader({
+  primaryCta,
+  showAuthPair = false,
+  signedIn: controlledSignedIn
+}: {
+  primaryCta?: {href: string; label: string; icon?: ReactNode};
+  showAuthPair?: boolean;
+  signedIn?: boolean;
+}) {
   const locale = useLocale();
   const pathname = usePathname() ?? `/${locale}`;
   const text = getSiteShellText(locale);
   const base = `/${locale}`;
-  const [signedIn, setSignedIn] = useState(false);
+  const [signedIn, setSignedIn] = useState(Boolean(controlledSignedIn));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const cta = primaryCta ?? {href: `${base}/auth/signin`, label: text.signin, icon: <LogIn size={16} />};
   const localizedPathSuffix = pathname.replace(/^\/[^/]+/, "") || "";
 
   useEffect(() => {
+    if (controlledSignedIn !== undefined) {
+      setSignedIn(controlledSignedIn);
+      return;
+    }
+
     let cancelled = false;
     fetch("/api/auth/me", {cache: "no-store"})
       .then((response) => response.json())
@@ -622,7 +635,7 @@ export function SiteHeader({primaryCta, showAuthPair = false}: {primaryCta?: {hr
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [controlledSignedIn]);
 
   return (
     <header className="fixed left-0 right-0 top-0 z-30 border-b border-ink/10 bg-white/85 shadow-sm backdrop-blur-md">

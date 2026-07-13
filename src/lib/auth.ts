@@ -270,3 +270,17 @@ export async function getCurrentUser() {
     }
   }).then((user) => user ? {...user, passwordSet: Boolean(user.passwordHash), passwordHash: undefined} : null);
 }
+
+export async function getCurrentUserIdentity() {
+  const userId = decodeSession(cookies().get(sessionCookieName)?.value);
+  if (!userId) return null;
+
+  return prisma.user.findUnique({
+    where: {id: userId},
+    select: {
+      id: true,
+      email: true,
+      locale: true
+    }
+  });
+}

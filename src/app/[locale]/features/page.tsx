@@ -1,6 +1,9 @@
 import type {Metadata} from "next";
 import {Workspace} from "@/components/workspace";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
+import type {CurrentUser} from "@/components/workspace/types";
+import {getCurrentUser} from "@/lib/auth";
+import {jsonSafe} from "@/lib/json";
 
 type MetadataWorkspaceCopy = ReturnType<typeof getWorkspaceCopy> &
   Partial<{
@@ -24,6 +27,7 @@ export function generateMetadata({params}: {params: {locale: string}}): Metadata
   };
 }
 
-export default function FeaturesPage() {
-  return <Workspace variant="marketing" />;
+export default async function FeaturesPage() {
+  const user = await getCurrentUser();
+  return <Workspace variant="marketing" initialUser={jsonSafe(user) as CurrentUser | null} />;
 }

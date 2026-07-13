@@ -57,6 +57,24 @@ import {safeImageSrc} from "@/lib/image-url";
 import {subscriptionGrantsMembership} from "@/lib/membership-shared";
 
 const maxBatchFiles = 50;
+const initialWorkspaceRequestCache = new Map<string, {expiresAt: number; promise: Promise<unknown>}>();
+
+function dedupeInitialWorkspaceRequest<T>(key: string, loader: () => Promise<T>) {
+  const now = Date.now();
+  const cached = initialWorkspaceRequestCache.get(key);
+  if (cached && cached.expiresAt > now) {
+    return cached.promise as Promise<T>;
+  }
+
+  const promise = loader().finally(() => {
+    const entry = initialWorkspaceRequestCache.get(key);
+    if (entry?.promise === promise) {
+      entry.expiresAt = Date.now() + 5000;
+    }
+  });
+  initialWorkspaceRequestCache.set(key, {expiresAt: now + 5000, promise});
+  return promise;
+}
 
 type DashboardPaidPlan = "BASIC" | "STANDARD" | "PRO";
 type DashboardOneTimePack = "LITE" | "PLUS";
@@ -353,7 +371,7 @@ type DriveFileItem = {
   durationSeconds?: number;
 };
 
-export function Workspace({variant = "marketing"}: {variant?: "marketing" | "dashboard" | "upload"}) {
+export function Workspace({variant = "marketing", initialUser}: {variant?: "marketing" | "dashboard" | "upload"; initialUser?: CurrentUser | null}) {
   const router = useRouter();
   const translate = useTranslations("app");
   const locale = useLocale();
@@ -383,7 +401,8 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   const [recording, setRecording] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const hasInitialUser = initialUser !== undefined;
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(initialUser ?? null);
   const [usageSnapshot, setUsageSnapshot] = useState<UsageSnapshot | null>(null);
   const [taskList, setTaskList] = useState<TaskListItem[]>([]);
   const [taskListInitialized, setTaskListInitialized] = useState(false);
@@ -593,48 +612,63 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
     );
   }, [shownTasks, normalizedAssetSearch]);
 
-  const refreshTaskList = useCallback(async () => {
+  const refreshTaskList = useCallback(async (options: {dedupe?: boolean} = {}) => {
     const params = new URLSearchParams({limit: "50", locale});
     if (selectedFolderId) params.set("folderId", selectedFolderId);
     try {
-      const data = await fetch(`/api/tasks?${params.toString()}`, {cache: "no-store"}).then(async (response) => {
+      const url = `/api/tasks?${params.toString()}`;
+      const load = () => fetch(url, {cache: "no-store"}).then(async (response) => {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error ?? copy.readTasksError);
         return body as {tasks: TaskListItem[]};
       });
+      const data = options.dedupe ? await dedupeInitialWorkspaceRequest(url, load) : await load();
       setTaskList(data.tasks ?? []);
     } finally {
       setTaskListInitialized(true);
     }
   }, [copy.readTasksError, locale, selectedFolderId]);
 
-  async function refreshFolders() {
-    const data = await fetch("/api/folders", {cache: "no-store"}).then(async (response) => {
+  const refreshFolders = useCallback(async (options: {dedupe?: boolean} = {}) => {
+    const load = () => fetch("/api/folders", {cache: "no-store"}).then(async (response) => {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error ?? copy.taskWorkspace.readFoldersFailed);
       return body as {folders: FolderItem[]};
     });
+    const data = options.dedupe ? await dedupeInitialWorkspaceRequest("/api/folders", load) : await load();
     setFolders(data.folders ?? []);
-  }
+  }, [copy.taskWorkspace.readFoldersFailed]);
 
-  const refreshUsageSnapshot = useCallback(async () => {
-    const data = await fetch("/api/account/usage", {cache: "no-store"}).then(async (response) => {
+  const refreshUsageSnapshot = useCallback(async (options: {dedupe?: boolean} = {}) => {
+    const load = () => fetch("/api/account/usage", {cache: "no-store"}).then(async (response) => {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error ?? copy.readUsageError);
       return body as UsageSnapshot;
     });
+    const data = options.dedupe ? await dedupeInitialWorkspaceRequest("/api/account/usage", load) : await load();
     setUsageSnapshot(data);
   }, [copy.readUsageError]);
 
   useEffect(() => {
+    if (hasInitialUser) {
+      setCurrentUser(initialUser ?? null);
+      if (initialUser && (variant === "dashboard" || variant === "upload")) {
+        refreshFolders({dedupe: true}).catch(() => undefined);
+        refreshUsageSnapshot({dedupe: true}).catch(() => undefined);
+      } else {
+        setUsageSnapshot(null);
+        setTaskListInitialized(true);
+      }
+      return;
+    }
+
     fetch("/api/auth/me", {cache: "no-store"})
       .then((response) => (response.ok ? response.json() : {user: null}))
       .then((data) => {
         setCurrentUser(data.user ?? null);
         if (data.user && (variant === "dashboard" || variant === "upload")) {
-          refreshTaskList().catch(() => undefined);
-          refreshFolders().catch(() => undefined);
-          refreshUsageSnapshot().catch(() => undefined);
+          refreshFolders({dedupe: true}).catch(() => undefined);
+          refreshUsageSnapshot({dedupe: true}).catch(() => undefined);
         } else {
           setUsageSnapshot(null);
           setTaskListInitialized(true);
@@ -645,7 +679,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
         setUsageSnapshot(null);
         setTaskListInitialized(true);
       });
-  }, [refreshTaskList, refreshUsageSnapshot, variant]);
+  }, [hasInitialUser, initialUser, refreshFolders, refreshUsageSnapshot, variant]);
 
   useEffect(() => {
     if (variant !== "dashboard" || !currentUser?.id) return;
@@ -729,8 +763,8 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
   }
 
   useEffect(() => {
-    if (variant !== "dashboard" || !currentUser?.id) return;
-    refreshTaskList().catch(() => undefined);
+    if ((variant !== "dashboard" && variant !== "upload") || !currentUser?.id) return;
+    refreshTaskList({dedupe: true}).catch(() => undefined);
   }, [currentUser?.id, refreshTaskList, variant]);
 
   async function createFolder(name: string) {
@@ -1530,6 +1564,7 @@ export function Workspace({variant = "marketing"}: {variant?: "marketing" | "das
       {!isUpload && !isDashboard ? (
         <SiteHeader
           showAuthPair={!isDashboard && !currentUser}
+          signedIn={Boolean(currentUser)}
           primaryCta={{
             href: `/${locale}/${isDashboard || currentUser ? "dashboard" : "auth/signin"}`,
             label: isDashboard || currentUser ? copy.goToDashboard : copy.freeSignup,
@@ -4469,6 +4504,7 @@ function TranscriptionTable({
   const [moveTargetFolderId, setMoveTargetFolderId] = useState<string | null | undefined>(undefined);
   const [exportingTask, setExportingTask] = useState<TaskListItem | null>(null);
   const [sharingTask, setSharingTask] = useState<TaskListItem | null>(null);
+  const [sharingTaskLoading, setSharingTaskLoading] = useState(false);
   const [deletingTask, setDeletingTask] = useState<TaskListItem | null>(null);
   const [taskShareUrl, setTaskShareUrl] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<(typeof dashboardExportFormats)[number]>("txt");
@@ -4560,6 +4596,18 @@ function TranscriptionTable({
     setOpenMenuTaskId(null);
     setSharingTask(item);
     setTaskShareUrl(null);
+    setSharingTaskLoading(true);
+    fetch(`/api/tasks/${item.id}?locale=${encodeURIComponent(locale)}`, {cache: "no-store"})
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error ?? copy.readTaskError);
+        return body as Task;
+      })
+      .then((detail) => {
+        setSharingTask((current) => current?.id === item.id ? {...current, transcript: detail.transcript ? {id: detail.id} : current.transcript, shareLinks: detail.shareLinks ?? []} : current);
+      })
+      .catch(() => undefined)
+      .finally(() => setSharingTaskLoading(false));
   }
 
   function openDeleteDialog(item: TaskListItem) {
@@ -4802,7 +4850,7 @@ function TranscriptionTable({
       {sharingTask ? (
         <ShareTranscriptionDialog
           activeShare={sharingTask.shareLinks?.[0] ?? null}
-          busy={busy}
+          busy={busy || sharingTaskLoading}
           canShare={Boolean(sharingTask.transcript)}
           copy={copy}
           shareUrl={taskShareUrl}

@@ -4,13 +4,11 @@ import {prisma} from "@/lib/prisma";
 import {enqueueTranscribeJob} from "@/lib/queue";
 import {anonymousUserId} from "@/lib/tasks";
 import {assertRateLimit} from "@/lib/rate-limit";
-import {getCurrentUser} from "@/lib/auth";
+import {getCurrentUser, getCurrentUserIdentity} from "@/lib/auth";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
 import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
 import {jsonSafe} from "@/lib/json";
-import {getRequestOrigin} from "@/lib/request-origin";
-import {serializeShareLinkForOwner} from "@/lib/share-links";
 import {logApiError} from "@/lib/api-logger";
 
 const createTaskSchema = z.object({
@@ -31,14 +29,12 @@ const createTaskSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserIdentity();
     if (!user) {
       return NextResponse.json({tasks: []});
     }
 
     const url = new URL(request.url);
-    const locale = url.searchParams.get("locale") || user.locale;
-    const appUrl = getRequestOrigin(request);
     const take = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") || 30)));
     const folderId = url.searchParams.get("folderId");
     const tasks = await prisma.mediaTask.findMany({
@@ -60,57 +56,12 @@ export async function GET(request: Request) {
         speakerCount: true,
         createdAt: true,
         completedAt: true,
-        transcript: {select: {id: true}},
-        insights: {
-          select: {
-            type: true,
-            content: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        },
-        shareLinks: {
-          where: {enabled: true},
-          select: {
-            id: true,
-            tokenHash: true,
-            title: true,
-            enabled: true,
-            expiresAt: true,
-            accessCount: true,
-            lastAccessAt: true,
-            createdAt: true
-          },
-          orderBy: {createdAt: "desc"},
-          take: 1
-        },
-        mediaAssets: {
-          select: {
-            id: true,
-            kind: true,
-            url: true,
-            objectKey: true,
-            fileName: true,
-            contentType: true,
-            sizeBytes: true,
-            durationSeconds: true,
-            startSeconds: true,
-            endSeconds: true,
-            chunkIndex: true,
-            createdAt: true
-          },
-          orderBy: [{kind: "asc"}, {chunkIndex: "asc"}]
-        }
+        transcript: {select: {id: true}}
       }
     });
 
     return NextResponse.json({
-      tasks: jsonSafe(tasks.map((task) => ({
-        ...task,
-        shareLinks: task.shareLinks.map((shareLink) =>
-          serializeShareLinkForOwner(shareLink, {appUrl, locale})
-        )
-      })))
+      tasks: jsonSafe(tasks.map((task) => ({...task, shareLinks: []})))
     });
   } catch (error) {
     logApiError(error, request);
