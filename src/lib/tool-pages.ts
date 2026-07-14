@@ -89,7 +89,8 @@ const pageTitles: Record<string, string> = {
   "youtube-video-downloader": "YouTube Video Downloader | Votxt Tools"
 };
 
-const canonicalToolSlugs = new Set(["audio-to-text", "video-link-to-text", "video-to-audio-extractor", "wav-to-mp3-converter", "youtube-subtitle-downloader", "youtube-video-downloader"]);
+export const canonicalToolSlugs = ["audio-to-text", "video-link-to-text", "video-to-audio-extractor", "wav-to-mp3-converter", "youtube-subtitle-downloader", "youtube-video-downloader"] as const;
+const canonicalToolSlugSet = new Set<string>(canonicalToolSlugs);
 
 const localizedTitleTemplates: Record<Locale, {language: string; tool: string}> = {
   ar: {language: "حوّل صوت {language} إلى نص مجاناً خلال ثوانٍ", tool: "{name} | أداة Votxt"},
@@ -176,7 +177,7 @@ const localizedToolTitleNames: Record<Locale, Record<string, string>> = {
 };
 
 export function isCanonicalToolSlug(slug: string) {
-  return canonicalToolSlugs.has(slug);
+  return canonicalToolSlugSet.has(slug);
 }
 
 function formatTitleTemplate(template: string, values: Record<string, string>) {

@@ -1,4 +1,5 @@
 import {isLocale, type Locale} from "@/lib/locales";
+import {buildPrivateMetadata} from "@/lib/seo";
 
 type AuthMetadataKey = "signup" | "signin" | "forgot" | "reset" | "verify" | "appsumo";
 
@@ -27,9 +28,13 @@ const authMetadataTitles: Record<Locale, Record<AuthMetadataKey, string>> = {
 
 export function authMetadata(locale: string, key: AuthMetadataKey) {
   const safeLocale = isLocale(locale) ? locale : "en";
-  return {
-    title: {
-      absolute: `${authMetadataTitles[safeLocale][key]} | Votxt`
-    }
+  const pathByKey: Record<AuthMetadataKey, string> = {
+    appsumo: "/auth/appsumo",
+    forgot: "/auth/forgot-password",
+    reset: "/auth/reset-password",
+    signin: "/auth/signin",
+    signup: "/auth/signup",
+    verify: "/auth/verify-email"
   };
+  return buildPrivateMetadata(authMetadataTitles[safeLocale][key], safeLocale, pathByKey[key]);
 }

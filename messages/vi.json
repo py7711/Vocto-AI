@@ -3,6 +3,17 @@
     "title": "Chuyển âm thanh và video thành văn bản miễn phí trực tuyến",
     "description": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng."
   },
+  "trustSeo": {
+    "privacy": "Chính sách quyền riêng tư",
+    "terms": "Điều khoản dịch vụ",
+    "security": "Bảo mật và quyền riêng tư"
+  },
+  "notFound": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang có thể đã được di chuyển hoặc địa chỉ không chính xác. Hãy quay lại Votxt hoặc xem các công cụ phiên âm.",
+    "home": "Về trang chủ",
+    "tools": "Xem công cụ"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Âm thanh và video thành văn bản thật sự hữu ích.",

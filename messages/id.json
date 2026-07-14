@@ -3,6 +3,17 @@
     "title": "Konversi audio dan video ke teks online gratis",
     "description": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format."
   },
+  "trustSeo": {
+    "privacy": "Kebijakan privasi",
+    "terms": "Ketentuan layanan",
+    "security": "Keamanan dan privasi"
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "description": "Halaman mungkin telah dipindahkan atau alamatnya salah. Kembali ke Votxt atau jelajahi alat transkripsi.",
+    "home": "Kembali ke beranda",
+    "tools": "Jelajahi alat"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio dan video menjadi teks yang benar-benar berguna.",

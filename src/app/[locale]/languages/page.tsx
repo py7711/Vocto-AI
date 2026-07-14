@@ -3,6 +3,8 @@ import {Languages, Sparkles} from "lucide-react";
 import {SiteFooter, SiteHeader, PageHero} from "@/components/site-shell";
 import {getSupportedLanguagePages} from "@/lib/language-pages";
 import {isLocale, type Locale} from "@/lib/locales";
+import {buildSeoMetadata} from "@/lib/seo";
+import {getToolPageTitle} from "@/lib/tool-pages";
 
 type LanguagesIndexCopy = {
   metaTitle: string;
@@ -181,9 +183,9 @@ function getLanguagesCopy(locale: string) {
 }
 
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
-  return {
-    title: getLanguagesCopy(params.locale).metaTitle
-  };
+  const copy = getLanguagesCopy(params.locale);
+  const keyword = getToolPageTitle("audio-to-text", params.locale).split("|")[0].trim();
+  return buildSeoMetadata({locale: params.locale, path: "/languages", title: `${copy.metaTitle.replace(/\s*\|\s*Votxt$/, "")} - ${keyword} | Votxt`, description: copy.description});
 }
 
 export default function LanguagesIndexPage({params}: {params: {locale: string}}) {

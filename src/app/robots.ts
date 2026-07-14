@@ -1,15 +1,25 @@
 import type {MetadataRoute} from "next";
-import {env} from "@/lib/env";
+import {SITE_ORIGIN} from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/"]
+      disallow: [
+        "/api/",
+        "/admin/",
+        "/user/",
+        "/personal-center/",
+        "/*/auth/",
+        "/*/dashboard",
+        "/*/settings",
+        "/*/upload",
+        "/*/transcriptions/",
+        "/*/share/"
+      ]
     },
-    host: baseUrl
+    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
+    host: SITE_ORIGIN
   };
 }

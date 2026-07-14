@@ -4,6 +4,8 @@ import {getWorkspaceCopy} from "@/components/workspace/copy";
 import type {CurrentUser} from "@/components/workspace/types";
 import {getCurrentUser} from "@/lib/auth";
 import {jsonSafe} from "@/lib/json";
+import {buildSeoMetadata} from "@/lib/seo";
+import {getToolPageTitle} from "@/lib/tool-pages";
 
 type MetadataWorkspaceCopy = ReturnType<typeof getWorkspaceCopy> &
   Partial<{
@@ -19,12 +21,9 @@ export function generateMetadata({params}: {params: {locale: string}}): Metadata
   const copy = getWorkspaceCopy(params.locale) as MetadataWorkspaceCopy;
   const title = copy.features ?? copy.whyTitle ?? copy.workflowTitle ?? copy.workspace;
 
-  return {
-    title: {
-      absolute: `${title} | Votxt`
-    },
-    description: copy.marketingIntro ?? copy.subheadline
-  };
+  const description = copy.marketingIntro ?? copy.subheadline;
+  const keyword = getToolPageTitle("audio-to-text", params.locale).split("|")[0].trim();
+  return buildSeoMetadata({locale: params.locale, path: "/features", title: `${title} - ${keyword} | Votxt`, description: `${title}. ${description}`});
 }
 
 export default async function FeaturesPage() {

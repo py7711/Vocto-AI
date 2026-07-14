@@ -5,12 +5,11 @@ import {getWorkspaceCopy} from "@/components/workspace/copy";
 import type {CurrentUser} from "@/components/workspace/types";
 import {getCurrentUser} from "@/lib/auth";
 import {jsonSafe} from "@/lib/json";
+import {buildPrivateMetadata} from "@/lib/seo";
 
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   const copy = getWorkspaceCopy(params.locale);
-  return {
-    title: `${copy.dashboardNav} | Votxt`
-  };
+  return buildPrivateMetadata(copy.dashboardNav, params.locale, "/dashboard");
 }
 
 export default async function DashboardPage({params}: {params: {locale: string}}) {

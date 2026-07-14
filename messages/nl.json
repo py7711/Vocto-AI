@@ -3,6 +3,17 @@
     "title": "Audio en video gratis online naar tekst converteren",
     "description": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten."
   },
+  "trustSeo": {
+    "privacy": "Privacybeleid",
+    "terms": "Servicevoorwaarden",
+    "security": "Beveiliging en privacy"
+  },
+  "notFound": {
+    "title": "Pagina niet gevonden",
+    "description": "De pagina is mogelijk verplaatst of het adres klopt niet. Ga terug naar Votxt of bekijk de transcriptietools.",
+    "home": "Terug naar home",
+    "tools": "Tools bekijken"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio en video naar tekst waar je echt iets aan hebt.",

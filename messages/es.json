@@ -3,6 +3,17 @@
     "title": "Convertidor gratuito de voz a texto en línea",
     "description": "Votxt convierte audio, video y enlaces de YouTube en transcripciones, resúmenes, mapas mentales, preguntas, traducciones y exportaciones."
   },
+  "trustSeo": {
+    "privacy": "Política de privacidad",
+    "terms": "Términos del servicio",
+    "security": "Seguridad y privacidad"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página puede haberse movido o la dirección es incorrecta. Vuelve a Votxt o explora las herramientas de transcripción.",
+    "home": "Volver al inicio",
+    "tools": "Explorar herramientas"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio y video convertidos en texto útil.",

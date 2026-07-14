@@ -1,8 +1,10 @@
 import type {Metadata} from "next";
 import {notFound, permanentRedirect} from "next/navigation";
 import {ToolPage} from "@/components/tool-page";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {getToolPageTitle, isCanonicalToolSlug} from "@/lib/tool-pages";
 import {isCanonicalLandingSlug} from "@/lib/canonical-slugs";
+import {breadcrumbJsonLd, buildSeoMetadata, jsonLdString} from "@/lib/seo";
 
 type LandingRouteParams = {
   locale: string;
@@ -27,9 +29,15 @@ export function generateMetadata({params}: {params: LandingRouteParams}): Metada
   if (!isCanonicalLandingSlug(params.slug)) {
     return {};
   }
-  return {
-    title: getToolPageTitle(params.slug, params.locale)
-  };
+  const title = getToolPageTitle(params.slug, params.locale);
+  const copy = getWorkspaceCopy(params.locale) as ReturnType<typeof getWorkspaceCopy> & Partial<{marketingIntro: string; subheadline: string}>;
+  const description = copy.marketingIntro ?? copy.subheadline ?? "Convert audio and video into editable transcripts, subtitles, summaries, translations, and exports.";
+  return buildSeoMetadata({
+    locale: params.locale,
+    path: `/l/${params.slug}`,
+    title: title.includes("Votxt") ? title : `${title} | Votxt`,
+    description: `${title}. ${description}`
+  });
 }
 
 export default function LandingRoutePage({params, searchParams}: {params: LandingRouteParams; searchParams?: LandingRouteSearchParams}) {
@@ -37,5 +45,9 @@ export default function LandingRoutePage({params, searchParams}: {params: Landin
     permanentRedirect(canonicalToolHref(params, searchParams));
   }
   if (!isCanonicalLandingSlug(params.slug)) notFound();
-  return <ToolPage slug={params.slug} />;
+  const title = getToolPageTitle(params.slug, params.locale);
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{__html: jsonLdString(breadcrumbJsonLd(params.locale, [
+    {name: "Votxt", path: "/"},
+    {name: title, path: `/l/${params.slug}`}
+  ]))}} /><ToolPage slug={params.slug} /></>;
 }

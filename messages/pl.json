@@ -3,6 +3,17 @@
     "title": "Konwertuj audio i wideo na tekst online za darmo",
     "description": "Votxt pozwala przesyłać pliki audio i wideo lub wklejać linki YouTube, szybko zamieniając je na tekst z AI. Tworzy też podsumowania, mapy myśli, kluczowe pytania i eksporty w różnych formatach."
   },
+  "trustSeo": {
+    "privacy": "Polityka prywatności",
+    "terms": "Warunki korzystania",
+    "security": "Bezpieczeństwo i prywatność"
+  },
+  "notFound": {
+    "title": "Nie znaleziono strony",
+    "description": "Strona mogła zostać przeniesiona lub adres jest nieprawidłowy. Wróć do Votxt albo przejrzyj narzędzia do transkrypcji.",
+    "home": "Wróć na stronę główną",
+    "tools": "Przeglądaj narzędzia"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio i wideo w tekst, którego naprawdę użyjesz.",

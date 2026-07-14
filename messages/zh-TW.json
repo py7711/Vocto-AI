@@ -3,6 +3,17 @@
     "title": "免費線上將音訊與影片轉成文字",
     "description": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。"
   },
+  "trustSeo": {
+    "privacy": "隱私政策",
+    "terms": "服務條款",
+    "security": "安全與隱私"
+  },
+  "notFound": {
+    "title": "找不到頁面",
+    "description": "頁面可能已移動，或網址有誤。你可以返回 Votxt 首頁或瀏覽轉寫工具。",
+    "home": "返回首頁",
+    "tools": "瀏覽工具"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "把音訊與影片變成真正可用的文字。",

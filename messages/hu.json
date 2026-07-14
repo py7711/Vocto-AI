@@ -3,6 +3,17 @@
     "title": "Hang és videó ingyenes online szöveggé alakítása",
     "description": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít."
   },
+  "trustSeo": {
+    "privacy": "Adatvédelmi irányelvek",
+    "terms": "Szolgáltatási feltételek",
+    "security": "Biztonság és adatvédelem"
+  },
+  "notFound": {
+    "title": "Az oldal nem található",
+    "description": "Lehet, hogy az oldalt áthelyezték, vagy a cím hibás. Térj vissza a Votxt oldalára, vagy böngészd az átírási eszközöket.",
+    "home": "Vissza a főoldalra",
+    "tools": "Eszközök böngészése"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Hang és videó valóban használható szöveggé.",

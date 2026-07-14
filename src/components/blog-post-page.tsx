@@ -4,6 +4,7 @@ import Link from "next/link";
 import {getBlogPost, type BlogContentBlock, type BlogPost} from "@/lib/blog";
 import {isLocale, type Locale} from "@/lib/locales";
 import {SiteFooter, SiteHeader} from "@/components/site-shell";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
 
 type BlogPostPageCopy = {
   authorFallback: string;
@@ -225,6 +226,7 @@ export function BlogPostPage({locale, slug}: {locale: string; slug: string}) {
   }
 
   const pageCopy = blogPostPageCopy[isLocale(locale) ? locale : "en"];
+  const workspaceCopy = getWorkspaceCopy(locale);
   const blocks = getPostBlocks(post);
   const tableOfContents = blocks.filter((block): block is Extract<BlogContentBlock, {type: "heading"}> => block.type === "heading");
 
@@ -233,6 +235,13 @@ export function BlogPostPage({locale, slug}: {locale: string; slug: string}) {
       <SiteHeader />
       <article className="mx-auto mt-20 flex max-w-[1400px] px-4 py-2 md:px-8">
         <div className="min-w-0 flex-1">
+          <nav aria-label={workspaceCopy.blog} className="flex flex-wrap items-center gap-2 pt-5 text-sm text-muted-foreground">
+            <Link href={`/${locale}`} className="hover:text-violet">Votxt</Link>
+            <span aria-hidden="true">/</span>
+            <Link href={`/${locale}/blog`} className="hover:text-violet">{workspaceCopy.blog}</Link>
+            <span aria-hidden="true">/</span>
+            <span className="max-w-[min(36rem,70vw)] truncate text-foreground" aria-current="page">{post.title}</span>
+          </nav>
           <header className="flex flex-col py-6 md:flex-row md:py-10">
             <div className="relative flex-1 overflow-hidden md:mr-10 md:flex-[0_0_440px]">
               <Image

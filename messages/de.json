@@ -3,6 +3,17 @@
     "title": "Kostenloser Online-Sprache-zu-Text-Konverter",
     "description": "Votxt wandelt Audio, Video und YouTube-Links in Transkripte, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte um."
   },
+  "trustSeo": {
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
+    "security": "Sicherheit und Datenschutz"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die Seite wurde möglicherweise verschoben oder die Adresse ist falsch. Kehren Sie zu Votxt zurück oder öffnen Sie die Transkriptionswerkzeuge.",
+    "home": "Zur Startseite",
+    "tools": "Werkzeuge ansehen"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio und Video werden zu nutzbarem Text.",

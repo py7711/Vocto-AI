@@ -4,6 +4,7 @@ import {NextIntlClientProvider} from "next-intl";
 import {notFound} from "next/navigation";
 import {SystemUpdateNoticeDialog} from "@/components/system-update-notice";
 import {isLocale, locales, messagesLocale} from "@/lib/locales";
+import {buildSeoMetadata} from "@/lib/seo";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({locale}));
@@ -19,13 +20,9 @@ export async function generateMetadata({params}: {params: LocaleParams}): Promis
   const {locale} = params;
   const messages = await loadMessages(locale);
 
-  return {
-    title: messages.meta?.title ?? "Convert audio and video to text online for free",
-    description: messages.meta?.description ?? "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats.",
-    icons: {
-      icon: "/favicon.svg"
-    }
-  };
+  const title = messages.meta?.title ?? "Convert audio and video to text online for free";
+  const description = messages.meta?.description ?? "Votxt turns audio, video, and YouTube links into editable transcripts, subtitles, summaries, translations, and export-ready documents.";
+  return buildSeoMetadata({locale, title: `${title} | Votxt`, description});
 }
 
 export default async function LocaleLayout({children, params}: {children: ReactNode; params: LocaleParams}) {

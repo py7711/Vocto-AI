@@ -2,15 +2,13 @@ import type {Metadata} from "next";
 import {SiteFooter, SiteHeader} from "@/components/site-shell";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {isLocale, type Locale} from "@/lib/locales";
+import {buildSeoMetadata} from "@/lib/seo";
 
 export function generateMetadata({params}: {params: {locale: string}}): Metadata {
   const locale = isLocale(params.locale) ? params.locale : "en";
   const docs = getDocsText(locale);
 
-  return {
-    title: docs.metaTitle,
-    description: docs.metaDescription
-  };
+  return buildSeoMetadata({locale, path: "/docs", title: docs.metaTitle, description: docs.metaDescription});
 }
 
 const toc = [

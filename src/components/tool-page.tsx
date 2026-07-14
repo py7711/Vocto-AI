@@ -778,6 +778,16 @@ function toolRoutePath(item: ToolPageRecord) {
   return `${usesToolsPath ? "tools" : "l"}/${item.slug}`;
 }
 
+function ToolBreadcrumb({locale, title}: {locale: string; title: string}) {
+  return (
+    <nav aria-label={title} className="mx-auto flex max-w-7xl items-center gap-2 px-4 text-sm text-ink/55 md:px-8">
+      <a href={`/${locale}`} className="hover:text-violet">Votxt</a>
+      <span aria-hidden="true">/</span>
+      <span className="min-w-0 truncate text-ink" aria-current="page">{title}</span>
+    </nav>
+  );
+}
+
 export function ToolPage({slug, page: providedPage}: {slug: string; page?: ToolPageRecord}) {
   const locale = useLocale();
   const copy = getWorkspaceCopy(locale);
@@ -827,6 +837,7 @@ export function ToolPage({slug, page: providedPage}: {slug: string; page?: ToolP
     return (
       <main className="min-h-screen bg-paper pt-24">
         <SiteHeader />
+        <ToolBreadcrumb locale={locale} title={pageTitle} />
         <section className="px-4 py-12 md:px-8">
           <div className="mx-auto max-w-3xl space-y-8">
             <div className="space-y-4 text-center">
@@ -932,6 +943,7 @@ export function ToolPage({slug, page: providedPage}: {slug: string; page?: ToolP
   return (
     <main className="min-h-screen bg-paper pt-20">
       <SiteHeader />
+      <ToolBreadcrumb locale={locale} title={pageTitle} />
       <section className="border-b border-violet/10 bg-lavender px-4 pb-14 pt-12 md:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
           <div>

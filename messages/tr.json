@@ -3,6 +3,17 @@
     "title": "Ses ve videoyu ücretsiz çevrim içi metne dönüştür",
     "description": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir."
   },
+  "trustSeo": {
+    "privacy": "Gizlilik politikası",
+    "terms": "Hizmet şartları",
+    "security": "Güvenlik ve gizlilik"
+  },
+  "notFound": {
+    "title": "Sayfa bulunamadı",
+    "description": "Sayfa taşınmış veya adres yanlış olabilir. Votxt'a dönün ya da transkripsiyon araçlarına göz atın.",
+    "home": "Ana sayfaya dön",
+    "tools": "Araçlara göz at"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Ses ve video gerçekten kullanılabilir metne dönüşür.",

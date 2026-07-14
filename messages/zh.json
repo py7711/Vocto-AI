@@ -3,6 +3,17 @@
     "title": "免费在线语音转文本转换器",
     "description": "Votxt 将音频、视频和 YouTube 链接转换成可编辑转写、总结、思维导图、问答、翻译和字幕导出。"
   },
+  "trustSeo": {
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "security": "安全与隐私"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "页面可能已移动，或地址有误。您可以返回 Votxt 首页或浏览转写工具。",
+    "home": "返回首页",
+    "tools": "浏览工具"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "把音视频变成真正可继续工作的文字。",

@@ -2,6 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import {NextResponse, type NextRequest} from "next/server";
 import {isLocale, locales} from "@/lib/locales";
 import {REQUEST_URL_LOG_HEADER} from "@/lib/logging-headers";
+import {canonicalRedirectUrl, legacyPublicRedirectUrl} from "@/lib/seo";
 
 const intlMiddleware = createMiddleware({
   locales,
@@ -17,7 +18,15 @@ function requestHeadersWithLogUrl(request: NextRequest) {
 }
 
 export default function middleware(request: NextRequest) {
+  const canonicalUrl = canonicalRedirectUrl(request.url, request.headers.get("host"), request.headers.get("x-forwarded-proto"));
+  const legacyUrl = legacyPublicRedirectUrl(canonicalUrl?.toString() ?? request.url);
+  if (canonicalUrl || legacyUrl) return NextResponse.redirect(legacyUrl ?? canonicalUrl!, 301);
+
   const requestHeaders = requestHeadersWithLogUrl(request);
+
+  if (request.nextUrl.pathname.startsWith("/_next/") || request.nextUrl.pathname.includes(".")) {
+    return NextResponse.next({request: {headers: requestHeaders}});
+  }
 
   if (request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.next({
@@ -44,5 +53,5 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|.*\\..*).*)"]
+  matcher: ["/:path*"]
 };

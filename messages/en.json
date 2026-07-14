@@ -3,6 +3,17 @@
     "title": "Convert audio and video to text online for free",
     "description": "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats."
   },
+  "trustSeo": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "security": "Security and Privacy"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page may have moved or the address may be incorrect. Return to Votxt or browse the transcription tools.",
+    "home": "Return home",
+    "tools": "Browse tools"
+  },
   "app": {
     "brand": "Votxt",
     "tagline": "Audio and video into text you can actually use.",

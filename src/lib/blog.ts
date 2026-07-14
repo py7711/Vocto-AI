@@ -751,3 +751,30 @@ export function getBlogPost(locale: string, slug: string) {
 export function getAllBlogSlugs() {
   return enPosts.map((post) => post.slug);
 }
+
+const compactBlogSeoTitles: Partial<Record<string, Record<string, string>>> = {
+  zh: {
+    "compress-large-audio-to-mp3-vlc-guide": "VLC 压缩音频为 MP3 指南",
+    "giving-voice-to-final-stories-hospice-volunteer-journey": "临终故事与声音保存志愿者旅程",
+    "extract-audio-from-video-vlc-guide": "VLC 从视频提取音频教程",
+    "five-free-wav-to-text-converters": "5 款免费 WAV 转文字工具",
+    "audio-to-srt-online-free-guide": "免费在线音频转 SRT 字幕",
+    "three-best-ways-to-convert-video-to-text": "视频转文字的 3 种最佳方法",
+    "mp4-to-text-online-free": "免费在线 MP4 转文字教程",
+    "mp3-to-srt-online-free": "免费在线 MP3 转 SRT 教程"
+  },
+  "zh-TW": {
+    "compress-large-audio-to-mp3-vlc-guide": "VLC 壓縮音訊為 MP3 指南",
+    "giving-voice-to-final-stories-hospice-volunteer-journey": "臨終故事與聲音保存志工旅程",
+    "extract-audio-from-video-vlc-guide": "VLC 從影片擷取音訊教學",
+    "five-free-wav-to-text-converters": "5 款免費 WAV 轉文字工具",
+    "audio-to-srt-online-free-guide": "免費線上音訊轉 SRT 字幕",
+    "three-best-ways-to-convert-video-to-text": "影片轉文字的 3 種最佳方法",
+    "mp4-to-text-online-free": "免費線上 MP4 轉文字教學",
+    "mp3-to-srt-online-free": "免費線上 MP3 轉 SRT 教學"
+  }
+};
+
+export function getBlogSeoTitle(locale: string, slug: string, fallback: string) {
+  return compactBlogSeoTitles[locale]?.[slug] ?? fallback;
+}

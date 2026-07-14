@@ -3,7 +3,7 @@ import path from "node:path";
 
 const sourceRoots = ["src", "config"];
 const sourceExtensions = new Set([".ts", ".tsx", ".mjs"]);
-const appEntrypointNames = new Set(["page.tsx", "route.ts", "layout.tsx", "not-found.tsx", "loading.tsx", "error.tsx", "global-error.tsx"]);
+const appEntrypointNames = new Set(["page.tsx", "route.ts", "layout.tsx", "not-found.tsx", "loading.tsx", "error.tsx", "global-error.tsx", "robots.ts", "sitemap.ts"]);
 const scriptEntrypoints = [
   "scripts/check-auth-seed.mjs",
   "scripts/check-dependencies.mjs",
@@ -14,7 +14,9 @@ const scriptEntrypoints = [
   "scripts/generate-blog-covers.mjs"
 ];
 const explicitEntrypoints = [
-  "middleware.ts",
+  "src/middleware.ts",
+  "src/instrumentation.ts",
+  "src/instrumentation.node.ts",
   "next.config.mjs",
   "tailwind.config.ts",
   "src/i18n.ts",
