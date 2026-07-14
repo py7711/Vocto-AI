@@ -9,11 +9,15 @@ import {Transform} from "node:stream";
 import {pipeline} from "node:stream/promises";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {env} from "@/lib/env";
+import {logWarn} from "@/lib/logger";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, putObject} from "@/lib/storage";
 import {normalizePublicMediaUrl} from "@/lib/media-url";
+import {selectBrowserTransferStream, type ExtractedMediaFormat} from "@/lib/media-stream";
 import {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
 import {resolveYoutubeViaInnertube, type YoutubeStreamFormat} from "@/server/media/youtube-innertube";
+import {resolvePublicMediaMetadata} from "@/server/media/public-metadata";
+import {createYoutubeAudioAcquirer, ingestYtDownAudioToR2} from "@/server/media/ytdown-audio";
 
 export {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
 export type {YoutubeStreamFormat} from "@/server/media/youtube-innertube";
@@ -528,29 +532,6 @@ async function downloadRemoteMedia(input: {
   if (input.sourceType === "YOUTUBE") {
     const provider = resolveMediaSourceProvider(input.sourceUrl);
     const mediaUrl = provider === "youtube" ? canonicalizeYoutubeUrl(input.sourceUrl) : normalizeMediaUrl(input.sourceUrl);
-    if (provider === "youtube") {
-      const videoId = extractYoutubeVideoId(mediaUrl)!;
-      let directPath: string | undefined;
-      try {
-        const resolved = await resolveYoutubeViaInnertube(videoId);
-        if (!resolved.audioFormat?.url) throw new Error("InnerTube returned no directly usable audio-only stream.");
-        const extension = resolved.audioFormat.mimeType.includes("webm") ? "webm" : "m4a";
-        directPath = join(input.directory, `source.${extension}`);
-        const response = await fetch(resolved.audioFormat.url, {
-          headers: {"User-Agent": resolved.userAgent},
-          signal: AbortSignal.timeout(15 * 60_000)
-        });
-        if (!response.ok || !response.body) {
-          throw new Error(`InnerTube audio download failed: ${response.status} ${response.statusText}`);
-        }
-        await pipeline(Readable.fromWeb(response.body as any), createWriteStream(directPath));
-        return directPath;
-      } catch {
-        if (directPath) await rm(directPath, {force: true}).catch(() => undefined);
-        // Encrypted signatures, nsig and playability changes are delegated to pinned yt-dlp.
-      }
-    }
-
     const outputTemplate = join(input.directory, "source.%(ext)s");
     try {
       await runYtDlp([
@@ -654,6 +635,57 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, worker: (item
   return results;
 }
 
+async function persistTaskAudio(input: {
+  taskId: string;
+  key: string;
+  publicUrl: string;
+  fileName: string;
+  sizeBytes: number;
+  durationSeconds?: number;
+  metadata: Record<string, string | number | boolean>;
+}) {
+  const durationSeconds = normalizeDurationSeconds(input.durationSeconds);
+  await prisma.mediaAsset.upsert({
+    where: {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "NORMALIZED_AUDIO", chunkIndex: -1}},
+    update: {
+      url: input.publicUrl,
+      objectKey: input.key,
+      fileName: input.fileName,
+      contentType: audioContentType,
+      sizeBytes: input.sizeBytes,
+      durationSeconds,
+      metadata: input.metadata
+    },
+    create: {
+      mediaTaskId: input.taskId,
+      kind: "NORMALIZED_AUDIO",
+      chunkIndex: -1,
+      url: input.publicUrl,
+      objectKey: input.key,
+      fileName: input.fileName,
+      contentType: audioContentType,
+      sizeBytes: input.sizeBytes,
+      durationSeconds,
+      metadata: input.metadata
+    }
+  });
+
+  await prisma.mediaTask.update({
+    where: {id: input.taskId},
+    data: {normalizedUrl: input.publicUrl, durationSeconds}
+  });
+  await prisma.mediaAsset.deleteMany({
+    where: {mediaTaskId: input.taskId, kind: "AUDIO_CHUNK"}
+  });
+
+  return {
+    mediaUrl: input.publicUrl,
+    normalizedUrl: input.publicUrl,
+    durationSeconds,
+    chunkCount: 0
+  };
+}
+
 export async function prepareTaskAudioAsset(input: {
   taskId: string;
   sourceUrl: string;
@@ -678,99 +710,117 @@ export async function prepareTaskAudioAsset(input: {
     };
   }
 
-  const directory = await mkdtemp(join(tmpdir(), "votxt-media-"));
   const stem = safeMediaStem(input.originalName, input.taskId);
-  const sourcePath = join(directory, "source");
+  const sourceAssetKey = {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "SOURCE_MEDIA" as const, chunkIndex: -1}};
+  const existingSourceAsset = await prisma.mediaAsset.findUnique({
+    where: sourceAssetKey,
+    select: {metadata: true}
+  });
+  const existingMetadata = existingSourceAsset?.metadata;
+  const wasSpeakerLabelsRequested = Boolean(
+    existingMetadata &&
+    typeof existingMetadata === "object" &&
+    !Array.isArray(existingMetadata) &&
+    (existingMetadata as Record<string, unknown>).speakerLabelsRequested === true
+  );
+  const sourceMetadata = {
+    sourceType: input.sourceType,
+    speakerLabelsRequested: wasSpeakerLabelsRequested || Boolean(input.enableSpeakerLabels)
+  };
+
+  await prisma.mediaAsset.upsert({
+    where: sourceAssetKey,
+    update: {
+      url: input.sourceUrl,
+      objectKey: input.objectKey ?? undefined,
+      fileName: input.originalName ?? stem,
+      metadata: sourceMetadata
+    },
+    create: {
+      mediaTaskId: input.taskId,
+      kind: "SOURCE_MEDIA",
+      chunkIndex: -1,
+      url: input.sourceUrl,
+      objectKey: input.objectKey,
+      fileName: input.originalName ?? stem,
+      metadata: sourceMetadata
+    }
+  });
+
+  const fullKey = `tasks/${input.taskId}/audio/${stem}.mp3`;
+  let directory: string | undefined;
+  let downloadedSourcePath: string | undefined;
+
+  if (env.YTDOWN_ENABLED && input.sourceType === "YOUTUBE" && resolveMediaSourceProvider(input.sourceUrl) === "youtube") {
+    const acquireYoutubeAudio = createYoutubeAudioAcquirer({
+      ingestYtDown: ingestYtDownAudioToR2,
+      downloadWithYtDlp: async (youtubeUrl) => {
+        const fallbackDirectory = await mkdtemp(join(tmpdir(), "votxt-media-"));
+        try {
+          const filePath = await downloadRemoteMedia({
+            sourceUrl: youtubeUrl,
+            sourceType: "YOUTUBE",
+            objectKey: input.objectKey,
+            directory: fallbackDirectory,
+            outputPath: join(fallbackDirectory, "source")
+          });
+          return {filePath, directory: fallbackDirectory};
+        } catch (error) {
+          await rm(fallbackDirectory, {recursive: true, force: true}).catch(() => undefined);
+          throw error;
+        }
+      },
+      onYtDownError: (error) => logWarn(error, {
+        requestUrl: `worker://youtube-ingest/${input.taskId}`,
+        message: "YTDown audio ingestion failed; falling back to yt-dlp.",
+        meta: {taskId: input.taskId}
+      })
+    });
+    const acquired = await acquireYoutubeAudio({youtubeUrl: input.sourceUrl, key: fullKey});
+    if (acquired.kind === "stored") {
+      const uploadedAudio = acquired.audio;
+      const task = await prisma.mediaTask.findUnique({
+        where: {id: input.taskId},
+        select: {durationSeconds: true}
+      });
+      const durationSeconds = task?.durationSeconds
+        ?? await createDownloadUrl(uploadedAudio.key).then(probeDurationSeconds).catch(() => undefined);
+      return persistTaskAudio({
+        taskId: input.taskId,
+        key: uploadedAudio.key,
+        publicUrl: uploadedAudio.publicUrl,
+        fileName: `${stem}.mp3`,
+        sizeBytes: uploadedAudio.sizeBytes,
+        durationSeconds,
+        metadata: {provider: uploadedAudio.provider, passthrough: true, bitrate: "128k"}
+      });
+    }
+    directory = acquired.directory;
+    downloadedSourcePath = acquired.filePath;
+  }
+
+  directory ??= await mkdtemp(join(tmpdir(), "votxt-media-"));
   const audioPath = join(directory, "audio.mp3");
   try {
-    const sourceAssetKey = {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "SOURCE_MEDIA" as const, chunkIndex: -1}};
-    const existingSourceAsset = await prisma.mediaAsset.findUnique({
-      where: sourceAssetKey,
-      select: {metadata: true}
-    });
-    const existingMetadata = existingSourceAsset?.metadata;
-    const wasSpeakerLabelsRequested = Boolean(
-      existingMetadata &&
-      typeof existingMetadata === "object" &&
-      !Array.isArray(existingMetadata) &&
-      (existingMetadata as Record<string, unknown>).speakerLabelsRequested === true
-    );
-    const sourceMetadata = {
+    downloadedSourcePath ??= await downloadRemoteMedia({
+      sourceUrl: input.sourceUrl,
       sourceType: input.sourceType,
-      speakerLabelsRequested: wasSpeakerLabelsRequested || Boolean(input.enableSpeakerLabels)
-    };
-
-    await prisma.mediaAsset.upsert({
-      where: sourceAssetKey,
-      update: {
-        url: input.sourceUrl,
-        objectKey: input.objectKey ?? undefined,
-        fileName: input.originalName ?? stem,
-        metadata: sourceMetadata
-      },
-      create: {
-        mediaTaskId: input.taskId,
-        kind: "SOURCE_MEDIA",
-        chunkIndex: -1,
-        url: input.sourceUrl,
-        objectKey: input.objectKey,
-        fileName: input.originalName ?? stem,
-        metadata: sourceMetadata
-      }
+      objectKey: input.objectKey,
+      directory,
+      outputPath: join(directory, "source")
     });
-
-    const downloadedSourcePath = await downloadRemoteMedia({sourceUrl: input.sourceUrl, sourceType: input.sourceType, objectKey: input.objectKey, directory, outputPath: sourcePath});
     await normalizeToAudio(downloadedSourcePath, audioPath);
     const durationSeconds = await probeDurationSeconds(audioPath);
-    const fullKey = `tasks/${input.taskId}/audio/${stem}.mp3`;
     const uploadedAudio = await uploadFileToR2({key: fullKey, filePath: audioPath, contentType: audioContentType});
-
-    await prisma.mediaAsset.upsert({
-      where: {mediaTaskId_kind_chunkIndex: {mediaTaskId: input.taskId, kind: "NORMALIZED_AUDIO", chunkIndex: -1}},
-      update: {
-        url: uploadedAudio.publicUrl,
-        objectKey: uploadedAudio.key,
-        fileName: `${stem}.mp3`,
-        contentType: audioContentType,
-        sizeBytes: uploadedAudio.sizeBytes,
-        durationSeconds: normalizeDurationSeconds(durationSeconds),
-        metadata: {sampleRate: 16000, channels: 1, bitrate: "96k"}
-      },
-      create: {
-        mediaTaskId: input.taskId,
-        kind: "NORMALIZED_AUDIO",
-        chunkIndex: -1,
-        url: uploadedAudio.publicUrl,
-        objectKey: uploadedAudio.key,
-        fileName: `${stem}.mp3`,
-        contentType: audioContentType,
-        sizeBytes: uploadedAudio.sizeBytes,
-        durationSeconds: normalizeDurationSeconds(durationSeconds),
-        metadata: {sampleRate: 16000, channels: 1, bitrate: "96k"}
-      }
-    });
-
-    await prisma.mediaTask.update({
-      where: {id: input.taskId},
-      data: {
-        normalizedUrl: uploadedAudio.publicUrl,
-        durationSeconds: normalizeDurationSeconds(durationSeconds)
-      }
-    });
-
-    // 主转写链路（Deepgram/AssemblyAI）直接使用完整音频，不做分段切片；
-    // 只有在两家服务商都不可用、进入 Groq 兜底时才按需切片（见 chunkAudioForFallback）。
-    // 这里清理历史切片资产，保证重试任务不残留旧切片。
-    await prisma.mediaAsset.deleteMany({
-      where: {mediaTaskId: input.taskId, kind: "AUDIO_CHUNK"}
-    });
-
-    return {
-      mediaUrl: uploadedAudio.publicUrl,
-      normalizedUrl: uploadedAudio.publicUrl,
+    return persistTaskAudio({
+      taskId: input.taskId,
+      key: uploadedAudio.key,
+      publicUrl: uploadedAudio.publicUrl,
+      fileName: `${stem}.mp3`,
+      sizeBytes: uploadedAudio.sizeBytes,
       durationSeconds,
-      chunkCount: 0
-    };
+      metadata: {sampleRate: 16000, channels: 1, bitrate: "96k"}
+    });
   } finally {
     await rm(directory, {recursive: true, force: true}).catch(() => undefined);
   }
@@ -835,8 +885,8 @@ export async function chunkAudioForFallback(input: {
   }
 }
 
-// 当前转写链路不把 YouTube/公开视频下载到本地再用 ffmpeg 转码，而是用 yt-dlp 解析临时直链，
-// 再把直链交给转写供应商。这样能减少 worker 磁盘占用，也避免维护未使用的音频转码路径。
+// 元数据解析仍可向浏览器暴露临时媒体流；Worker 的正式转写路径会优先把 YTDown MP3 写入 R2，
+// 失败时再由 yt-dlp 下载并用 ffmpeg 标准化，避免把短时第三方链接交给转写供应商。
 export function normalizeMediaUrl(input: string) {
   return normalizePublicMediaUrl(input);
 }
@@ -869,7 +919,7 @@ export async function resolveYoutubeAudioUrl(url: string) {
     const resolved = await resolveYoutubeViaInnertube(videoId);
     if (resolved.audioFormat?.url) return resolved.audioFormat.url;
   } catch {
-    // Pinned yt-dlp handles signature/nsig and playability fallback.
+    // 固定版本 yt-dlp 负责处理 signature/nsig 和可播放性降级。
   }
   const output = await collectYtDlp(["--no-playlist", "--format", "bestaudio", "--get-url", "--", canonicalUrl], 30_000);
   const [audioUrl] = output.split("\n").filter(Boolean);
@@ -999,7 +1049,7 @@ export async function resolveMediaMetadata(url: string) {
         };
       }
     } catch {
-      // Continue with pinned yt-dlp.
+      // 继续使用固定版本 yt-dlp。
     }
     try {
       return await resolveYoutubeMetadataViaYtDlp(canonicalUrl);
@@ -1025,18 +1075,35 @@ export async function resolveMediaMetadata(url: string) {
       filesize?: number;
       filesize_approx?: number;
       ext?: string;
+      formats?: ExtractedMediaFormat[];
     };
 
-    return {
+    const browserStream = selectBrowserTransferStream(metadata.formats ?? []);
+    const audioStream = browserStream?.kind === "audio" ? browserStream : undefined;
+
+    const extracted = {
       title: metadata.title || metadata.fulltitle,
       durationSeconds: normalizeDurationSeconds(metadata.duration),
       thumbnailUrl: metadata.thumbnail,
       sourceUrl: metadata.webpage_url,
       providerName: metadata.extractor_key,
-      contentLength: metadata.filesize || metadata.filesize_approx,
-      extension: metadata.ext
+      contentLength: browserStream?.contentLength || metadata.filesize || metadata.filesize_approx,
+      extension: metadata.ext,
+      audioStream,
+      browserStream
     };
+    if (extracted.title && extracted.thumbnailUrl) return extracted;
+    const fallback = await resolvePublicMediaMetadata(url, provider);
+    return fallback ? {
+      ...extracted,
+      title: extracted.title || fallback.title,
+      thumbnailUrl: extracted.thumbnailUrl || fallback.thumbnailUrl,
+      sourceUrl: extracted.sourceUrl || fallback.sourceUrl,
+      providerName: extracted.providerName || fallback.providerName
+    } : extracted;
   } catch (error) {
+    const fallback = await resolvePublicMediaMetadata(url, provider);
+    if (fallback) return fallback;
     throw error;
   }
 }

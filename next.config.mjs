@@ -16,6 +16,9 @@ const nextConfig = {
   },
   experimental: {
     instrumentationHook: true,
+    outputFileTracingIncludes: {
+      "/api/media/ffmpeg-core/[asset]": ["./node_modules/@ffmpeg/core/dist/umd/*"]
+    },
     serverActions: { bodySizeLimit: "2mb" }
   },
   async rewrites() {

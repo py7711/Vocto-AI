@@ -64,6 +64,15 @@ const envSchema = z.object({
   YT_DLP_PATH: z.string().optional(),
   // 可选：Netscape 格式的 YouTube cookies 文件，用于绕过数据中心 IP 的 bot 检测。
   YT_DLP_COOKIES_PATH: z.string().optional(),
+  YTDOWN_ENABLED: z
+    .string()
+    .optional()
+    .transform((value) => value === undefined || value === "true"),
+  YTDOWN_URL: z.string().url().default("https://app.ytdown.to/zh31/youtube-to-mp3/"),
+  YTDOWN_BROWSER_EXECUTABLE_PATH: z.string().optional(),
+  YTDOWN_RESOLVE_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+  YTDOWN_POLL_TIMEOUT_MS: z.coerce.number().int().positive().default(90_000),
+  YTDOWN_CHALLENGE_COOLDOWN_MS: z.coerce.number().int().positive().default(10 * 60_000),
   FFMPEG_PATH: z.string().optional(),
   FFPROBE_PATH: z.string().optional(),
   AUDIO_CHUNK_TARGET_SECONDS: z.coerce.number().int().positive().default(900),

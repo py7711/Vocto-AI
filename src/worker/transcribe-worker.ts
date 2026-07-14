@@ -167,7 +167,7 @@ async function createWorker() {
       if (await isTaskCompleted(taskId)) return;
       await updateTaskStatus(taskId, "PROCESSING", {
         progress: 15,
-        statusMessage: "正在提取音频并上传到 R2。"
+        statusMessage: "uploading audio"
       });
 
       const taskRecord = await prisma.mediaTask.findUnique({

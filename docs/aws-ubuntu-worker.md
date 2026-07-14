@@ -141,7 +141,8 @@ Worker 运行需要以下依赖，缺一不可：
 | Node.js                 | **22.x LTS**（最低 22.13） | 运行 Worker 进程          | 必需        |
 | pnpm                    | 由 corepack 提供（最新稳定版）   | 安装依赖、运行脚本             | 必需        |
 | FFmpeg / FFprobe        | 系统包版本即可                | 提取音频、转码、识别时长          | 必需        |
-| yt-dlp                  | 最新版                    | 下载 YouTube/公开视频源      | 处理在线视频时必需 |
+| Chromium                | 系统包版本即可                | 通过 YTDown 生成音频转换任务    | YouTube 首选通道必需 |
+| yt-dlp                  | 固定校验版本                  | YTDown 失败后的 YouTube 降级下载 | 处理在线视频时必需 |
 | build-essential、python3 | 系统包版本即可                | 部分依赖的原生模块编译、yt-dlp 运行 | 必需        |
 
 
@@ -223,6 +224,8 @@ which ffprobe
 
 ```bash
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
+# 使用系统 Chrome 时才需要配置；使用 Playwright 安装的 Chromium 时留空。
+YTDOWN_BROWSER_EXECUTABLE_PATH=""
 ```
 
 
@@ -252,10 +255,12 @@ ssh-keygen -t ed25519 -f ~/.ssh/work_key -C "deploy@business-server"
 cd /data/votxt-worker/Vocto-AI
 pnpm install --frozen-lockfile
 pnpm run prisma:generate
+pnpm exec playwright install --with-deps chromium
 ```
 
 - `pnpm install --frozen-lockfile`：严格按 `pnpm-lock.yaml` 安装，包含 `tsx` 等 devDependencies（Worker 必需）。
 - `pnpm run prisma:generate`：生成 `@prisma/client`，Worker 启动前必须执行。
+- `pnpm exec playwright install --with-deps chromium`：以实际运行 Worker 的用户安装匹配版本 Chromium；不要先用 root 安装后再切换到 `appworker`，否则浏览器缓存目录不可见。
 
 
 
@@ -331,6 +336,11 @@ DEEPL_API_URL="https://api-free.deepl.com/v2/translate"
 
 # 使用 §5.5 安装并校验的固定版本：
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
+YTDOWN_ENABLED="true"
+YTDOWN_BROWSER_EXECUTABLE_PATH=""
+YTDOWN_RESOLVE_TIMEOUT_MS="30000"
+YTDOWN_POLL_TIMEOUT_MS="90000"
+YTDOWN_CHALLENGE_COOLDOWN_MS="600000"
 FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 
@@ -347,6 +357,10 @@ LOG_DIR="/data/votxt-worker/Vocto-AI/logs"
 - `NEXT_PUBLIC_APP_URL` 和 `TRANSCRIPTION_CALLBACK_BASE_URL` 应指向 Web 应用公网域名，用于转写服务商回调。
 - `AUTH_SECRET` 建议和 Web 应用保持一致，避免共享逻辑未来依赖签名配置时产生不一致。
 - Groq、Deepgram、AssemblyAI 至少配置一个；如果需要发言人标签，建议配置 Deepgram 或 AssemblyAI。
+- 使用 `pnpm exec playwright install --with-deps chromium` 时，`YTDOWN_BROWSER_EXECUTABLE_PATH` 留空；只有改用系统 Chrome/Chromium 时才填写绝对路径。
+- YTDown 页面解析、Cloudflare 验证、转换或 R2 传输失败时，Worker 会自动进入 `yt-dlp` 降级通道。浏览器 context 会跨任务复用以保留站点会话；检测到验证页时会快速降级，并在 `YTDOWN_CHALLENGE_COOLDOWN_MS` 内跳过 YTDown，避免每个任务重复等待。
+- Cloudflare Turnstile 的“验证您是真人”页面不能由 Worker 自动完成。不要接入验证码破解、自动点击或伪造 `cf_clearance`；生产 SLA 必须以 `yt-dlp` 或获得授权的媒体来源为准，YTDown 只能作为尽力而为的首选尝试。
+- `YTDOWN_RESOLVE_TIMEOUT_MS` 只限制页面解析阶段；页面拿到 worker URL 后会立即关闭，转换轮询由普通 HTTP 完成，以减少浏览器占用。
 - `YT_DLP_PATH`、`FFMPEG_PATH`、`FFPROBE_PATH` 可以不填，代码会尝试从 PATH 查找；生产环境显式填写更好排障。
 - `LOG_DIR` 必须指向运行用户可写的目录。日志组件默认写入 `/logs`；请显式配置并创建：`mkdir -p /data/votxt-worker/Vocto-AI/logs`。
 
