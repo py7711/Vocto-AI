@@ -199,17 +199,14 @@ pnpm -v
 
 ### 5.5 安装 yt-dlp
 
-```bash
-python3 -m pip install --user -U yt-dlp
-~/.local/bin/yt-dlp --version
-```
-
-如果系统提示不允许直接用 pip 写入用户环境，可以改用 apt 或 pipx：
+在拉取代码并安装 pnpm 依赖后，通过仓库脚本安装固定版本。脚本会校验官方 SHA-256，
+不要使用 `pip install -U` 或在运行中的 Worker 内自动更新：
 
 ```bash
-sudo apt install -y pipx
-pipx ensurepath
-pipx install yt-dlp
+sudo mkdir -p /opt/votxt/bin
+sudo chown "$(id -u):$(id -g)" /opt/votxt/bin
+YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
+/opt/votxt/bin/yt-dlp --version # 必须输出 2026.06.09
 ```
 
 确认工具路径：
@@ -219,16 +216,13 @@ which node
 which pnpm
 which ffmpeg
 which ffprobe
-which yt-dlp || echo "yt-dlp 可能在 ~/.local/bin/yt-dlp"
+/opt/votxt/bin/yt-dlp --version
 ```
 
-如果 `which yt-dlp` 找不到，但 `~/.local/bin/yt-dlp` 可执行，在 `.env.worker` 中配置（路径随运行用户而定）：
+在 `.env.worker` 中配置经过校验的固定路径：
 
 ```bash
-# 方式 A appworker：
-YT_DLP_PATH="/home/appworker/.local/bin/yt-dlp"
-# 方式 B root：
-YT_DLP_PATH="/root/.local/bin/yt-dlp"
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
 
 
@@ -335,9 +329,8 @@ GEMINI_MODEL="gemini-1.5-flash"
 DEEPL_API_KEY=""
 DEEPL_API_URL="https://api-free.deepl.com/v2/translate"
 
-# 按 §4 所选用户填写其一（可用 which yt-dlp 确认）：
-YT_DLP_PATH="/root/.local/bin/yt-dlp"
-# YT_DLP_PATH="/home/appworker/.local/bin/yt-dlp"
+# 使用 §5.5 安装并校验的固定版本：
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 
@@ -779,18 +772,16 @@ UPSTASH_REDIS_REST_URL="https://..."
 
 ### 14.5 YouTube 或公开视频任务失败
 
-确认 yt-dlp 可用（root 下路径一般为 `/root/.local/bin/yt-dlp`）：
+确认 yt-dlp 固定版本可用：
 
 ```bash
-/root/.local/bin/yt-dlp --version
-yt-dlp --version
+/opt/votxt/bin/yt-dlp --version # 必须输出 2026.06.09
 ```
 
 如果 systemd 找不到 yt-dlp，在 `.env.worker` 中配置：
 
 ```bash
-YT_DLP_PATH="/root/.local/bin/yt-dlp"
-# 若使用 appworker：YT_DLP_PATH="/home/appworker/.local/bin/yt-dlp"
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
 
 然后重启：
@@ -839,4 +830,3 @@ Worker 的失败事件会调用额度释放逻辑。请检查：
 - Worker 日志里是否执行到 `failed` 事件。
 - 数据库 `UsageLedger` 是否有对应释放流水。
 - 任务是否被取消；取消任务不会按普通失败逻辑重复释放。
-

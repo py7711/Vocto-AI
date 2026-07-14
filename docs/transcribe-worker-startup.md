@@ -87,7 +87,7 @@ DEEPSEEK_API_KEY=""
 GEMINI_API_KEY=""
 DEEPL_API_KEY=""
 
-YT_DLP_PATH="/home/appworker/.local/bin/yt-dlp"
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 ```

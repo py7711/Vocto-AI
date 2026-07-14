@@ -5,12 +5,14 @@ import {
   resolveGoogleDriveDownloadUrl,
   resolveMediaMetadata,
   resolveMediaSourceProvider,
-  type MediaSourceProvider
+  type MediaSourceProvider,
+  type YoutubeStreamFormat
 } from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
+import {MediaUrlValidationError} from "@/lib/media-url";
 
 const resolveSchema = z.object({
-  url: z.string().min(1)
+  url: z.string().trim().min(1).max(2048)
 });
 
 const providerLabels: Record<MediaSourceProvider, string> = {
@@ -52,6 +54,8 @@ export async function POST(request: Request) {
     let contentLength: number | undefined;
     let contentType: string | undefined;
     let thumbnailUrl: string | undefined;
+    let formats: YoutubeStreamFormat[] | undefined;
+    let audioStream: YoutubeStreamFormat | undefined;
 
     if (provider === "google_drive") {
       resolvedUrl = resolveGoogleDriveDownloadUrl(sourceUrl);
@@ -63,8 +67,10 @@ export async function POST(request: Request) {
         durationSeconds = metadata.durationSeconds;
         contentLength = metadata.contentLength;
         thumbnailUrl = metadata.thumbnailUrl;
+        formats = "formats" in metadata ? metadata.formats : undefined;
+        audioStream = "audioStream" in metadata ? metadata.audioStream : undefined;
         resolvedUrl = metadata.sourceUrl || sourceUrl;
-        contentType = metadata.extension ? `video/${metadata.extension}` : undefined;
+        contentType = audioStream?.mimeType.split(";")[0] || (metadata.extension ? `video/${metadata.extension}` : undefined);
       } catch (error) {
         logApiError(error, request);
         warnings.push("无法读取媒体元数据，已使用链接标题继续。");
@@ -83,10 +89,14 @@ export async function POST(request: Request) {
       contentLength,
       contentType,
       thumbnailUrl,
+      formats,
+      audioStream,
       warnings
     });
   } catch (error) {
-    logApiError(error, request);
+    if (!(error instanceof z.ZodError) && !(error instanceof MediaUrlValidationError)) {
+      logApiError(error, request);
+    }
     const message = error instanceof Error ? error.message : "无法解析媒体链接。";
     return NextResponse.json({error: message}, {status: 400});
   }

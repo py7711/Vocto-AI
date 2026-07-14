@@ -41,15 +41,12 @@ REDIS_URL="rediss://default:PASSWORD@HOST.upstash.io:6379"
 
 也支持使用 `UPSTASH_REDIS_URL` 或 Vercel KV 的 `KV_URL`。不要把 `UPSTASH_REDIS_REST_URL` 填给 BullMQ，REST API 不支持队列 Worker 需要的 Redis 连接和阻塞命令。
 
-4. 安装或配置 `yt-dlp`。公开视频链接解析、视频元数据读取和 YouTube 音频流解析都依赖它。应用会依次尝试 `YT_DLP_PATH`、`yt-dlp`、`python3 -m yt_dlp`、`python -m yt_dlp`：
+4. 在构建或发布阶段安装仓库锁定的 `yt-dlp`。公开视频链接解析、视频元数据读取和 YouTube 音频流解析都依赖它：
 
 ```bash
-# 任选一种安装方式
-brew install yt-dlp
-python3 -m pip install -U yt-dlp
-
-# 如果 yt-dlp 不在 Node 进程 PATH 中，在 .env 显式指定路径
-YT_DLP_PATH="/usr/local/bin/yt-dlp"
+YT_DLP_INSTALL_PATH="$PWD/vendor/yt-dlp" pnpm deps:yt-dlp
+# 在 .env 显式指定经过校验的固定版本
+YT_DLP_PATH="/absolute/path/to/vendor/yt-dlp"
 ```
 
 5. 生成并推送数据库架构（Schema）:
@@ -143,7 +140,8 @@ corepack enable
 corepack prepare pnpm@latest --activate
 pnpm -v
 
-python3 -m pip install --user -U yt-dlp
+# 拉取代码并安装 pnpm 依赖后执行：
+# YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
 ```
 
 ### 3. 拉取代码并安装依赖
@@ -514,21 +512,22 @@ systemctl is-enabled pm2-root    # 应为 enabled
 yt-dlp 用于 `/api/media/resolve` 读取 YouTube 标题、时长、缩略图，以及 Worker 解析音频流。
 
 ```bash
-# 安装（pipx 或 pip 均可）
-python3 -m pip install --user -U yt-dlp
-/root/.local/bin/yt-dlp --version
+# 构建/发布阶段安装仓库锁定版本，并校验官方 SHA-256
+YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
+/opt/votxt/bin/yt-dlp --version
 ```
 
 在 `.env` 中配置：
 
 ```bash
-YT_DLP_PATH="/root/.local/bin/yt-dlp"
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
 
-代码已自动为 yt-dlp 注入以下参数，无需手动添加：
-
-- `--js-runtimes node:<Node路径>`：解决 "No supported JavaScript runtime" 警告
-- `--extractor-args youtube:player_client=android`：适配 AWS 数据中心 IP
+YouTube 会先从当前视频页读取官方 WEB InnerTube 配置并尝试获取纯音频流，不维护
+ANDROID/TVHTML5 客户端组合；WEB 不可播放时尝试隔离的 IOS 兼容上下文。需要 signature/nsig
+处理、播放限制或 InnerTube 失败时降级到 yt-dlp。yt-dlp 仅使用本地 Node.js runtime，不强制客户端，也不启用
+`--remote-components`；其客户端选择和解密回退由锁定版本负责，生产任务不会在运行时从
+GitHub 拉取组件。应用首次调用会验证版本必须为 `2026.06.09`。
 
 **若部分视频仍报 "Sign in to confirm you're not a bot"**，需导出 YouTube cookies 文件：
 
@@ -545,8 +544,8 @@ YT_DLP_COOKIES_PATH="/data/votxt-worker/Vocto-AI/config/youtube-cookies.txt"
 验证 yt-dlp 和接口：
 
 ```bash
-/root/.local/bin/yt-dlp --js-runtimes node --extractor-args "youtube:player_client=android" \
-  --dump-json --no-playlist --skip-download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+/opt/votxt/bin/yt-dlp --js-runtimes node \
+  --dump-json --no-playlist --skip-download -- "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['title'], d['duration'])"
 
 curl -s -X POST http://127.0.0.1:3091/api/media/resolve \

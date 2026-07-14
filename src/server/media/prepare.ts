@@ -11,6 +11,12 @@ import {normalizeDurationSeconds} from "@/lib/duration";
 import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, putObject} from "@/lib/storage";
+import {normalizePublicMediaUrl} from "@/lib/media-url";
+import {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
+import {resolveYoutubeViaInnertube, type YoutubeStreamFormat} from "@/server/media/youtube-innertube";
+
+export {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
+export type {YoutubeStreamFormat} from "@/server/media/youtube-innertube";
 
 export type MediaSourceProvider =
   | "youtube"
@@ -24,6 +30,7 @@ export type MediaSourceProvider =
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 const audioContentType = "audio/mpeg";
+export const SUPPORTED_YT_DLP_VERSION = "2026.06.09";
 
 type CommandSpec = {
   command: string;
@@ -78,6 +85,29 @@ function ytDlpUnavailableError(attempted: string[]) {
   return new Error(
     `yt-dlp 未安装或不可用。已尝试：${attempted.join(", ")}。请安装 yt-dlp，或将 YT_DLP_PATH 设置为可执行文件路径。`
   );
+}
+
+const verifiedYtDlpCommands = new Map<string, Promise<void>>();
+
+function verifyYtDlpVersion(spec: CommandSpec) {
+  const label = commandLabel(spec);
+  const existing = verifiedYtDlpCommands.get(label);
+  if (existing) return existing;
+
+  const verification = collect(spec.command, [...spec.args, "--version"], 10_000)
+    .then((version) => {
+      if (version.trim() !== SUPPORTED_YT_DLP_VERSION) {
+        throw new Error(
+          `yt-dlp 版本不受支持：检测到 ${version.trim() || "未知版本"}，要求 ${SUPPORTED_YT_DLP_VERSION}。请部署固定版本后重启服务。`
+        );
+      }
+    })
+    .catch((error) => {
+      verifiedYtDlpCommands.delete(label);
+      throw error;
+    });
+  verifiedYtDlpCommands.set(label, verification);
+  return verification;
 }
 
 function ytDlpSpawnEnv() {
@@ -159,11 +189,7 @@ function isYoutubeBotBlockedError(message: string) {
 function ytDlpBaseArgs() {
   const args = [
     "--js-runtimes",
-    `node:${process.execPath}`,
-    "--remote-components",
-    "ejs:github",
-    "--extractor-args",
-    "youtube:player_client=android,web"
+    `node:${process.execPath}`
   ];
 
   const cookiesPath = resolveYoutubeCookiesPath();
@@ -172,28 +198,6 @@ function ytDlpBaseArgs() {
   }
 
   return args;
-}
-
-export function extractYoutubeVideoId(url: string) {
-  const parsed = new URL(normalizeMediaUrl(url));
-  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-
-  if (host === "youtu.be") {
-    return parsed.pathname.split("/").filter(Boolean)[0] ?? null;
-  }
-
-  if (host === "youtube.com" || host.endsWith(".youtube.com")) {
-    const fromQuery = parsed.searchParams.get("v");
-    if (fromQuery) return fromQuery;
-
-    const parts = parsed.pathname.split("/").filter(Boolean);
-    const embedIndex = parts.findIndex((part) => part === "embed" || part === "shorts" || part === "live");
-    if (embedIndex >= 0 && parts[embedIndex + 1]) {
-      return parts[embedIndex + 1];
-    }
-  }
-
-  return null;
 }
 
 async function resolveYoutubeMetadataViaOEmbed(url: string) {
@@ -305,6 +309,7 @@ async function withYtDlp<T>(operation: (spec: CommandSpec) => Promise<T>) {
   for (const candidate of ytDlpCandidates()) {
     attempted.push(commandLabel(candidate));
     try {
+      await verifyYtDlpVersion(candidate);
       return await operation(candidate);
     } catch (error) {
       if (executableNotFound(error)) continue;
@@ -521,6 +526,31 @@ async function downloadRemoteMedia(input: {
   outputPath: string;
 }) {
   if (input.sourceType === "YOUTUBE") {
+    const provider = resolveMediaSourceProvider(input.sourceUrl);
+    const mediaUrl = provider === "youtube" ? canonicalizeYoutubeUrl(input.sourceUrl) : normalizeMediaUrl(input.sourceUrl);
+    if (provider === "youtube") {
+      const videoId = extractYoutubeVideoId(mediaUrl)!;
+      let directPath: string | undefined;
+      try {
+        const resolved = await resolveYoutubeViaInnertube(videoId);
+        if (!resolved.audioFormat?.url) throw new Error("InnerTube returned no directly usable audio-only stream.");
+        const extension = resolved.audioFormat.mimeType.includes("webm") ? "webm" : "m4a";
+        directPath = join(input.directory, `source.${extension}`);
+        const response = await fetch(resolved.audioFormat.url, {
+          headers: {"User-Agent": resolved.userAgent},
+          signal: AbortSignal.timeout(15 * 60_000)
+        });
+        if (!response.ok || !response.body) {
+          throw new Error(`InnerTube audio download failed: ${response.status} ${response.statusText}`);
+        }
+        await pipeline(Readable.fromWeb(response.body as any), createWriteStream(directPath));
+        return directPath;
+      } catch {
+        if (directPath) await rm(directPath, {force: true}).catch(() => undefined);
+        // Encrypted signatures, nsig and playability changes are delegated to pinned yt-dlp.
+      }
+    }
+
     const outputTemplate = join(input.directory, "source.%(ext)s");
     try {
       await runYtDlp([
@@ -529,12 +559,13 @@ async function downloadRemoteMedia(input: {
         "bestaudio/best",
         "--output",
         outputTemplate,
-        input.sourceUrl
+        "--",
+        mediaUrl
       ], 15 * 60_000);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const cookiesPath = resolveYoutubeCookiesPath();
-      if (isYoutubeBotBlockedError(message) || (cookiesPath && /退出，退出码 1/.test(message))) {
+      const cookiesPath = provider === "youtube" ? resolveYoutubeCookiesPath() : undefined;
+      if (provider === "youtube" && (isYoutubeBotBlockedError(message) || (cookiesPath && /退出，退出码 1/.test(message)))) {
         throw new Error(formatYoutubeDownloadError(message, cookiesPath));
       }
       throw error;
@@ -807,21 +838,7 @@ export async function chunkAudioForFallback(input: {
 // 当前转写链路不把 YouTube/公开视频下载到本地再用 ffmpeg 转码，而是用 yt-dlp 解析临时直链，
 // 再把直链交给转写供应商。这样能减少 worker 磁盘占用，也避免维护未使用的音频转码路径。
 export function normalizeMediaUrl(input: string) {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    throw new Error("请提供媒体链接。");
-  }
-
-  // 用户经常粘贴不带协议的域名。这里补 https 后再交给 URL 解析，
-  // 同时拒绝 file:/ftp: 等协议，避免后台工具读取本地文件或非预期网络资源。
-  const withProtocol = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  const parsed = new URL(withProtocol);
-
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    throw new Error("仅支持 HTTP 和 HTTPS 媒体链接。");
-  }
-
-  return parsed.toString();
+  return normalizePublicMediaUrl(input);
 }
 
 export function resolveMediaSourceProvider(url: string): MediaSourceProvider {
@@ -846,7 +863,15 @@ export function isGoogleDriveShareUrl(url: string) {
 }
 
 export async function resolveYoutubeAudioUrl(url: string) {
-  const output = await collectYtDlp(["--no-playlist", "--format", "bestaudio", "--get-url", url], 30_000);
+  const canonicalUrl = canonicalizeYoutubeUrl(url);
+  const videoId = extractYoutubeVideoId(canonicalUrl)!;
+  try {
+    const resolved = await resolveYoutubeViaInnertube(videoId);
+    if (resolved.audioFormat?.url) return resolved.audioFormat.url;
+  } catch {
+    // Pinned yt-dlp handles signature/nsig and playability fallback.
+  }
+  const output = await collectYtDlp(["--no-playlist", "--format", "bestaudio", "--get-url", "--", canonicalUrl], 30_000);
   const [audioUrl] = output.split("\n").filter(Boolean);
 
   if (!audioUrl) {
@@ -857,12 +882,14 @@ export async function resolveYoutubeAudioUrl(url: string) {
 }
 
 export async function resolveYoutubeVideoDownloadUrl(url: string) {
+  const canonicalUrl = canonicalizeYoutubeUrl(url);
   const output = await collectYtDlp([
     "--no-playlist",
     "--format",
     "best[ext=mp4]/best",
     "--get-url",
-    url
+    "--",
+    canonicalUrl
   ], 30_000);
   const [videoUrl] = output.split("\n").filter(Boolean);
 
@@ -873,11 +900,121 @@ export async function resolveYoutubeVideoDownloadUrl(url: string) {
   return videoUrl;
 }
 
+function extensionFromMimeType(mimeType: string | undefined) {
+  if (!mimeType) return undefined;
+  if (mimeType.includes("webm")) return "webm";
+  if (mimeType.includes("mp4")) return "m4a";
+  if (mimeType.includes("mpeg")) return "mp3";
+  return undefined;
+}
+
+async function resolveYoutubeMetadataViaYtDlp(url: string) {
+  const canonicalUrl = canonicalizeYoutubeUrl(url);
+  const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", "--", canonicalUrl], 30_000);
+  const metadata = JSON.parse(output) as {
+    title?: string;
+    fulltitle?: string;
+    duration?: number;
+    thumbnail?: string;
+    webpage_url?: string;
+    extractor_key?: string;
+    filesize?: number;
+    filesize_approx?: number;
+    ext?: string;
+    formats?: Array<{
+      format_id?: string;
+      url?: string;
+      manifest_url?: string;
+      mime_type?: string;
+      ext?: string;
+      protocol?: string;
+      acodec?: string;
+      vcodec?: string;
+      abr?: number;
+      tbr?: number;
+      filesize?: number;
+      filesize_approx?: number;
+      audio_channels?: number;
+      asr?: number;
+      format_note?: string;
+    }>;
+  };
+  const formats: YoutubeStreamFormat[] = (metadata.formats ?? []).flatMap((format) => {
+    const itag = Number(format.format_id);
+    if (!Number.isInteger(itag)) return [];
+    const audioOnly = format.acodec !== "none" && format.vcodec === "none";
+    const mimeType = format.mime_type || `${audioOnly ? "audio" : "video"}/${format.ext || "unknown"}`;
+    return [{
+      itag,
+      mimeType,
+      bitrate: format.abr ? Math.round(format.abr * 1000) : format.tbr ? Math.round(format.tbr * 1000) : undefined,
+      contentLength: format.filesize || format.filesize_approx,
+      durationSeconds: normalizeDurationSeconds(metadata.duration),
+      audioOnly,
+      audioSampleRate: format.asr,
+      audioChannels: format.audio_channels,
+      qualityLabel: format.format_note,
+      url: format.url,
+      requiresSignature: false,
+      requiresNsig: false
+    }];
+  });
+  const audioStream = formats
+    .filter((format) => format.audioOnly && format.url)
+    .sort((left, right) => (right.bitrate ?? 0) - (left.bitrate ?? 0))[0];
+
+  return {
+    title: metadata.title || metadata.fulltitle,
+    durationSeconds: normalizeDurationSeconds(metadata.duration),
+    thumbnailUrl: metadata.thumbnail,
+    sourceUrl: metadata.webpage_url,
+    providerName: metadata.extractor_key || "youtube:yt-dlp",
+    contentLength: audioStream?.contentLength || metadata.filesize || metadata.filesize_approx,
+    extension: extensionFromMimeType(audioStream?.mimeType) || metadata.ext,
+    formats,
+    audioStream
+  };
+}
+
 export async function resolveMediaMetadata(url: string) {
   const provider = resolveMediaSourceProvider(url);
 
+  if (provider === "youtube") {
+    const canonicalUrl = canonicalizeYoutubeUrl(url);
+    const videoId = extractYoutubeVideoId(canonicalUrl)!;
+    let innertubeResult: Awaited<ReturnType<typeof resolveYoutubeViaInnertube>> | undefined;
+    try {
+      innertubeResult = await resolveYoutubeViaInnertube(videoId);
+      if (innertubeResult.audioFormat?.url) {
+        return {
+          title: innertubeResult.title,
+          durationSeconds: innertubeResult.durationSeconds,
+          thumbnailUrl: innertubeResult.thumbnailUrl,
+          sourceUrl: canonicalUrl,
+          providerName: "youtube:innertube-web",
+          contentLength: innertubeResult.audioFormat.contentLength,
+          extension: extensionFromMimeType(innertubeResult.audioFormat.mimeType),
+          formats: innertubeResult.formats,
+          audioStream: innertubeResult.audioFormat
+        };
+      }
+    } catch {
+      // Continue with pinned yt-dlp.
+    }
+    try {
+      return await resolveYoutubeMetadataViaYtDlp(canonicalUrl);
+    } catch (error) {
+      const fallback = await resolveYoutubeMetadataFallback(canonicalUrl, error);
+      return {
+        ...fallback,
+        formats: innertubeResult?.formats ?? [],
+        audioStream: undefined
+      };
+    }
+  }
+
   try {
-    const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", url], 20_000);
+    const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", "--", url], 20_000);
     const metadata = JSON.parse(output) as {
       title?: string;
       fulltitle?: string;
@@ -900,10 +1037,6 @@ export async function resolveMediaMetadata(url: string) {
       extension: metadata.ext
     };
   } catch (error) {
-    if (provider === "youtube") {
-      return resolveYoutubeMetadataFallback(url, error);
-    }
-
     throw error;
   }
 }
@@ -920,7 +1053,8 @@ export async function resolveYoutubeInfo(url: string) {
 }
 
 export async function listYoutubeSubtitles(url: string) {
-  const output = await collectYtDlp(["--skip-download", "--list-subs", "--no-playlist", url], 30_000);
+  const canonicalUrl = canonicalizeYoutubeUrl(url);
+  const output = await collectYtDlp(["--skip-download", "--list-subs", "--no-playlist", "--", canonicalUrl], 30_000);
   const lines = output.split("\n");
   const subtitles: Array<{languageCode: string; languageName: string; formats: string[]; automatic: boolean}> = [];
   let automatic = false;
@@ -950,6 +1084,10 @@ export async function listYoutubeSubtitles(url: string) {
 }
 
 export async function downloadYoutubeSubtitle(url: string, languageCode: string, format: "srt" | "vtt" = "srt") {
+  const canonicalUrl = canonicalizeYoutubeUrl(url);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/.test(languageCode)) {
+    throw new Error("字幕语言代码无效。");
+  }
   const directory = await mkdtemp(join(tmpdir(), "votxt-subs-"));
   try {
     await runYtDlp([
@@ -967,7 +1105,8 @@ export async function downloadYoutubeSubtitle(url: string, languageCode: string,
       directory,
       "--output",
       "subtitle.%(ext)s",
-      url
+      "--",
+      canonicalUrl
     ], 45_000);
 
     const files = await readdir(directory);

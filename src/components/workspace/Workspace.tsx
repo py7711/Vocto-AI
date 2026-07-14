@@ -2084,7 +2084,10 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
                       </p>
                       <button type="button" onClick={() => openDashboardPlans("annual")} className="border-b border-violet/30 p-0 text-sm font-medium text-violet transition hover:border-violet hover:text-violet">{copy.buyMoreMinutes}</button>
                     </div> : null}
-                    {resolvedMedia ? <div className="h-5" /> : null}
+                    <p className="mx-5 mt-4 border-t border-ink/10 pt-3 text-xs font-normal leading-5 text-slate-500">
+                      {copy.mediaDownloadNotice}
+                    </p>
+                    <div className="h-5" />
                   </section>
                 </div>
               ) : null}
@@ -4234,7 +4237,10 @@ function UploadWorkspaceShell({
               </p>
               <button type="button" onClick={() => openUploadPlans("annual")} className="border-b border-violet/30 p-0 text-sm font-medium text-violet transition hover:border-violet hover:text-violet">{copy.buyMoreMinutes}</button>
             </div> : null}
-            {resolvedMedia ? <div className="h-5" /> : null}
+            <p className="mx-5 mt-4 border-t border-ink/10 pt-3 text-xs font-normal leading-5 text-slate-500">
+              {copy.mediaDownloadNotice}
+            </p>
+            <div className="h-5" />
           </section>
         </div>
       ) : null}

@@ -1,9 +1,12 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {resolveYoutubeVideoDownloadUrl} from "@/server/media/prepare";
+import {youtubeUrlSchema} from "@/lib/youtube-url";
 import {logApiError} from "@/lib/api-logger";
 
-const schema = z.object({url: z.string().min(1)});
+const schema = z.object({
+  url: youtubeUrlSchema
+});
 
 export async function POST(request: Request) {
   try {

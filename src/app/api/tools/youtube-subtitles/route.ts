@@ -2,8 +2,9 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {listYoutubeSubtitles} from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
+import {youtubeUrlSchema} from "@/lib/youtube-url";
 
-const schema = z.object({url: z.string().min(1)});
+const schema = z.object({url: youtubeUrlSchema});
 
 export async function POST(request: Request) {
   try {

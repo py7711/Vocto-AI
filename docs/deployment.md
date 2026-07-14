@@ -159,17 +159,23 @@ https://你的域名/auth/google-drive/callback
 3. `python3 -m yt_dlp`。
 4. `python -m yt_dlp`。
 
-推荐在 Worker 所在服务器或容器中安装：
+推荐在 Worker 镜像构建或发布阶段安装仓库锁定版本。安装脚本按操作系统和架构选择官方
+发行文件，并验证仓库中固定的 SHA-256；不要在运行中的 Worker 内更新：
 
 ```bash
-python3 -m pip install -U yt-dlp
+YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
+/opt/votxt/bin/yt-dlp --version # 必须输出 2026.06.09
 ```
 
 如果部署平台的 Node 进程 PATH 找不到 `yt-dlp`，请显式配置：
 
 ```bash
-YT_DLP_PATH="/usr/local/bin/yt-dlp"
+YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
+
+YouTube 优先使用从当前视频页动态读取配置的官方 WEB InnerTube API，WEB 不可播放时尝试隔离的
+IOS 兼容上下文，不维护 ANDROID/TVHTML5 客户端组合。InnerTube 无法提供可直接使用的纯音频流时降级到 yt-dlp。yt-dlp 运行时禁止
+`--remote-components`，也不强制 `player_client`；应用首次调用会再次检查锁定版本，不匹配时拒绝执行。
 
 未安装或未配置时，`/api/media/resolve` 会返回可用的基础 URL 信息，但无法提供详细媒体标题、时长、缩略图等元数据；Worker 处理公开视频转写时也无法解析直连音频流。
 

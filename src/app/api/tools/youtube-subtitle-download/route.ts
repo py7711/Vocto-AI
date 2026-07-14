@@ -2,10 +2,11 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {downloadYoutubeSubtitle} from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
+import {youtubeUrlSchema} from "@/lib/youtube-url";
 
 const schema = z.object({
-  url: z.string().min(1),
-  languageCode: z.string().min(1),
+  url: youtubeUrlSchema,
+  languageCode: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/),
   format: z.enum(["srt", "vtt"]).default("srt"),
   title: z.string().optional()
 });
