@@ -88,6 +88,12 @@ GEMINI_API_KEY=""
 DEEPL_API_KEY=""
 
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
+YTDOWN_ENABLED="true"
+# 已执行 `pnpm exec playwright install --with-deps chromium` 时留空。
+YTDOWN_BROWSER_EXECUTABLE_PATH=""
+YTDOWN_RESOLVE_TIMEOUT_MS="30000"
+YTDOWN_POLL_TIMEOUT_MS="90000"
+YTDOWN_CHALLENGE_COOLDOWN_MS="600000"
 FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 ```
@@ -101,7 +107,9 @@ FFPROBE_PATH="/usr/bin/ffprobe"
 - `TRANSCRIPTION_CALLBACK_BASE_URL`：转写服务商回调地址的基础域名；未配置时回退到 `NEXT_PUBLIC_APP_URL`。
 - `R2_*`：媒体文件、音频资源和导出资源使用的对象存储配置。
 - `GROQ_API_KEY`、`DEEPGRAM_API_KEY`、`ASSEMBLYAI_API_KEY`：转写服务商密钥，至少配置一个。
-- `YT_DLP_PATH`：公开视频链接解析依赖，YouTube 等链接任务需要它。
+- `YTDOWN_*`：YouTube 音频首选通道。Chromium 只负责生成转换任务；生成的 MP3 由 Worker 直接流式写入 R2。
+- `YT_DLP_PATH`：YTDown 失败后的 YouTube/公开视频降级下载依赖。
+- Cloudflare Turnstile 交互挑战不会被自动绕过；检测到中英文验证页后会立即进入 `yt-dlp`，避免阻塞任务。
 - `FFMPEG_PATH`、`FFPROBE_PATH`：音频处理和时长识别依赖。
 
 ## 5. Redis URL 解析
