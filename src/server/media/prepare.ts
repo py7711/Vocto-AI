@@ -1,5 +1,5 @@
 import {spawn} from "node:child_process";
-import {existsSync, readFileSync} from "node:fs";
+import {copyFileSync, existsSync, readFileSync} from "node:fs";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdtemp, readdir, readFile, rm, stat} from "node:fs/promises";
 import {tmpdir} from "node:os";
@@ -198,7 +198,10 @@ function ytDlpBaseArgs() {
 
   const cookiesPath = resolveYoutubeCookiesPath();
   if (cookiesPath) {
-    args.push("--cookies", cookiesPath);
+    // yt-dlp writes the cookie jar on exit; Docker mounts cookies as :ro, so copy to a writable temp file.
+    const writableCookies = join(tmpdir(), `votxt-yt-cookies-${process.pid}.txt`);
+    copyFileSync(cookiesPath, writableCookies);
+    args.push("--cookies", writableCookies);
   }
 
   return args;

@@ -1,3 +1,5 @@
+import {existsSync, readdirSync} from "node:fs";
+import {join} from "node:path";
 import {Readable} from "node:stream";
 import type {Browser, BrowserContext, Locator, Page} from "playwright";
 import {env} from "@/lib/env";
@@ -51,6 +53,31 @@ type YtDownJobResponse = {
   fileSizeBytes?: number;
 };
 
+type FlareSolverrCookie = {
+  name: string;
+  value: string;
+  domain: string;
+  path?: string;
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: string;
+};
+
+type FlareSolverrClearance = {
+  userAgent?: string;
+  cookies: Array<{
+    name: string;
+    value: string;
+    domain: string;
+    path: string;
+    expires?: number;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: "Lax" | "Strict" | "None";
+  }>;
+};
+
 let browserPromise: Promise<Browser> | undefined;
 let contextPromise: Promise<BrowserContext> | undefined;
 export function isYtDownCloudflareChallengeTitle(title: string) {
@@ -74,6 +101,63 @@ export function createYtDownChallengeGate(input: {cooldownMs: number; now?: () =
 }
 
 const challengeGate = createYtDownChallengeGate({cooldownMs: env.YTDOWN_CHALLENGE_COOLDOWN_MS});
+
+function resolveChromiumExecutable() {
+  if (env.YTDOWN_BROWSER_EXECUTABLE_PATH) return env.YTDOWN_BROWSER_EXECUTABLE_PATH;
+  const root = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (!root || !existsSync(root)) return undefined;
+  // Prefer full Chromium over headless_shell; Cloudflare blocks headless_shell more aggressively.
+  const chromeDir = readdirSync(root).find((name) => /^chromium-\d+$/.test(name));
+  if (!chromeDir) return undefined;
+  const candidate = join(root, chromeDir, "chrome-linux64", "chrome");
+  return existsSync(candidate) ? candidate : undefined;
+}
+
+async function fetchFlareSolverrClearance(url: string): Promise<FlareSolverrClearance | undefined> {
+  const base = env.YTDOWN_FLARESOLVERR_URL;
+  if (!base) return undefined;
+
+  const endpoint = new URL("/v1", base.endsWith("/") ? base : `${base}/`);
+  const timeoutMs = Math.max(env.YTDOWN_RESOLVE_TIMEOUT_MS, 60_000);
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      cmd: "request.get",
+      url,
+      maxTimeout: timeoutMs
+    }),
+    signal: AbortSignal.timeout(timeoutMs + 10_000)
+  });
+  if (!response.ok) {
+    throw new Error(`FlareSolverr failed: ${response.status} ${response.statusText}`);
+  }
+
+  const payload = await response.json() as {
+    status?: string;
+    message?: string;
+    solution?: {userAgent?: string; cookies?: FlareSolverrCookie[]};
+  };
+  if (payload.status !== "ok" || !payload.solution) {
+    throw new Error(payload.message || "FlareSolverr could not clear the Cloudflare challenge.");
+  }
+
+  return {
+    userAgent: payload.solution.userAgent,
+    cookies: (payload.solution.cookies || []).map((cookie) => ({
+      name: cookie.name,
+      value: cookie.value,
+      domain: cookie.domain,
+      path: cookie.path || "/",
+      expires: typeof cookie.expires === "number" && cookie.expires > 0 ? cookie.expires : undefined,
+      httpOnly: cookie.httpOnly,
+      secure: cookie.secure,
+      sameSite: cookie.sameSite === "Lax" || cookie.sameSite === "Strict" || cookie.sameSite === "None"
+        ? cookie.sameSite
+        : undefined
+    }))
+  };
+}
 
 async function hasCloudflareChallenge(page: Page) {
   if (isYtDownCloudflareChallengeTitle(await page.title())) return true;
@@ -99,11 +183,16 @@ async function waitForVisibleOrChallenge(page: Page, locator: Locator, timeoutMs
 
 async function launchBrowser() {
   const {chromium} = await import("playwright");
-  const args = ["--disable-dev-shm-usage"];
+  const args = [
+    "--disable-dev-shm-usage",
+    "--disable-blink-features=AutomationControlled"
+  ];
   if (typeof process.getuid === "function" && process.getuid() === 0) args.push("--no-sandbox");
+  // When DISPLAY is set (Docker worker entrypoint starts Xvfb), use headed Chromium.
+  const headed = Boolean(process.env.DISPLAY);
   return chromium.launch({
-    headless: true,
-    executablePath: env.YTDOWN_BROWSER_EXECUTABLE_PATH || undefined,
+    headless: !headed,
+    executablePath: resolveChromiumExecutable(),
     args
   });
 }
@@ -126,9 +215,22 @@ async function getBrowser() {
 
 async function getContext() {
   if (!contextPromise) {
-    contextPromise = getBrowser().then((browser) => browser.newContext({
-      locale: "zh-CN"
-    })).catch((error) => {
+    contextPromise = (async () => {
+      const browser = await getBrowser();
+      const clearance = await fetchFlareSolverrClearance(env.YTDOWN_URL);
+      const context = await browser.newContext({
+        locale: "zh-CN",
+        userAgent: clearance?.userAgent,
+        viewport: {width: 1280, height: 720}
+      });
+      await context.addInitScript(() => {
+        Object.defineProperty(navigator, "webdriver", {get: () => undefined});
+      });
+      if (clearance?.cookies.length) {
+        await context.addCookies(clearance.cookies);
+      }
+      return context;
+    })().catch((error) => {
       contextPromise = undefined;
       throw error;
     });
@@ -148,10 +250,10 @@ async function resolveYtDownJob(youtubeUrl: string): Promise<YtDownJob> {
   try {
     await page.goto(env.YTDOWN_URL, {
       waitUntil: "domcontentloaded",
-      timeout: Math.min(env.YTDOWN_RESOLVE_TIMEOUT_MS, 15_000)
+      timeout: Math.min(env.YTDOWN_RESOLVE_TIMEOUT_MS, 30_000)
     });
     const urlInput = page.locator('input[name="URLz"]');
-    await waitForVisibleOrChallenge(page, urlInput, Math.min(env.YTDOWN_RESOLVE_TIMEOUT_MS, 5_000), "form");
+    await waitForVisibleOrChallenge(page, urlInput, Math.max(env.YTDOWN_RESOLVE_TIMEOUT_MS, 15_000), "form");
     await urlInput.fill(canonicalUrl);
     await page.locator('button[type="submit"]').click();
 

@@ -70,6 +70,8 @@ const envSchema = z.object({
     .transform((value) => value === undefined || value === "true"),
   YTDOWN_URL: z.string().url().default("https://app.ytdown.to/zh31/youtube-to-mp3/"),
   YTDOWN_BROWSER_EXECUTABLE_PATH: z.string().optional(),
+  // 可选：FlareSolverr 基址，用于绕过 YTDown 站点的 Cloudflare。例如 http://flaresolverr:8191
+  YTDOWN_FLARESOLVERR_URL: z.string().url().optional(),
   YTDOWN_RESOLVE_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
   YTDOWN_POLL_TIMEOUT_MS: z.coerce.number().int().positive().default(90_000),
   YTDOWN_CHALLENGE_COOLDOWN_MS: z.coerce.number().int().positive().default(10 * 60_000),
