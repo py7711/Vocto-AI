@@ -1,6 +1,6 @@
 import {appendFileSync, mkdirSync} from "node:fs";
 import {isAbsolute, join, relative} from "node:path";
-import {format as formatConsoleMessage} from "node:util";
+import {format as formatConsoleMessage, stripVTControlCharacters} from "node:util";
 import pino, {type DestinationStream, type Logger} from "pino";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
@@ -160,7 +160,7 @@ function writeLog(level: LogLevel, messageOrError: unknown, context: LogContext)
     meta: context.meta ? serializeLogValue(context.meta) as Record<string, unknown> : undefined
   };
 
-  logger[level](fields, context.message ?? messageFrom(messageOrError));
+  logger[level](fields, sanitizeLogText(context.message ?? messageFrom(messageOrError)));
 }
 
 function writeConsoleMethodLog(level: LogLevel, args: unknown[], context: LogContext) {
@@ -371,9 +371,9 @@ function serializeError(value: unknown, seen = new WeakSet<object>()): unknown {
     if (seen.has(value)) return "[Circular Error]";
     seen.add(value);
     const detail: Record<string, unknown> = {
-      name: value.name,
-      message: value.message,
-      stack: value.stack
+      name: sanitizeLogText(value.name),
+      message: sanitizeLogText(value.message),
+      stack: value.stack ? sanitizeLogText(value.stack) : undefined
     };
     const cause = (value as Error & {cause?: unknown}).cause;
     if (cause !== undefined) detail.cause = serializeLogValue(cause, seen);
@@ -387,6 +387,7 @@ function serializeError(value: unknown, seen = new WeakSet<object>()): unknown {
 
 function serializeLogValue(value: unknown, seen = new WeakSet<object>()): unknown {
   if (value instanceof Error) return serializeError(value, seen);
+  if (typeof value === "string") return sanitizeLogText(value);
   if (typeof value === "bigint") return value.toString();
   if (value instanceof Date) return value.toISOString();
   if (value instanceof URL) return value.toString();
@@ -403,6 +404,10 @@ function serializeLogValue(value: unknown, seen = new WeakSet<object>()): unknow
     );
   }
   return value;
+}
+
+function sanitizeLogText(value: string) {
+  return stripVTControlCharacters(value);
 }
 
 function sanitizeRequestUrl(url: LogContext["requestUrl"]) {

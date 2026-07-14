@@ -15,6 +15,7 @@
     "docs:check": "node scripts/check-docs.mjs",
     "source:check": "node scripts/check-source-health.mjs",
     "structure:check": "node scripts/check-structure.mjs",
+    "test:logger": "tsx --test tests/logger.test.ts",
     "test:media-url": "tsx --test tests/media-url.test.ts",
     "unused:check": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "worker": "tsx src/worker/transcribe-worker.ts",
