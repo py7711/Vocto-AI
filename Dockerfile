@@ -12,7 +12,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable \
-  && corepack prepare pnpm@9.15.9 --activate
+  && corepack prepare pnpm@10.15.0 --activate
 
 WORKDIR /app
 
