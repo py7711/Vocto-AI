@@ -256,14 +256,14 @@ pm2 start "pnpm run worker" --name votxt-worker
 pm2 save
 ```
 
-### 5.2 Docker 部署建议
+### 5.2 Docker 部署（推荐）
 
-Web 和 Worker 可以使用同一镜像，不同启动命令：
+生产可用 Compose 一键启动 **nginx + Redis + votxt-web + votxt-worker**；MySQL / TiDB Cloud 继续外挂。
 
-- Web：`pnpm start`
-- Worker：`pnpm run worker`
-
-Worker 容器必须能访问 Redis、数据库、R2 和所有 AI 服务商。
+- 仓库文件：`Dockerfile`、`docker-compose.yml`、`docker/nginx/votxt.conf`
+- 完整步骤、挂载与按服务更新命令见 [Docker 部署](./docker-deploy.md)
+- 镜像内含锁定版 yt-dlp `2026.06.09` 与 FFmpeg，宿主机无需再安装这两项
+- YouTube cookies 宿主机路径：`/data/config/youtube-cookies.txt`
 
 ## 6. Cloudflare R2 CORS
 

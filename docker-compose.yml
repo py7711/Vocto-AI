@@ -1,0 +1,112 @@
+# Votxt Docker Compose
+# - 容器内服务：nginx、redis、votxt-web、votxt-worker
+# - 外挂：TiDB Cloud（DATABASE_URL）
+# - YouTube cookies 宿主机固定路径：/data/config/youtube-cookies.txt
+
+name: votxt
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--bind", "0.0.0.0", "--protected-mode", "no"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - votxt
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  votxt-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: votxt-app:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3091"
+      REDIS_URL: redis://redis:6379
+      YT_DLP_PATH: /opt/votxt/bin/yt-dlp
+      FFMPEG_PATH: /usr/bin/ffmpeg
+      FFPROBE_PATH: /usr/bin/ffprobe
+      YT_DLP_COOKIES_PATH: /config/youtube-cookies.txt
+      LOG_DIR: /logs
+      LOG_SERVICE: web
+    volumes:
+      - /data/config/youtube-cookies.txt:/config/youtube-cookies.txt:ro
+      - /logs/votxt:/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - votxt
+    expose:
+      - "3091"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3091/').then((r)=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  votxt-worker:
+    image: votxt-app:local
+    restart: unless-stopped
+    command: ["pnpm", "run", "worker"]
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      YT_DLP_PATH: /opt/votxt/bin/yt-dlp
+      FFMPEG_PATH: /usr/bin/ffmpeg
+      FFPROBE_PATH: /usr/bin/ffprobe
+      YT_DLP_COOKIES_PATH: /config/youtube-cookies.txt
+      LOG_DIR: /logs
+      LOG_SERVICE: worker
+    volumes:
+      - /data/config/youtube-cookies.txt:/config/youtube-cookies.txt:ro
+      - /logs/votxt:/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      votxt-web:
+        condition: service_started
+    networks:
+      - votxt
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/votxt.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      votxt-web:
+        condition: service_healthy
+    networks:
+      - votxt
+
+networks:
+  votxt:
+    driver: bridge
+
+volumes:
+  redis-data:

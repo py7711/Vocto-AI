@@ -89,17 +89,20 @@ pnpm run worker
 
 完整排障手册见 [docs/aws-ubuntu-worker.md](./docs/aws-ubuntu-worker.md)。
 
+**推荐生产部署改为 Docker Compose**（nginx + Redis + Web + Worker，TiDB Cloud 外挂）：见 [docs/docker-deploy.md](./docs/docker-deploy.md)。下文 PM2 方案仍可用于应急回滚。
+
 ### 部署架构
 
 | 组件 | 部署位置 | 端口 | 说明 |
 | --- | --- | --- | --- |
-| Web 应用 | AWS EC2 / Ubuntu | **3091** | `pnpm build` + `pnpm start`，对外提供页面和 API |
-| Worker | AWS EC2 / Ubuntu | 无 | `pnpm run worker`，消费转写队列，不监听 HTTP |
-| 数据库 | TiDB Cloud / MySQL 8 | 4000 | Web 和 Worker 共用 `DATABASE_URL` |
-| Redis | 本地 Redis（推荐）或 Upstash | 6379 | 本地部署仅监听 `127.0.0.1`，使用 `redis://127.0.0.1:6379` |
+| Web 应用 | Docker `votxt-web`（或 PM2） | **3091**（仅容器/本机） | `pnpm build` + `pnpm start`，对外提供页面和 API |
+| Worker | Docker `votxt-worker`（或 PM2） | 无 | `pnpm run worker`，消费转写队列，不监听 HTTP |
+| 数据库 | TiDB Cloud / MySQL 8 | 4000 | Web 和 Worker 共用 `DATABASE_URL`（外挂，不进 Compose） |
+| Redis | Docker `redis`（或本机 Redis / Upstash） | 6379 | Compose 内使用 `redis://redis:6379` |
+| Nginx | Docker `nginx`（或本机 nginx） | **80 / 443** | 反代到 Web |
 | 对象存储 | Cloudflare R2 | — | 媒体文件和导出资源 |
 
-两台进程共用同一份代码目录 `/data/votxt-worker/Vocto-AI`，由 PM2 托管（`ecosystem.config.cjs`）。
+Docker 方案下 yt-dlp / FFmpeg 在镜像内；cookies 宿主机路径为 `/data/config/youtube-cookies.txt`。PM2 方案仍共用代码目录 `/data/votxt-worker/Vocto-AI`（`ecosystem.config.cjs`）。
 
 ### AWS 安全组：是否需要开放 3091？
 
