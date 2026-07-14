@@ -15,9 +15,8 @@ const nextConfig = {
     ]
   },
   experimental: {
-    serverActions: {
-      bodySizeLimit: "2mb"
-    }
+    instrumentationHook: true,
+    serverActions: { bodySizeLimit: "2mb" }
   },
   async rewrites() {
     return legacyRewrites;
