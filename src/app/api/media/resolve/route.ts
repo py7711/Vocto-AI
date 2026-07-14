@@ -10,6 +10,7 @@ import {
 } from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
 import {MediaUrlValidationError} from "@/lib/media-url";
+import type {BrowserAudioStream, BrowserTransferStream} from "@/lib/media-stream";
 
 const resolveSchema = z.object({
   url: z.string().trim().min(1).max(2048)
@@ -23,7 +24,7 @@ const providerLabels: Record<MediaSourceProvider, string> = {
   x: "X / Twitter",
   vimeo: "Vimeo",
   google_drive: "Google Drive",
-  generic: "媒体链接"
+  generic: "URL"
 };
 
 function filenameFromUrl(url: string) {
@@ -35,7 +36,7 @@ function filenameFromUrl(url: string) {
 
 function titleFromUrl(url: string, provider: MediaSourceProvider) {
   const title = filenameFromUrl(url);
-  return title && title !== "watch" ? title : `${providerLabels[provider]} 媒体`;
+  return title && title !== "watch" ? title : providerLabels[provider];
 }
 
 function sourceTypeForProvider(provider: MediaSourceProvider) {
@@ -47,33 +48,37 @@ export async function POST(request: Request) {
     const input = resolveSchema.parse(await request.json());
     const sourceUrl = normalizeMediaUrl(input.url);
     const provider = resolveMediaSourceProvider(sourceUrl);
-    const warnings: string[] = [];
     let resolvedUrl = sourceUrl;
-    let title = provider === "google_drive" ? "Google Drive 文件" : titleFromUrl(sourceUrl, provider);
+    let title = provider === "google_drive" ? "Google Drive" : titleFromUrl(sourceUrl, provider);
     let durationSeconds: number | undefined;
     let contentLength: number | undefined;
     let contentType: string | undefined;
     let thumbnailUrl: string | undefined;
     let formats: YoutubeStreamFormat[] | undefined;
-    let audioStream: YoutubeStreamFormat | undefined;
+    let audioStream: BrowserAudioStream | undefined;
+    let browserStream: BrowserTransferStream | undefined;
 
     if (provider === "google_drive") {
       resolvedUrl = resolveGoogleDriveDownloadUrl(sourceUrl);
-      warnings.push("Google Drive 文件必须设置为知道链接即可访问。");
     } else {
       try {
         const metadata = await resolveMediaMetadata(sourceUrl);
+        const streamMetadata = metadata as typeof metadata & {
+          formats?: YoutubeStreamFormat[];
+          audioStream?: BrowserAudioStream;
+          browserStream?: BrowserTransferStream;
+        };
         title = metadata.title || title;
         durationSeconds = metadata.durationSeconds;
         contentLength = metadata.contentLength;
         thumbnailUrl = metadata.thumbnailUrl;
-        formats = "formats" in metadata ? metadata.formats : undefined;
-        audioStream = "audioStream" in metadata ? metadata.audioStream : undefined;
+        formats = streamMetadata.formats;
+        audioStream = streamMetadata.audioStream;
+        browserStream = streamMetadata.browserStream || (audioStream ? {...audioStream, kind: "audio"} : undefined);
         resolvedUrl = metadata.sourceUrl || sourceUrl;
         contentType = audioStream?.mimeType.split(";")[0] || (metadata.extension ? `video/${metadata.extension}` : undefined);
       } catch (error) {
         logApiError(error, request);
-        warnings.push("无法读取媒体元数据，已使用链接标题继续。");
       }
     }
 
@@ -84,14 +89,15 @@ export async function POST(request: Request) {
       providerLabel: providerLabels[provider],
       sourceType: sourceTypeForProvider(provider),
       title,
-      filename: provider === "google_drive" ? "Google Drive 文件" : title,
+      filename: provider === "google_drive" ? "Google Drive" : title,
       durationSeconds,
       contentLength,
       contentType,
       thumbnailUrl,
       formats,
       audioStream,
-      warnings
+      browserStream,
+      warnings: []
     });
   } catch (error) {
     if (!(error instanceof z.ZodError) && !(error instanceof MediaUrlValidationError)) {

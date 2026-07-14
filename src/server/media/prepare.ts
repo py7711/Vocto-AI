@@ -12,8 +12,10 @@ import {env} from "@/lib/env";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, putObject} from "@/lib/storage";
 import {normalizePublicMediaUrl} from "@/lib/media-url";
+import {selectBrowserTransferStream, type ExtractedMediaFormat} from "@/lib/media-stream";
 import {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
 import {resolveYoutubeViaInnertube, type YoutubeStreamFormat} from "@/server/media/youtube-innertube";
+import {resolvePublicMediaMetadata} from "@/server/media/public-metadata";
 
 export {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
 export type {YoutubeStreamFormat} from "@/server/media/youtube-innertube";
@@ -1025,18 +1027,35 @@ export async function resolveMediaMetadata(url: string) {
       filesize?: number;
       filesize_approx?: number;
       ext?: string;
+      formats?: ExtractedMediaFormat[];
     };
 
-    return {
+    const browserStream = selectBrowserTransferStream(metadata.formats ?? []);
+    const audioStream = browserStream?.kind === "audio" ? browserStream : undefined;
+
+    const extracted = {
       title: metadata.title || metadata.fulltitle,
       durationSeconds: normalizeDurationSeconds(metadata.duration),
       thumbnailUrl: metadata.thumbnail,
       sourceUrl: metadata.webpage_url,
       providerName: metadata.extractor_key,
-      contentLength: metadata.filesize || metadata.filesize_approx,
-      extension: metadata.ext
+      contentLength: browserStream?.contentLength || metadata.filesize || metadata.filesize_approx,
+      extension: metadata.ext,
+      audioStream,
+      browserStream
     };
+    if (extracted.title && extracted.thumbnailUrl) return extracted;
+    const fallback = await resolvePublicMediaMetadata(url, provider);
+    return fallback ? {
+      ...extracted,
+      title: extracted.title || fallback.title,
+      thumbnailUrl: extracted.thumbnailUrl || fallback.thumbnailUrl,
+      sourceUrl: extracted.sourceUrl || fallback.sourceUrl,
+      providerName: extracted.providerName || fallback.providerName
+    } : extracted;
   } catch (error) {
+    const fallback = await resolvePublicMediaMetadata(url, provider);
+    if (fallback) return fallback;
     throw error;
   }
 }

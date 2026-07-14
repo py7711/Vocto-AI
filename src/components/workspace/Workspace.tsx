@@ -55,6 +55,8 @@ import {ProductSections} from "./marketing";
 import {formatDateTime, formatDuration, formatTime, taskDisplayName} from "./format";
 import {safeImageSrc} from "@/lib/image-url";
 import {subscriptionGrantsMembership} from "@/lib/membership-shared";
+import type {BrowserAudioStream, BrowserTransferStream} from "@/lib/media-stream";
+import {prepareAndUploadLocalMedia, prepareRemoteMediaForTask} from "@/lib/browser-media-preparation";
 
 const maxBatchFiles = 50;
 const initialWorkspaceRequestCache = new Map<string, {expiresAt: number; promise: Promise<unknown>}>();
@@ -349,6 +351,8 @@ type ResolvedMedia = {
   contentLength?: number;
   contentType?: string;
   thumbnailUrl?: string;
+  audioStream?: BrowserAudioStream;
+  browserStream?: BrowserTransferStream;
   warnings: string[];
 };
 
@@ -1251,12 +1255,18 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       });
 
       if (mode === "youtube") {
-        const created = await createTask({
-          sourceType: resolvedMedia?.sourceType ?? "YOUTUBE",
+        const preparedSource = await prepareRemoteMediaForTask({
+          sourceType: "YOUTUBE",
           sourceUrl: resolvedMedia?.sourceUrl ?? youtubeUrl,
-          originalName: resolvedMedia?.filename || resolvedMedia?.title,
-          durationSeconds: resolvedMedia?.durationSeconds
+          title: resolvedMedia?.title || "media",
+          fileName: resolvedMedia?.filename,
+          durationSeconds: resolvedMedia?.durationSeconds,
+          audioStream: resolvedMedia?.audioStream,
+          browserStream: resolvedMedia?.browserStream
+        }).catch(() => {
+          throw new Error(copy.uploadFailed);
         });
+        const created = await createTask(preparedSource);
         if (openCreatedTask(created)) return true;
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
@@ -1276,40 +1286,23 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
         return true;
       }
 
-      // 文件和录音都先拿到短期有效的 R2 直传地址，再把公开地址交给转写队列。
+      // 文件和录音由浏览器准备模块选择音频提取或原文件直传，再统一写入 R2。
       if (mode === "upload" || mode === "record") {
         const selected = mode === "record" ? files.slice(0, 1) : files.slice(0, maxBatchFiles);
         if (!selected.length) throw new Error(mode === "record" ? copy.needRecording : copy.needFile);
 
         const createdTasks: Task[] = [];
         for (const selectedFile of selected) {
-          const upload = await fetch("/api/uploads", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              fileName: selectedFile.name,
-              contentType: selectedFile.type || "application/octet-stream",
-              sizeBytes: selectedFile.size
-            })
-          }).then(async (response) => {
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.error ?? copy.uploadUrlError);
-            return data;
+          const upload = await prepareAndUploadLocalMedia(selectedFile).catch(() => {
+            throw new Error(copy.uploadFailed);
           });
-
-          const uploaded = await fetch(upload.uploadUrl, {
-            method: "PUT",
-            headers: {"Content-Type": selectedFile.type || "application/octet-stream"},
-            body: selectedFile
-          });
-          if (!uploaded.ok) throw new Error(copy.uploadFailed);
 
           const created = await createTask({
             sourceType: "UPLOAD",
             sourceUrl: upload.publicUrl,
             objectKey: upload.key,
-            originalName: selectedFile.name,
-            fileSizeBytes: selectedFile.size
+            originalName: upload.fileName,
+            fileSizeBytes: upload.sizeBytes
           });
           createdTasks.push(created);
         }
@@ -4389,13 +4382,6 @@ function MediaLinkPreview({media, variant = "card"}: {media: ResolvedMedia; vari
         ) : null}
         <p className="mx-auto mt-4 max-w-3xl break-all text-sm font-semibold leading-6 text-slate-400">{media.sourceUrl}</p>
         {sizeLabel ? <p className="mt-2 text-sm font-bold text-slate-400">{sizeLabel}</p> : null}
-        {media.warnings.length ? (
-          <div className="mx-auto mt-4 grid max-w-3xl gap-2">
-            {media.warnings.map((warning) => (
-              <p key={warning} className="rounded-md border border-violet/15 bg-violet/5 px-3 py-2 text-sm font-bold leading-5 text-ink/55">{warning}</p>
-            ))}
-          </div>
-        ) : null}
       </article>
     );
   }
@@ -4425,13 +4411,6 @@ function MediaLinkPreview({media, variant = "card"}: {media: ResolvedMedia; vari
           <h3 className="line-clamp-2 break-all text-[15px] font-semibold leading-[21px] text-ink">{media.title}</h3>
           <p className="mt-2 text-sm font-medium leading-5 text-violet">{media.providerLabel}</p>
           <p className="mt-1.5 line-clamp-2 break-all text-sm leading-5 text-slate-500">{media.sourceUrl}</p>
-          {media.warnings.length ? (
-            <div className="mt-3 grid gap-2">
-              {media.warnings.map((warning) => (
-                <p key={warning} className="rounded-md border border-violet/15 bg-violet/5 px-3 py-2 text-xs font-bold leading-5 text-ink/55">{warning}</p>
-              ))}
-            </div>
-          ) : null}
         </div>
       </article>
     );
@@ -4454,13 +4433,6 @@ function MediaLinkPreview({media, variant = "card"}: {media: ResolvedMedia; vari
         </div>
         <h3 className="mt-3 break-words text-base font-black leading-6 text-ink">{media.title}</h3>
         <p className="mt-2 break-all text-xs leading-5 text-ink/50">{media.sourceUrl}</p>
-        {media.warnings.length ? (
-          <div className="mt-3 space-y-2">
-            {media.warnings.map((warning) => (
-              <p key={warning} className="rounded-md border border-violet/15 bg-white px-3 py-2 text-xs font-bold leading-5 text-ink/55">{warning}</p>
-            ))}
-          </div>
-        ) : null}
       </div>
     </article>
   );
