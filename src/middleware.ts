@@ -18,15 +18,15 @@ function requestHeadersWithLogUrl(request: NextRequest) {
 }
 
 export default function middleware(request: NextRequest) {
-  const canonicalUrl = canonicalRedirectUrl(request.url, request.headers.get("host"), request.headers.get("x-forwarded-proto"));
-  const legacyUrl = legacyPublicRedirectUrl(canonicalUrl?.toString() ?? request.url);
-  if (canonicalUrl || legacyUrl) return NextResponse.redirect(legacyUrl ?? canonicalUrl!, 301);
-
   const requestHeaders = requestHeadersWithLogUrl(request);
 
   if (request.nextUrl.pathname.startsWith("/_next/") || request.nextUrl.pathname.includes(".")) {
     return NextResponse.next({request: {headers: requestHeaders}});
   }
+
+  const canonicalUrl = canonicalRedirectUrl(request.url, request.headers.get("host"), request.headers.get("x-forwarded-proto"));
+  const legacyUrl = legacyPublicRedirectUrl(canonicalUrl?.toString() ?? request.url);
+  if (canonicalUrl || legacyUrl) return NextResponse.redirect(legacyUrl ?? canonicalUrl!, 301);
 
   if (request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.next({
