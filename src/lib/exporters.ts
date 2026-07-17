@@ -1,5 +1,6 @@
 import {Document as DocxDocument, HeadingLevel, Packer, Paragraph, TextRun} from "docx";
 import type {Transcript} from "@prisma/client";
+import {transcriptText} from "@/lib/transcript-content";
 
 type Segment = {
   start: number;
@@ -46,7 +47,7 @@ function stamp(seconds: number, separator: "," | ".") {
 }
 
 export function renderTxt(transcript: Transcript) {
-  return transcript.editedText || transcript.plainText;
+  return transcriptText(transcript);
 }
 
 function splitTextByLength(text: string, maxChars?: number) {
@@ -174,7 +175,7 @@ export function renderVtt(transcript: Transcript, options: ExportOptions = {}) {
 export function renderJson(transcript: Transcript) {
   return JSON.stringify(
     {
-      text: transcript.editedText || transcript.plainText,
+      text: transcriptText(transcript),
       segments: transcript.segments,
       words: transcript.words
     },

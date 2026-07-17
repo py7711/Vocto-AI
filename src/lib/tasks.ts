@@ -1,4 +1,4 @@
-import {getCurrentUser} from "@/lib/auth";
+import {getCurrentUserIdentity} from "@/lib/auth";
 import {authenticateApiKey} from "@/lib/developer-settings";
 import {prisma} from "@/lib/prisma";
 export {publishTaskUpdate, updateTaskStatus} from "@/lib/task-status";
@@ -19,13 +19,15 @@ class TaskAccessError extends Error {
 }
 
 export async function assertTaskAccess(taskId: string, mode: "read" | "write" = "read", headers?: Headers) {
-  const user = await getCurrentUser();
   const hasApiKey = Boolean(headers?.get("x-api-key") || headers?.get("authorization")?.match(/^Bearer\s+/i));
-  const apiAccess = headers && hasApiKey ? await authenticateApiKey(new Request("http://local", {headers})) : null;
-  const task = await prisma.mediaTask.findUnique({
-    where: {id: taskId},
-    select: {id: true, userId: true, teamId: true}
-  });
+  const [user, apiAccess, task] = await Promise.all([
+    getCurrentUserIdentity(),
+    headers && hasApiKey ? authenticateApiKey(new Request("http://local", {headers})) : null,
+    prisma.mediaTask.findUnique({
+      where: {id: taskId},
+      select: {id: true, userId: true, teamId: true}
+    })
+  ]);
 
   if (!task) {
     throw new TaskAccessError("转写任务不存在。", 404);

@@ -62,7 +62,7 @@ const contentCopy = {
       description: "覆盖官网、登录、仪表盘、队列、AI 洞察、导出和国际化能力。"
     },
     faqs: [
-      ["Votxt 可以完成哪些转写工作？", "Votxt 覆盖文件上传、链接转写、录音、仪表盘额度、AI 摘要、思维导图、问答、翻译和导出。"],
+      ["Votxt 可以完成哪些转写工作？", "Votxt 覆盖文件上传、链接转写、录音、仪表盘额度、AI 摘要、思维导图、翻译和导出。"],
       ["可以用邮箱或 Google 登录吗？", "可以。你可以使用邮箱账号或 Google 账号进入个人转写工作台。"],
       ["支持哪些导出格式？", "任务完成后可以导出 Word、CSV、PDF、TXT、SRT 和 VTT，方便归档、字幕制作和内容复用。"],
       ["支持多少种语言？", "Votxt 支持 63 种语言的转写，并可为完成的转写生成翻译。"],
@@ -238,7 +238,7 @@ const contentCopy = {
       description: "Respuestas sobre sitio web, autenticación, panel, cola, IA, exportación, facturación e idiomas."
     },
     faqs: [
-      ["¿Qué puede transcribir Votxt?", "Incluye carga, enlaces, grabación, cuotas, resúmenes, mapas mentales, Q&A, traducción y exportaciones."],
+      ["¿Qué puede transcribir Votxt?", "Incluye carga, enlaces, grabación, cuotas, resúmenes, mapas mentales, traducción y exportaciones."],
       ["¿Puedo iniciar sesión con email o Google?", "Sí. Puedes entrar al espacio personal con email o con una cuenta de Google."],
       ["¿Qué formatos puedo exportar?", "Puedes exportar Word, CSV, PDF, TXT, SRT y VTT para archivo, subtítulos y reutilización de contenido."],
       ["¿Cuántos idiomas admite?", "Votxt admite transcripción en 63 idiomas y también puede generar traducciones."],
@@ -306,7 +306,7 @@ const contentCopy = {
       description: "Antworten zu Website, Authentifizierung, Dashboard, Warteschlange, KI, Export, Abrechnung und Lokalisierung."
     },
     faqs: [
-      ["Was kann Votxt transkribieren?", "Votxt bietet Uploads, Links, Aufnahme, Kontingente, KI-Zusammenfassungen, Mindmaps, Q&A, Übersetzung und Exporte."],
+      ["Was kann Votxt transkribieren?", "Votxt bietet Uploads, Links, Aufnahme, Kontingente, KI-Zusammenfassungen, Mindmaps, Übersetzung und Exporte."],
       ["Kann ich mich mit E-Mail oder Google anmelden?", "Ja. Du kannst deinen persönlichen Arbeitsbereich per E-Mail oder Google-Konto öffnen."],
       ["Welche Exporte gibt es?", "Du kannst Word, CSV, PDF, TXT, SRT und VTT für Archive, Untertitel und Wiederverwendung exportieren."],
       ["Wie viele Sprachen werden unterstützt?", "Votxt unterstützt Transkription in 63 Sprachen und kann auch Übersetzungen erzeugen."],
@@ -340,7 +340,7 @@ const contentCopy = {
       description: "サイト、認証、ダッシュボード、キュー、AI、書き出し、請求、多言語対応をまとめます。"
     },
     faqs: [
-      ["Votxt では何を文字起こしできますか？", "アップロード、リンク、録音、クォータ、AI要約、マインドマップ、Q&A、翻訳、書き出しに対応しています。"],
+      ["Votxt では何を文字起こしできますか？", "アップロード、リンク、録音、クォータ、AI要約、マインドマップ、翻訳、書き出しに対応しています。"],
       ["メールまたは Google でログインできますか？", "はい。メールアカウントまたは Google アカウントで個人ワークスペースに入れます。"],
       ["どの形式で書き出せますか？", "Word、CSV、PDF、TXT、SRT、VTT を書き出せます。アーカイブ、字幕、再利用に使えます。"],
       ["何言語に対応していますか？", "Votxt は 63 言語の文字起こしに対応し、翻訳も生成できます。"],
@@ -374,7 +374,7 @@ const contentCopy = {
       description: "웹사이트, 인증, 대시보드, 큐, AI, 내보내기, 결제, 현지화를 다룹니다."
     },
     faqs: [
-      ["Votxt는 무엇을 전사할 수 있나요?", "업로드, 링크, 녹음, 할당량, AI 요약, 마인드맵, Q&A, 번역, 내보내기를 제공합니다."],
+      ["Votxt는 무엇을 전사할 수 있나요?", "업로드, 링크, 녹음, 할당량, AI 요약, 마인드맵, 번역, 내보내기를 제공합니다."],
       ["이메일 또는 Google로 로그인할 수 있나요?", "네. 이메일 계정이나 Google 계정으로 개인 워크스페이스에 들어갈 수 있습니다."],
       ["어떤 형식을 내보낼 수 있나요?", "Word, CSV, PDF, TXT, SRT, VTT를 내보내 아카이브, 자막, 콘텐츠 재사용에 활용할 수 있습니다."],
       ["몇 개 언어를 지원하나요?", "Votxt는 63개 언어 전사를 지원하며 번역도 생성할 수 있습니다."],
@@ -408,7 +408,7 @@ const contentCopy = {
       description: "Site, autenticação, painel, fila, IA, exportações, cobrança e localização."
     },
     faqs: [
-      ["O que o Votxt pode transcrever?", "Votxt cobre upload, links, gravação, cotas, resumos de IA, mapas mentais, Q&A, tradução e exportações."],
+      ["O que o Votxt pode transcrever?", "Votxt cobre upload, links, gravação, cotas, resumos de IA, mapas mentais, tradução e exportações."],
       ["Posso entrar com email ou Google?", "Sim. Você pode acessar o workspace pessoal com email ou uma conta Google."],
       ["Quais formatos posso exportar?", "Você pode exportar Word, CSV, PDF, TXT, SRT e VTT para arquivo, legendas e reutilização de conteúdo."],
       ["Quantos idiomas são suportados?", "Votxt suporta transcrição em 63 idiomas e também pode gerar traduções."],
@@ -480,7 +480,7 @@ const contentCopy20 = {
       description: "Válaszok webhelyről, bejelentkezésről, irányítópultról, sorról, AI-ról, exportról, számlázásról és nyelvekről."
     },
     faqs: [
-      ["Mit tud átírni a Votxt?", "Feltöltések, linkek, felvétel, kvóták, AI összefoglalók, gondolattérképek, Q&A, fordítás és export."],
+      ["Mit tud átírni a Votxt?", "Feltöltések, linkek, felvétel, kvóták, AI összefoglalók, gondolattérképek, fordítás és export."],
       ["Beléphetek e-maillel vagy Google-lel?", "Igen. Személyes munkaterületedet e-maillel vagy Google-fiókkal is megnyithatod."],
       ["Milyen formátumokba exportálhatok?", "Word, CSV, PDF, TXT, SRT és VTT export használható archiváláshoz, feliratokhoz és újrahasznosításhoz."],
       ["Hány nyelvet támogat?", "A Votxt 63 nyelven támogat átírást, és fordítást is tud készíteni."],
@@ -514,7 +514,7 @@ const contentCopy20 = {
       description: "Jawaban tentang situs, login, dashboard, antrean, AI, ekspor, penagihan, dan bahasa."
     },
     faqs: [
-      ["Apa yang bisa ditranskripsi Votxt?", "Votxt mencakup unggahan, tautan, rekaman, kuota, ringkasan AI, mind map, Q&A, terjemahan, dan ekspor."],
+      ["Apa yang bisa ditranskripsi Votxt?", "Votxt mencakup unggahan, tautan, rekaman, kuota, ringkasan AI, mind map, terjemahan, dan ekspor."],
       ["Bisakah masuk dengan email atau Google?", "Bisa. Anda dapat membuka workspace pribadi dengan email atau akun Google."],
       ["Format ekspor apa yang didukung?", "Anda dapat mengekspor Word, CSV, PDF, TXT, SRT, dan VTT untuk arsip, subtitle, dan penggunaan ulang konten."],
       ["Berapa bahasa yang didukung?", "Votxt mendukung transkripsi dalam 63 bahasa dan dapat membuat terjemahan."],
@@ -548,7 +548,7 @@ const contentCopy20 = {
       description: "Risposte su sito, accesso, dashboard, coda, AI, esportazione, fatturazione e lingue."
     },
     faqs: [
-      ["Cosa può trascrivere Votxt?", "Votxt copre upload, link, registrazione, quote, riepiloghi AI, mappe mentali, Q&A, traduzione ed esportazioni."],
+      ["Cosa può trascrivere Votxt?", "Votxt copre upload, link, registrazione, quote, riepiloghi AI, mappe mentali, traduzione ed esportazioni."],
       ["Posso accedere con email o Google?", "Sì. Puoi aprire il workspace personale con email o account Google."],
       ["Quali formati posso esportare?", "Puoi esportare Word, CSV, PDF, TXT, SRT e VTT per archivi, sottotitoli e riuso dei contenuti."],
       ["Quante lingue sono supportate?", "Votxt supporta trascrizione in 63 lingue e può generare traduzioni."],
@@ -582,7 +582,7 @@ const contentCopy20 = {
       description: "Antwoorden over site, login, dashboard, wachtrij, AI, export, facturatie en talen."
     },
     faqs: [
-      ["Wat kan Votxt transcriberen?", "Votxt ondersteunt uploads, links, opnemen, quota, AI-samenvattingen, mindmaps, Q&A, vertaling en exports."],
+      ["Wat kan Votxt transcriberen?", "Votxt ondersteunt uploads, links, opnemen, quota, AI-samenvattingen, mindmaps, vertaling en exports."],
       ["Kan ik inloggen met e-mail of Google?", "Ja. Je kunt je persoonlijke workspace openen met e-mail of een Google-account."],
       ["Welke exportformaten zijn er?", "Je kunt Word, CSV, PDF, TXT, SRT en VTT exporteren voor archief, ondertitels en hergebruik."],
       ["Hoeveel talen worden ondersteund?", "Votxt ondersteunt transcriptie in 63 talen en kan ook vertalingen maken."],
@@ -616,7 +616,7 @@ const contentCopy20 = {
       description: "Odpowiedzi o stronie, logowaniu, panelu, kolejce, AI, eksporcie, rozliczeniach i językach."
     },
     faqs: [
-      ["Co może transkrybować Votxt?", "Votxt obsługuje upload, linki, nagrywanie, limity, podsumowania AI, mapy myśli, Q&A, tłumaczenie i eksporty."],
+      ["Co może transkrybować Votxt?", "Votxt obsługuje upload, linki, nagrywanie, limity, podsumowania AI, mapy myśli, tłumaczenie i eksporty."],
       ["Czy mogę logować się e-mailem lub Google?", "Tak. Możesz otworzyć osobistą przestrzeń przez e-mail albo konto Google."],
       ["Jakie formaty eksportu są dostępne?", "Możesz eksportować Word, CSV, PDF, TXT, SRT i VTT do archiwum, napisów i ponownego użycia treści."],
       ["Ile języków jest obsługiwanych?", "Votxt obsługuje transkrypcję w 63 językach i może generować tłumaczenia."],
@@ -650,7 +650,7 @@ const contentCopy20 = {
       description: "Ответы о сайте, входе, панели, очереди, AI, экспорте, оплате и языках."
     },
     faqs: [
-      ["Что может расшифровывать Votxt?", "Votxt поддерживает загрузки, ссылки, запись, лимиты, AI-сводки, интеллект-карты, Q&A, перевод и экспорт."],
+      ["Что может расшифровывать Votxt?", "Votxt поддерживает загрузки, ссылки, запись, лимиты, AI-сводки, интеллект-карты, перевод и экспорт."],
       ["Можно войти по e-mail или Google?", "Да. Вы можете открыть личное рабочее пространство по e-mail или через Google."],
       ["Какие форматы экспорта есть?", "Доступны Word, CSV, PDF, TXT, SRT и VTT для архива, субтитров и повторного использования контента."],
       ["Сколько языков поддерживается?", "Votxt поддерживает расшифровку на 63 языках и может создавать переводы."],
@@ -684,7 +684,7 @@ const contentCopy20 = {
       description: "คำตอบเกี่ยวกับเว็บไซต์ การเข้าสู่ระบบ แดชบอร์ด คิว AI การส่งออก การเรียกเก็บเงิน และภาษา"
     },
     faqs: [
-      ["Votxt ถอดเสียงอะไรได้บ้าง?", "รองรับการอัปโหลด ลิงก์ การบันทึก โควตา สรุป AI แผนผังความคิด Q&A การแปล และการส่งออก"],
+      ["Votxt ถอดเสียงอะไรได้บ้าง?", "รองรับการอัปโหลด ลิงก์ การบันทึก โควตา สรุป AI แผนผังความคิด การแปล และการส่งออก"],
       ["เข้าสู่ระบบด้วยอีเมลหรือ Google ได้ไหม?", "ได้ คุณสามารถเปิดพื้นที่ทำงานส่วนตัวด้วยอีเมลหรือบัญชี Google"],
       ["ส่งออกเป็นรูปแบบใดได้บ้าง?", "ส่งออก Word, CSV, PDF, TXT, SRT และ VTT สำหรับเก็บถาวร คำบรรยาย และนำเนื้อหากลับมาใช้ใหม่"],
       ["รองรับกี่ภาษา?", "Votxt รองรับการถอดเสียง 63 ภาษา และสร้างคำแปลได้"],
@@ -718,7 +718,7 @@ const contentCopy20 = {
       description: "Site, giriş, panel, kuyruk, AI, dışa aktarma, faturalama ve diller hakkında yanıtlar."
     },
     faqs: [
-      ["Votxt neleri transkribe edebilir?", "Yüklemeler, bağlantılar, kayıt, kota, AI özetleri, zihin haritaları, Q&A, çeviri ve dışa aktarma desteklenir."],
+      ["Votxt neleri transkribe edebilir?", "Yüklemeler, bağlantılar, kayıt, kota, AI özetleri, zihin haritaları, çeviri ve dışa aktarma desteklenir."],
       ["E-posta veya Google ile giriş yapabilir miyim?", "Evet. Kişisel çalışma alanını e-posta veya Google hesabıyla açabilirsin."],
       ["Hangi formatlara dışa aktarabilirim?", "Arşiv, altyazı ve içerik yeniden kullanımı için Word, CSV, PDF, TXT, SRT ve VTT dışa aktarılabilir."],
       ["Kaç dil destekleniyor?", "Votxt 63 dilde transkripsiyon destekler ve çeviri oluşturabilir."],
@@ -752,7 +752,7 @@ const contentCopy20 = {
       description: "Відповіді про сайт, вхід, панель, чергу, AI, експорт, оплату та мови."
     },
     faqs: [
-      ["Що може транскрибувати Votxt?", "Votxt підтримує завантаження, посилання, запис, ліміти, AI-підсумки, ментальні карти, Q&A, переклад і експорти."],
+      ["Що може транскрибувати Votxt?", "Votxt підтримує завантаження, посилання, запис, ліміти, AI-підсумки, ментальні карти, переклад і експорти."],
       ["Чи можна увійти через e-mail або Google?", "Так. Ви можете відкрити особистий простір через e-mail або Google-акаунт."],
       ["Які формати експорту доступні?", "Доступні Word, CSV, PDF, TXT, SRT і VTT для архіву, субтитрів і повторного використання контенту."],
       ["Скільки мов підтримується?", "Votxt підтримує транскрипцію 63 мовами і може створювати переклади."],
@@ -786,7 +786,7 @@ const contentCopy20 = {
       description: "Trả lời về website, đăng nhập, dashboard, hàng đợi, AI, xuất tệp, thanh toán và ngôn ngữ."
     },
     faqs: [
-      ["Votxt có thể chép lời gì?", "Votxt hỗ trợ tải lên, liên kết, ghi âm, hạn mức, tóm tắt AI, sơ đồ tư duy, Q&A, dịch và xuất tệp."],
+      ["Votxt có thể chép lời gì?", "Votxt hỗ trợ tải lên, liên kết, ghi âm, hạn mức, tóm tắt AI, sơ đồ tư duy, dịch và xuất tệp."],
       ["Có thể đăng nhập bằng email hoặc Google không?", "Có. Bạn có thể mở workspace cá nhân bằng email hoặc tài khoản Google."],
       ["Có thể xuất định dạng nào?", "Bạn có thể xuất Word, CSV, PDF, TXT, SRT và VTT để lưu trữ, làm phụ đề và tái sử dụng nội dung."],
       ["Hỗ trợ bao nhiêu ngôn ngữ?", "Votxt hỗ trợ chép lời 63 ngôn ngữ và có thể tạo bản dịch."],

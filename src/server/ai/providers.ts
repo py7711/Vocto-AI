@@ -19,7 +19,7 @@ async function callDeepSeek(input: JsonChatInput) {
     throw new Error("DEEPSEEK_API_KEY 未配置。");
   }
 
-  // DeepSeek 是默认主力模型：要求 JSON 输出，避免摘要、问答和思维导图在前端解析时
+  // DeepSeek 是默认主力模型：要求 JSON 输出，避免摘要和思维导图在前端解析时
   // 因自然语言解释或 Markdown 包裹而失败。
   const response = await fetch(`${env.DEEPSEEK_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",

@@ -1,11 +1,12 @@
 import {NextResponse} from "next/server";
+import {Prisma} from "@prisma/client";
 import {z} from "zod";
 import type {TranscribeJob} from "@/lib/queue";
 import {enqueueTranscribeJob} from "@/lib/queue";
 import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {isGoogleDriveShareUrl} from "@/server/media/prepare";
-import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {summaryTemplateInputValues} from "@/lib/summary-template";
 import {logApiError} from "@/lib/api-logger";
 
 const retranscribeSchema = z.object({
@@ -36,7 +37,10 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
     }
 
     await prisma.$transaction([
-      prisma.aIInsight.deleteMany({where: {mediaTaskId: params.taskId}}),
+      prisma.transcript.updateMany({
+        where: {mediaTaskId: params.taskId},
+        data: {summary: Prisma.DbNull, mindMap: Prisma.DbNull, translations: Prisma.DbNull, summaryGenerationCount: 0}
+      }),
       prisma.exportAsset.deleteMany({where: {mediaTaskId: params.taskId}}),
       prisma.mediaTask.update({
         where: {id: params.taskId},
@@ -67,7 +71,7 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       enableSpeakerLabels: input.enableSpeakerLabels,
       subtitleEnabled: input.subtitleEnabled,
       premiumModel: input.premiumModel,
-      summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
+      summaryTemplate: input.summaryTemplate,
       summaryLanguage: input.summaryLanguage
     });
 

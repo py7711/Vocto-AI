@@ -1,11 +1,12 @@
 import type {Metadata} from "next";
-import {getSharePageTitle, SharePage} from "@/components/share-page";
+import {SharedTranscriptionPage} from "@/components/shared-transcription-page";
+import {getWorkspaceCopy} from "@/components/workspace/copy";
 import {buildPrivateMetadata} from "@/lib/seo";
 
 export function generateMetadata({params}: {params: {locale: string; token: string}}): Metadata {
-  return buildPrivateMetadata(getSharePageTitle(params.locale), params.locale, `/share/${params.token}`);
+  return buildPrivateMetadata(getWorkspaceCopy(params.locale).shareTitle, params.locale, `/share/${params.token}`);
 }
 
 export default function ShareRoute({params}: {params: {locale: string; token: string}}) {
-  return <SharePage locale={params.locale} token={params.token} />;
+  return <SharedTranscriptionPage token={params.token} />;
 }

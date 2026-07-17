@@ -191,7 +191,7 @@ const enPosts: BlogPost[] = [
         heading: "Where Votxt fits",
         body: [
           "After upload, Votxt queues the task and falls back across Groq, Deepgram, and AssemblyAI depending on speaker-label requirements.",
-          "Once complete, you can generate summaries, Q&A, translations, exports, and read-only share links."
+          "Once complete, you can generate summaries, mind maps, translations, exports, and read-only share links."
         ]
       }
     ]

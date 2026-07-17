@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Kostenloser Online-Sprache-zu-Text-Konverter",
-    "description": "Votxt wandelt Audio, Video und YouTube-Links in Transkripte, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte um."
+    "description": "Votxt wandelt Audio, Video und YouTube-Links in Transkripte, Zusammenfassungen, Mindmaps, Übersetzungen und Exporte um."
   },
   "trustSeo": {
     "privacy": "Datenschutzerklärung",
@@ -33,7 +33,6 @@
     "transcript": "Transkript-Editor",
     "summary": "Zusammenfassung",
     "mindMap": "Mindmap",
-    "qa": "Q&A",
     "translation": "Übersetzung",
     "exports": "Exportzentrum",
     "generateInsights": "KI-Insights erzeugen",
@@ -42,7 +41,7 @@
     "completed": "Fertig",
     "failed": "Fehler",
     "headline": "Audio und Video in Text umwandeln",
-    "subheadline": "Dateien hochladen, Links einfügen oder aufnehmen. Votxt erzeugt editierbare Transkripte, Sprecher, Zusammenfassungen, Mindmaps, Fragen, Übersetzungen und Exporte.",
+    "subheadline": "Dateien hochladen, Links einfügen oder aufnehmen. Votxt erzeugt editierbare Transkripte, Sprecher, Zusammenfassungen, Mindmaps, Übersetzungen und Exporte.",
     "formats": "11+ Medienformate",
     "languages": "63 Sprachen",
     "exportCount": "5 Exportformate",
@@ -65,7 +64,6 @@
     "insightTitle": "KI-Arbeitsbereich",
     "summaryEmpty": "Zusammenfassung nach fertigem Transkript erzeugen.",
     "mindMapEmpty": "Mindmap erscheint hier.",
-    "qaEmpty": "Wichtige Fragen erscheinen hier.",
     "translationEmpty": "Übersetzung erscheint hier.",
     "plansTitle": "Pläne für jede Last",
     "freePlan": "Gratis",

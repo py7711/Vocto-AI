@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Audio en video gratis online naar tekst converteren",
-    "description": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten."
+    "description": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps en exports in verschillende formaten."
   },
   "trustSeo": {
     "privacy": "Privacybeleid",
@@ -32,7 +32,6 @@
     "transcript": "Transcript",
     "summary": "Samenvatting",
     "mindMap": "Mindmap",
-    "qa": "V&A",
     "translation": "Vertaling",
     "exports": "Exports",
     "generateInsights": "Insights genereren",
@@ -41,7 +40,7 @@
     "completed": "Voltooid",
     "failed": "Mislukt",
     "headline": "Converteer Audio & Video naar Tekst",
-    "subheadline": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps, kernvragen en exports in verschillende formaten.",
+    "subheadline": "Met Votxt upload je audio- en videobestanden of plak je YouTube-links en zet je ze snel om naar tekst met AI. Het maakt ook samenvattingen, mindmaps en exports in verschillende formaten.",
     "formats": "Ondersteunt 11 formaten",
     "languages": "Ondersteunt 63 talen",
     "exportCount": "Exporteer in 6 formaten",
@@ -64,7 +63,6 @@
     "insightTitle": "AI-werkruimte",
     "summaryEmpty": "Genereer insights nadat een transcript klaar is.",
     "mindMapEmpty": "Mindmap-nodes verschijnen hier.",
-    "qaEmpty": "Belangrijke vragen en antwoorden verschijnen hier.",
     "translationEmpty": "Vertaling verschijnt hier.",
     "plansTitle": "Plannen voor elke workload",
     "freePlan": "Gratis",

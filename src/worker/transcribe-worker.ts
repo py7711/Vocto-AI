@@ -13,6 +13,8 @@ import {transcribeChunkedWithGroq} from "@/server/transcription/groq-chunked";
 import {finalizeTranscriptionResult, saveJobContext, type TranscriptionJobContext} from "@/server/transcription/finalize";
 import type {TranscriptionRequest} from "@/server/transcription/types";
 import {isGoogleDriveShareUrl, prepareTaskAudioAsset, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
+import {runMediaLinkTranscription} from "@/server/transcription/media-link-policy";
+import {transcribeVideoWithGemini} from "@/server/transcription/gemini-video";
 
 installProcessErrorHandlers({
   service: "worker",
@@ -167,59 +169,86 @@ async function createWorker() {
       if (await isTaskCompleted(taskId)) return;
       await updateTaskStatus(taskId, "PROCESSING", {
         progress: 15,
-        statusMessage: "uploading audio"
+        statusMessage: "plan task."
       });
 
       const taskRecord = await prisma.mediaTask.findUnique({
         where: {id: taskId},
-        select: {originalName: true, objectKey: true, userId: true}
+        select: {originalName: true, objectKey: true, userId: true, durationSeconds: true}
       });
-      const preparableSourceUrl = sourceType === "GOOGLE_DRIVE" && isGoogleDriveShareUrl(sourceUrl)
-        ? resolveGoogleDriveDownloadUrl(sourceUrl)
-        : sourceUrl;
-      const prepared = await prepareTaskAudioAsset({
-        taskId,
-        sourceType,
-        sourceUrl: preparableSourceUrl,
-        originalName: taskRecord?.originalName,
-        objectKey: taskRecord?.objectKey,
-        enableSpeakerLabels
-      });
-      if (taskRecord?.userId) {
-        await assertFreeMinutesCanCoverDuration({
-          userId: taskRecord.userId,
-          mediaTaskId: taskId,
-          durationSeconds: prepared.durationSeconds
-        });
-      }
-
-      await assertNotCanceled(taskId);
-      await updateTaskStatus(taskId, "TRANSCRIBING", {
-        progress: 35,
-        statusMessage: "音频已就绪，正在转写。"
-      });
-
-      const request: TranscriptionRequest = {
-        mediaUrl: prepared.mediaUrl,
-        language,
-        enableSpeakerLabels,
-        subtitleEnabled,
-        premiumModel
-      };
       const baseContext: TranscriptionJobContext = {
         language,
         enableSpeakerLabels,
         subtitleEnabled,
         summaryTemplate,
-        summaryLanguage,
-        preparedDurationSeconds: prepared.durationSeconds ?? undefined
+        summaryLanguage
       };
 
-      // 优先走 webhook 回调 + 容错轮询；未在超时内完成则转同步兜底链路。
-      const finishedByCallback = await runWithCallbackAndPolling(taskId, request, baseContext);
-      if (finishedByCallback || (await isTaskCompleted(taskId))) return;
+      await runMediaLinkTranscription({
+        sourceType,
+        sourceUrl,
+        runGemini: async () => {
+          await assertNotCanceled(taskId);
+          await updateTaskStatus(taskId, "TRANSCRIBING", {
+            progress: 30,
+            statusMessage: "正在通过 Gemini 分析完整视频。"
+          });
+          const result = await transcribeVideoWithGemini({
+            videoUrl: sourceUrl,
+            expectedDurationSeconds: taskRecord?.durationSeconds ?? undefined,
+            language,
+            enableSpeakerLabels,
+            summaryTemplate: summaryTemplate ?? "standard",
+            summaryLanguage
+          });
+          if (taskRecord?.userId) {
+            await assertFreeMinutesCanCoverDuration({
+              userId: taskRecord.userId,
+              mediaTaskId: taskId,
+              durationSeconds: result.durationSeconds
+            });
+          }
+          return finalizeTranscriptionResult({taskId, result, context: baseContext});
+        },
+        runMediaPipeline: async () => {
+          const preparableSourceUrl = sourceType === "GOOGLE_DRIVE" && isGoogleDriveShareUrl(sourceUrl)
+            ? resolveGoogleDriveDownloadUrl(sourceUrl)
+            : sourceUrl;
+          const prepared = await prepareTaskAudioAsset({
+            taskId,
+            sourceType,
+            sourceUrl: preparableSourceUrl,
+            originalName: taskRecord?.originalName,
+            objectKey: taskRecord?.objectKey,
+            enableSpeakerLabels
+          });
+          if (taskRecord?.userId) {
+            await assertFreeMinutesCanCoverDuration({
+              userId: taskRecord.userId,
+              mediaTaskId: taskId,
+              durationSeconds: prepared.durationSeconds
+            });
+          }
 
-      await runSyncFallback(taskId, request, baseContext);
+          await assertNotCanceled(taskId);
+          await updateTaskStatus(taskId, "TRANSCRIBING", {
+            progress: 35,
+            statusMessage: "音频已就绪，正在转写。"
+          });
+
+          const request: TranscriptionRequest = {
+            mediaUrl: prepared.mediaUrl,
+            language,
+            enableSpeakerLabels,
+            subtitleEnabled,
+            premiumModel
+          };
+          const mediaContext = {...baseContext, preparedDurationSeconds: prepared.durationSeconds ?? undefined};
+          const finishedByCallback = await runWithCallbackAndPolling(taskId, request, mediaContext);
+          if (finishedByCallback || (await isTaskCompleted(taskId))) return true;
+          return runSyncFallback(taskId, request, mediaContext);
+        }
+      });
     },
     {
       connection: connection as any,

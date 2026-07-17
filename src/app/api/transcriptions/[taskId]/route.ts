@@ -31,7 +31,6 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       where: {id: params.taskId},
       include: {
         transcript: true,
-        insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
         shareLinks: {
           where: {enabled: true},
@@ -83,7 +82,6 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
       data,
       include: {
         transcript: true,
-        insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
         shareLinks: {
           where: {enabled: true},

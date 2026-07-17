@@ -9,28 +9,17 @@ import {Transform} from "node:stream";
 import {pipeline} from "node:stream/promises";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {env} from "@/lib/env";
-import {logWarn} from "@/lib/logger";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, putObject} from "@/lib/storage";
 import {normalizePublicMediaUrl} from "@/lib/media-url";
 import {selectBrowserTransferStream, type ExtractedMediaFormat} from "@/lib/media-stream";
 import {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
-import {resolveYoutubeViaInnertube, type YoutubeStreamFormat} from "@/server/media/youtube-innertube";
 import {resolvePublicMediaMetadata} from "@/server/media/public-metadata";
-import {createYoutubeAudioAcquirer, ingestYtDownAudioToR2} from "@/server/media/ytdown-audio";
+import {resolveMediaSourceProvider} from "@/server/media/source-provider";
 
 export {canonicalizeYoutubeUrl, extractYoutubeVideoId} from "@/lib/youtube-url";
-export type {YoutubeStreamFormat} from "@/server/media/youtube-innertube";
 
-export type MediaSourceProvider =
-  | "youtube"
-  | "tiktok"
-  | "instagram"
-  | "facebook"
-  | "x"
-  | "vimeo"
-  | "google_drive"
-  | "generic";
+export {resolveMediaSourceProvider, type MediaSourceProvider} from "@/server/media/source-provider";
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 const audioContentType = "audio/mpeg";
@@ -278,36 +267,30 @@ function parseIso8601Duration(value: string) {
   return normalizeDurationSeconds(hours * 3600 + minutes * 60 + seconds);
 }
 
-async function resolveYoutubeMetadataFallback(url: string, cause: unknown) {
+async function resolveYoutubePublicMetadata(url: string) {
   const videoId = extractYoutubeVideoId(url);
-  const errors: string[] = [cause instanceof Error ? cause.message : String(cause)];
 
   if (videoId) {
     try {
       const fromApi = await resolveYoutubeMetadataViaDataApi(videoId);
       if (fromApi?.title) return fromApi;
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
-    }
+    } catch {}
   }
 
   try {
     const fromOEmbed = await resolveYoutubeMetadataViaOEmbed(url);
-    if (fromOEmbed.title) {
-      return fromOEmbed;
-    }
-  } catch (error) {
-    errors.push(error instanceof Error ? error.message : String(error));
-  }
+    if (fromOEmbed.title) return fromOEmbed;
+  } catch {}
 
-  const needsCookies = errors.some((message) => isYoutubeBotBlockedError(message));
-  if (needsCookies && !resolveYoutubeCookiesPath()) {
-    throw new Error(
-      "YouTube 已将服务器 IP 识别为机器人。请在服务器配置 config/youtube-cookies.txt（Netscape 格式），或在 .env 设置 YT_DLP_COOKIES_PATH 后执行 pm2 restart all。"
-    );
-  }
-
-  throw cause instanceof Error ? cause : new Error(String(cause));
+  return {
+    title: "YouTube 视频",
+    thumbnailUrl: videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : undefined,
+    sourceUrl: url,
+    providerName: "youtube",
+    durationSeconds: undefined,
+    contentLength: undefined,
+    extension: undefined
+  };
 }
 
 async function withYtDlp<T>(operation: (spec: CommandSpec) => Promise<T>) {
@@ -545,7 +528,7 @@ async function downloadRemoteMedia(input: {
         outputTemplate,
         "--",
         mediaUrl
-      ], 15 * 60_000);
+      ], env.YT_DLP_TIMEOUT_SECONDS * 1000);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const cookiesPath = provider === "youtube" ? resolveYoutubeCookiesPath() : undefined;
@@ -751,61 +734,10 @@ export async function prepareTaskAudioAsset(input: {
   });
 
   const fullKey = `tasks/${input.taskId}/audio/${stem}.mp3`;
-  let directory: string | undefined;
-  let downloadedSourcePath: string | undefined;
-
-  if (env.YTDOWN_ENABLED && input.sourceType === "YOUTUBE" && resolveMediaSourceProvider(input.sourceUrl) === "youtube") {
-    const acquireYoutubeAudio = createYoutubeAudioAcquirer({
-      ingestYtDown: ingestYtDownAudioToR2,
-      downloadWithYtDlp: async (youtubeUrl) => {
-        const fallbackDirectory = await mkdtemp(join(tmpdir(), "votxt-media-"));
-        try {
-          const filePath = await downloadRemoteMedia({
-            sourceUrl: youtubeUrl,
-            sourceType: "YOUTUBE",
-            objectKey: input.objectKey,
-            directory: fallbackDirectory,
-            outputPath: join(fallbackDirectory, "source")
-          });
-          return {filePath, directory: fallbackDirectory};
-        } catch (error) {
-          await rm(fallbackDirectory, {recursive: true, force: true}).catch(() => undefined);
-          throw error;
-        }
-      },
-      onYtDownError: (error) => logWarn(error, {
-        requestUrl: `worker://youtube-ingest/${input.taskId}`,
-        message: "YTDown audio ingestion failed; falling back to yt-dlp.",
-        meta: {taskId: input.taskId}
-      })
-    });
-    const acquired = await acquireYoutubeAudio({youtubeUrl: input.sourceUrl, key: fullKey});
-    if (acquired.kind === "stored") {
-      const uploadedAudio = acquired.audio;
-      const task = await prisma.mediaTask.findUnique({
-        where: {id: input.taskId},
-        select: {durationSeconds: true}
-      });
-      const durationSeconds = task?.durationSeconds
-        ?? await createDownloadUrl(uploadedAudio.key).then(probeDurationSeconds).catch(() => undefined);
-      return persistTaskAudio({
-        taskId: input.taskId,
-        key: uploadedAudio.key,
-        publicUrl: uploadedAudio.publicUrl,
-        fileName: `${stem}.mp3`,
-        sizeBytes: uploadedAudio.sizeBytes,
-        durationSeconds,
-        metadata: {provider: uploadedAudio.provider, passthrough: true, bitrate: "128k"}
-      });
-    }
-    directory = acquired.directory;
-    downloadedSourcePath = acquired.filePath;
-  }
-
-  directory ??= await mkdtemp(join(tmpdir(), "votxt-media-"));
+  const directory = await mkdtemp(join(tmpdir(), "votxt-media-"));
   const audioPath = join(directory, "audio.mp3");
   try {
-    downloadedSourcePath ??= await downloadRemoteMedia({
+    const downloadedSourcePath = await downloadRemoteMedia({
       sourceUrl: input.sourceUrl,
       sourceType: input.sourceType,
       objectKey: input.objectKey,
@@ -888,50 +820,16 @@ export async function chunkAudioForFallback(input: {
   }
 }
 
-// 元数据解析仍可向浏览器暴露临时媒体流；Worker 的正式转写路径会优先把 YTDown MP3 写入 R2，
-// 失败时再由 yt-dlp 下载并用 ffmpeg 标准化，避免把短时第三方链接交给转写供应商。
+// 元数据解析可向浏览器暴露临时媒体流；Worker 的正式媒体路径会先下载并标准化，
+// 避免把短时第三方链接交给转写供应商。
 export function normalizeMediaUrl(input: string) {
   return normalizePublicMediaUrl(input);
-}
-
-export function resolveMediaSourceProvider(url: string): MediaSourceProvider {
-  const parsed = new URL(normalizeMediaUrl(url));
-  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-
-  if (host === "youtu.be" || host === "youtube.com" || host.endsWith(".youtube.com")) return "youtube";
-  if (host === "tiktok.com" || host.endsWith(".tiktok.com")) return "tiktok";
-  if (host === "instagram.com" || host.endsWith(".instagram.com")) return "instagram";
-  if (host === "facebook.com" || host === "fb.watch" || host.endsWith(".facebook.com")) return "facebook";
-  if (host === "x.com" || host === "twitter.com" || host.endsWith(".x.com") || host.endsWith(".twitter.com")) return "x";
-  if (host === "vimeo.com" || host.endsWith(".vimeo.com")) return "vimeo";
-  if (host === "drive.google.com" || host.endsWith(".drive.google.com") || host === "docs.google.com" || host.endsWith(".docs.google.com")) return "google_drive";
-
-  return "generic";
 }
 
 export function isGoogleDriveShareUrl(url: string) {
   const parsed = new URL(normalizeMediaUrl(url));
   const host = parsed.hostname.toLowerCase();
   return host === "drive.google.com" || host.endsWith(".drive.google.com") || host === "docs.google.com" || host.endsWith(".docs.google.com");
-}
-
-export async function resolveYoutubeAudioUrl(url: string) {
-  const canonicalUrl = canonicalizeYoutubeUrl(url);
-  const videoId = extractYoutubeVideoId(canonicalUrl)!;
-  try {
-    const resolved = await resolveYoutubeViaInnertube(videoId);
-    if (resolved.audioFormat?.url) return resolved.audioFormat.url;
-  } catch {
-    // 固定版本 yt-dlp 负责处理 signature/nsig 和可播放性降级。
-  }
-  const output = await collectYtDlp(["--no-playlist", "--format", "bestaudio", "--get-url", "--", canonicalUrl], 30_000);
-  const [audioUrl] = output.split("\n").filter(Boolean);
-
-  if (!audioUrl) {
-    throw new Error("yt-dlp 未返回音频地址。");
-  }
-
-  return audioUrl;
 }
 
 export async function resolveYoutubeVideoDownloadUrl(url: string) {
@@ -953,117 +851,12 @@ export async function resolveYoutubeVideoDownloadUrl(url: string) {
   return videoUrl;
 }
 
-function extensionFromMimeType(mimeType: string | undefined) {
-  if (!mimeType) return undefined;
-  if (mimeType.includes("webm")) return "webm";
-  if (mimeType.includes("mp4")) return "m4a";
-  if (mimeType.includes("mpeg")) return "mp3";
-  return undefined;
-}
-
-async function resolveYoutubeMetadataViaYtDlp(url: string) {
-  const canonicalUrl = canonicalizeYoutubeUrl(url);
-  const output = await collectYtDlp(["--dump-json", "--no-playlist", "--skip-download", "--", canonicalUrl], 30_000);
-  const metadata = JSON.parse(output) as {
-    title?: string;
-    fulltitle?: string;
-    duration?: number;
-    thumbnail?: string;
-    webpage_url?: string;
-    extractor_key?: string;
-    filesize?: number;
-    filesize_approx?: number;
-    ext?: string;
-    formats?: Array<{
-      format_id?: string;
-      url?: string;
-      manifest_url?: string;
-      mime_type?: string;
-      ext?: string;
-      protocol?: string;
-      acodec?: string;
-      vcodec?: string;
-      abr?: number;
-      tbr?: number;
-      filesize?: number;
-      filesize_approx?: number;
-      audio_channels?: number;
-      asr?: number;
-      format_note?: string;
-    }>;
-  };
-  const formats: YoutubeStreamFormat[] = (metadata.formats ?? []).flatMap((format) => {
-    const itag = Number(format.format_id);
-    if (!Number.isInteger(itag)) return [];
-    const audioOnly = format.acodec !== "none" && format.vcodec === "none";
-    const mimeType = format.mime_type || `${audioOnly ? "audio" : "video"}/${format.ext || "unknown"}`;
-    return [{
-      itag,
-      mimeType,
-      bitrate: format.abr ? Math.round(format.abr * 1000) : format.tbr ? Math.round(format.tbr * 1000) : undefined,
-      contentLength: format.filesize || format.filesize_approx,
-      durationSeconds: normalizeDurationSeconds(metadata.duration),
-      audioOnly,
-      audioSampleRate: format.asr,
-      audioChannels: format.audio_channels,
-      qualityLabel: format.format_note,
-      url: format.url,
-      requiresSignature: false,
-      requiresNsig: false
-    }];
-  });
-  const audioStream = formats
-    .filter((format) => format.audioOnly && format.url)
-    .sort((left, right) => (right.bitrate ?? 0) - (left.bitrate ?? 0))[0];
-
-  return {
-    title: metadata.title || metadata.fulltitle,
-    durationSeconds: normalizeDurationSeconds(metadata.duration),
-    thumbnailUrl: metadata.thumbnail,
-    sourceUrl: metadata.webpage_url,
-    providerName: metadata.extractor_key || "youtube:yt-dlp",
-    contentLength: audioStream?.contentLength || metadata.filesize || metadata.filesize_approx,
-    extension: extensionFromMimeType(audioStream?.mimeType) || metadata.ext,
-    formats,
-    audioStream
-  };
-}
-
 export async function resolveMediaMetadata(url: string) {
   const provider = resolveMediaSourceProvider(url);
 
   if (provider === "youtube") {
     const canonicalUrl = canonicalizeYoutubeUrl(url);
-    const videoId = extractYoutubeVideoId(canonicalUrl)!;
-    let innertubeResult: Awaited<ReturnType<typeof resolveYoutubeViaInnertube>> | undefined;
-    try {
-      innertubeResult = await resolveYoutubeViaInnertube(videoId);
-      if (innertubeResult.audioFormat?.url) {
-        return {
-          title: innertubeResult.title,
-          durationSeconds: innertubeResult.durationSeconds,
-          thumbnailUrl: innertubeResult.thumbnailUrl,
-          sourceUrl: canonicalUrl,
-          providerName: "youtube:innertube-web",
-          contentLength: innertubeResult.audioFormat.contentLength,
-          extension: extensionFromMimeType(innertubeResult.audioFormat.mimeType),
-          formats: innertubeResult.formats,
-          audioStream: innertubeResult.audioFormat
-        };
-      }
-    } catch {
-      // 继续使用固定版本 yt-dlp。
-    }
-    try {
-      return await resolveYoutubeMetadataViaYtDlp(canonicalUrl);
-    } catch (error) {
-      const fallback = await resolveYoutubeMetadataFallback(canonicalUrl, error);
-      return {
-        ...fallback,
-        formats: innertubeResult?.formats ?? [],
-        audioStream: undefined
-      };
-    }
+    return resolveYoutubePublicMetadata(canonicalUrl);
   }
 
   try {

@@ -1,10 +1,5 @@
 import {Document as DocxDocument, HeadingLevel, Packer, Paragraph, TextRun} from "docx";
 
-type InsightRecord = {
-  type: string;
-  content: any;
-};
-
 type OutlineSection = {
   title: string;
   lines: string[];
@@ -57,10 +52,8 @@ function flattenMindMap(node: any, depth = 0): string[] {
   return [...current, ...children];
 }
 
-export function buildOutline(input: {title: string; provider?: string | null; insights: InsightRecord[]}) {
-  const summary = input.insights.find((item) => item.type === "SUMMARY")?.content;
-  const mindMap = input.insights.find((item) => item.type === "MIND_MAP")?.content;
-  const qa = input.insights.find((item) => item.type === "QA")?.content;
+export function buildOutline(input: {title: string; provider?: string | null; summary?: any; mindMap?: any}) {
+  const {summary, mindMap} = input;
   const sections: OutlineSection[] = [];
 
   const overview = text(summary?.overview);
@@ -75,17 +68,6 @@ export function buildOutline(input: {title: string; provider?: string | null; in
   const mindMapLines = flattenMindMap(mindMap);
   if (mindMapLines.length) {
     sections.push({title: "Mind map", lines: mindMapLines});
-  }
-
-  const questions = Array.isArray(qa)
-    ? qa.flatMap((item: any, index: number) => {
-        const question = text(item.question) || `Question ${index + 1}`;
-        const answer = text(item.answer);
-        return answer ? [`Q: ${question}`, `A: ${answer}`] : [`Q: ${question}`];
-      })
-    : [];
-  if (questions.length) {
-    sections.push({title: "Questions", lines: questions});
   }
 
   return {

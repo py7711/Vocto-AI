@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "無料オンライン音声テキスト変換",
-    "description": "Votxt は音声、動画、YouTube リンクを文字起こし、要約、マインドマップ、Q&A、翻訳、書き出しに変換します。"
+    "description": "Votxt は音声、動画、YouTube リンクを文字起こし、要約、マインドマップ、翻訳、書き出しに変換します。"
   },
   "trustSeo": {
     "privacy": "プライバシーポリシー",
@@ -33,7 +33,6 @@
     "transcript": "文字起こし編集",
     "summary": "要約",
     "mindMap": "マインドマップ",
-    "qa": "Q&A",
     "translation": "翻訳",
     "exports": "書き出し",
     "generateInsights": "AI 分析を生成",
@@ -42,7 +41,7 @@
     "completed": "完了",
     "failed": "失敗",
     "headline": "音声と動画をテキストへ変換",
-    "subheadline": "ファイルのアップロード、リンク貼り付け、録音に対応。編集可能な文字起こし、話者、要約、マインドマップ、Q&A、翻訳、書き出しを生成します。",
+    "subheadline": "ファイルのアップロード、リンク貼り付け、録音に対応。編集可能な文字起こし、話者、要約、マインドマップ、翻訳、書き出しを生成します。",
     "formats": "11+ メディア形式",
     "languages": "63 言語",
     "exportCount": "5 書き出し形式",
@@ -65,7 +64,6 @@
     "insightTitle": "AI ワークスペース",
     "summaryEmpty": "文字起こし完了後に要約できます。",
     "mindMapEmpty": "マインドマップがここに表示されます。",
-    "qaEmpty": "重要な Q&A がここに表示されます。",
     "translationEmpty": "翻訳がここに表示されます。",
     "plansTitle": "用途別プラン",
     "freePlan": "無料",

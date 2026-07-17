@@ -31,7 +31,6 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
       include: {
         transcript: {select: {id: true}},
         folder: {select: {id: true, name: true, position: true}},
-        insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         shareLinks: {
           where: {enabled: true},
           select: {

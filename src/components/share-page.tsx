@@ -4,6 +4,8 @@ import {MediaPlayer, MediaSeekButton} from "@/components/media-player";
 import {ShareExportLinks} from "@/components/share-export-links";
 import {SharedTranslationPanel} from "@/components/shared-translation-panel";
 import {getWorkspaceCopy} from "@/components/workspace/copy";
+import {transcriptText} from "@/lib/transcript-content";
+import {transcriptTranslationEntries} from "@/lib/transcript-translations";
 import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
 import {isLocale, type Locale} from "@/lib/locales";
 import {getPublicShare} from "@/lib/share-links";
@@ -508,20 +510,10 @@ export async function SharePage({locale, token}: {locale: string; token: string}
   const copy = shareCopy[normalizedLocale];
   const languageCopy = {language: getWorkspaceCopy(normalizedLocale).language};
   const task = share.mediaTask;
-  const text = transcript.editedText || transcript.plainText;
+  const text = transcriptText(transcript);
   const segments = readSegments(transcript.segments);
-  const summary = task.insights.find((item) => item.type === "SUMMARY")?.content as any;
-  const translations = task.insights
-    .filter((item) => item.type === "TRANSLATION")
-    .map((item) => ({
-      id: item.id,
-      locale: item.locale,
-      title: item.title,
-      content: item.content,
-      model: item.model,
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString()
-    }));
+  const summary = transcript.summary as any;
+  const translations = transcriptTranslationEntries(transcript.translations);
   const ratings = task.ratings ?? [];
   const ratingAverage = ratings.length ? ratings.reduce((sum, item) => sum + item.rating, 0) / ratings.length : 0;
   const title = share.title || task.originalName || copy.fallbackTitle;

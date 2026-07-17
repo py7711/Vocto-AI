@@ -19,42 +19,42 @@ const blogPostPageCopy: Record<Locale, BlogPostPageCopy> = {
     authorFallback: "فريق Votxt",
     tocTitle: "جدول المحتويات",
     ctaTitle: "حوّل الصوت والفيديو إلى نص مجاناً عبر الإنترنت",
-    ctaBullets: ["يحوّل ملفات الصوت والفيديو إلى نص دقيق خلال ثوانٍ.", "ينشئ ملخصات وخرائط ذهنية وأسئلة رئيسية."],
+    ctaBullets: ["يحوّل ملفات الصوت والفيديو إلى نص دقيق خلال ثوانٍ.", "ينشئ ملخصات وخرائط ذهنية."],
     ctaButton: "ابدأ مجاناً"
   },
   de: {
     authorFallback: "Votxt Team",
     tocTitle: "Inhaltsverzeichnis",
     ctaTitle: "Audio und Video kostenlos online in Text umwandeln",
-    ctaBullets: ["Wandelt Audio- und Videodateien in Sekunden in genauen Text um.", "Erstellt Zusammenfassungen, Mindmaps und zentrale Fragen."],
+    ctaBullets: ["Wandelt Audio- und Videodateien in Sekunden in genauen Text um.", "Erstellt Zusammenfassungen, Mindmaps."],
     ctaButton: "Kostenlos starten"
   },
   en: {
     authorFallback: "Votxt Team",
     tocTitle: "Table of Contents",
     ctaTitle: "Convert Audio&Video to Text Online for Free",
-    ctaBullets: ["Converts audio and video files to accurate text in seconds.", "Creates summaries, mind maps, and key questions."],
+    ctaBullets: ["Converts audio and video files to accurate text in seconds.", "Creates summaries, mind maps."],
     ctaButton: "Start for Free"
   },
   es: {
     authorFallback: "Equipo de Votxt",
     tocTitle: "Tabla de contenidos",
     ctaTitle: "Convierte audio y video a texto gratis online",
-    ctaBullets: ["Convierte archivos de audio y video en texto preciso en segundos.", "Crea resúmenes, mapas mentales y preguntas clave."],
+    ctaBullets: ["Convierte archivos de audio y video en texto preciso en segundos.", "Crea resúmenes, mapas mentales."],
     ctaButton: "Empezar gratis"
   },
   fr: {
     authorFallback: "Équipe Votxt",
     tocTitle: "Sommaire",
     ctaTitle: "Convertir audio et vidéo en texte gratuitement en ligne",
-    ctaBullets: ["Convertit les fichiers audio et vidéo en texte précis en quelques secondes.", "Crée des résumés, cartes mentales et questions clés."],
+    ctaBullets: ["Convertit les fichiers audio et vidéo en texte précis en quelques secondes.", "Crée des résumés, cartes mentales."],
     ctaButton: "Commencer gratuitement"
   },
   hu: {
     authorFallback: "Votxt csapat",
     tocTitle: "Tartalomjegyzék",
     ctaTitle: "Alakíts hangot és videót szöveggé ingyen online",
-    ctaBullets: ["A hang- és videófájlokat másodpercek alatt pontos szöveggé alakítja.", "Összefoglalókat, gondolattérképeket és kulcskérdéseket készít."],
+    ctaBullets: ["A hang- és videófájlokat másodpercek alatt pontos szöveggé alakítja.", "Összefoglalókat, gondolattérképeket készít."],
     ctaButton: "Ingyenes kezdés"
   },
   id: {
@@ -68,7 +68,7 @@ const blogPostPageCopy: Record<Locale, BlogPostPageCopy> = {
     authorFallback: "Team Votxt",
     tocTitle: "Indice",
     ctaTitle: "Converti audio e video in testo gratis online",
-    ctaBullets: ["Converte file audio e video in testo accurato in pochi secondi.", "Crea riepiloghi, mappe mentali e domande chiave."],
+    ctaBullets: ["Converte file audio e video in testo accurato in pochi secondi.", "Crea riepiloghi, mappe mentali."],
     ctaButton: "Inizia gratis"
   },
   ja: {
@@ -82,21 +82,21 @@ const blogPostPageCopy: Record<Locale, BlogPostPageCopy> = {
     authorFallback: "Votxt 팀",
     tocTitle: "목차",
     ctaTitle: "오디오와 비디오를 무료로 온라인 텍스트 변환",
-    ctaBullets: ["오디오와 비디오 파일을 몇 초 만에 정확한 텍스트로 변환합니다.", "요약, 마인드맵, 핵심 질문을 만듭니다."],
+    ctaBullets: ["오디오와 비디오 파일을 몇 초 만에 정확한 텍스트로 변환합니다.", "요약, 마인드맵을 만듭니다."],
     ctaButton: "무료로 시작"
   },
   nl: {
     authorFallback: "Votxt-team",
     tocTitle: "Inhoudsopgave",
     ctaTitle: "Audio en video gratis online naar tekst converteren",
-    ctaBullets: ["Zet audio- en videobestanden in seconden om naar nauwkeurige tekst.", "Maakt samenvattingen, mindmaps en kernvragen."],
+    ctaBullets: ["Zet audio- en videobestanden in seconden om naar nauwkeurige tekst.", "Maakt samenvattingen, mindmaps."],
     ctaButton: "Gratis starten"
   },
   pl: {
     authorFallback: "Zespół Votxt",
     tocTitle: "Spis treści",
     ctaTitle: "Konwertuj audio i wideo na tekst online za darmo",
-    ctaBullets: ["Zamienia pliki audio i wideo na dokładny tekst w kilka sekund.", "Tworzy podsumowania, mapy myśli i kluczowe pytania."],
+    ctaBullets: ["Zamienia pliki audio i wideo na dokładny tekst w kilka sekund.", "Tworzy podsumowania, mapy myśli."],
     ctaButton: "Zacznij za darmo"
   },
   pt: {
@@ -110,14 +110,14 @@ const blogPostPageCopy: Record<Locale, BlogPostPageCopy> = {
     authorFallback: "Команда Votxt",
     tocTitle: "Содержание",
     ctaTitle: "Преобразуйте аудио и видео в текст онлайн бесплатно",
-    ctaBullets: ["Преобразует аудио- и видеофайлы в точный текст за секунды.", "Создает сводки, интеллект-карты и ключевые вопросы."],
+    ctaBullets: ["Преобразует аудио- и видеофайлы в точный текст за секунды.", "Создает сводки, интеллект-карты."],
     ctaButton: "Начать бесплатно"
   },
   th: {
     authorFallback: "ทีม Votxt",
     tocTitle: "สารบัญ",
     ctaTitle: "แปลงเสียงและวิดีโอเป็นข้อความออนไลน์ฟรี",
-    ctaBullets: ["แปลงไฟล์เสียงและวิดีโอเป็นข้อความที่แม่นยำในไม่กี่วินาที", "สร้างสรุป แผนผังความคิด และคำถามสำคัญ"],
+    ctaBullets: ["แปลงไฟล์เสียงและวิดีโอเป็นข้อความที่แม่นยำในไม่กี่วินาที", "สร้างสรุป แผนผังความคิด"],
     ctaButton: "เริ่มฟรี"
   },
   tr: {
@@ -138,21 +138,21 @@ const blogPostPageCopy: Record<Locale, BlogPostPageCopy> = {
     authorFallback: "Đội ngũ Votxt",
     tocTitle: "Mục lục",
     ctaTitle: "Chuyển âm thanh và video thành văn bản miễn phí online",
-    ctaBullets: ["Chuyển tệp âm thanh và video thành văn bản chính xác trong vài giây.", "Tạo tóm tắt, sơ đồ tư duy và câu hỏi chính."],
+    ctaBullets: ["Chuyển tệp âm thanh và video thành văn bản chính xác trong vài giây.", "Tạo tóm tắt, sơ đồ tư duy."],
     ctaButton: "Bắt đầu miễn phí"
   },
   zh: {
     authorFallback: "Votxt 团队",
     tocTitle: "目录",
     ctaTitle: "免费在线将音视频转换为文字",
-    ctaBullets: ["几秒内将音频和视频文件转换为准确文字。", "生成摘要、思维导图和关键问题。"],
+    ctaBullets: ["几秒内将音频和视频文件转换为准确文字。", "生成摘要、思维导图。"],
     ctaButton: "免费开始"
   },
   "zh-TW": {
     authorFallback: "Votxt 團隊",
     tocTitle: "目錄",
     ctaTitle: "免費線上將音影片轉換為文字",
-    ctaBullets: ["幾秒內將音訊和影片檔轉換為準確文字。", "產生摘要、心智圖和關鍵問題。"],
+    ctaBullets: ["幾秒內將音訊和影片檔轉換為準確文字。", "產生摘要、心智圖。"],
     ctaButton: "免費開始"
   }
 };

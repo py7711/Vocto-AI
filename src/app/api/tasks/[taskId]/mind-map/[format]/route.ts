@@ -24,19 +24,8 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
       return NextResponse.json({error: "思维导图导出为会员专享功能，请先升级套餐。", code: "MEMBERSHIP_REQUIRED"}, {status: 403});
     }
 
-    const {searchParams} = new URL(request.url);
-    const locale = searchParams.get("locale") ?? undefined;
-
-    const insight =
-      (await prisma.aIInsight.findFirst({
-        where: {mediaTaskId: params.taskId, type: "MIND_MAP", ...(locale ? {locale} : {})},
-        orderBy: {updatedAt: "desc"}
-      })) ??
-      (locale
-        ? await prisma.aIInsight.findFirst({where: {mediaTaskId: params.taskId, type: "MIND_MAP"}, orderBy: {updatedAt: "desc"}})
-        : null);
-
-    const node = normalizeMindMapExportNode(insight?.content);
+    const transcript = await prisma.transcript.findUnique({where: {mediaTaskId: params.taskId}, select: {mindMap: true}});
+    const node = normalizeMindMapExportNode(transcript?.mindMap);
     if (!node) {
       return NextResponse.json({error: "尚未生成思维导图，无法导出。"}, {status: 404});
     }

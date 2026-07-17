@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Chuyển âm thanh và video thành văn bản miễn phí trực tuyến",
-    "description": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng."
+    "description": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy và xuất nhiều định dạng."
   },
   "trustSeo": {
     "privacy": "Chính sách quyền riêng tư",
@@ -32,7 +32,6 @@
     "transcript": "Bản chép lời",
     "summary": "Tóm tắt",
     "mindMap": "Sơ đồ tư duy",
-    "qa": "Hỏi đáp",
     "translation": "Bản dịch",
     "exports": "Xuất",
     "generateInsights": "Tạo insight",
@@ -41,7 +40,7 @@
     "completed": "Hoàn tất",
     "failed": "Thất bại",
     "headline": "Chuyển Âm Thanh & Video Thành Văn Bản",
-    "subheadline": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy, câu hỏi chính và xuất nhiều định dạng.",
+    "subheadline": "Votxt cho phép bạn tải lên tệp âm thanh, video hoặc dán liên kết YouTube để nhanh chóng chuyển thành văn bản bằng AI. Công cụ cũng tạo tóm tắt, sơ đồ tư duy và xuất nhiều định dạng.",
     "formats": "Hỗ trợ 11 định dạng",
     "languages": "Hỗ trợ 63 ngôn ngữ",
     "exportCount": "Xuất 6 định dạng",
@@ -64,7 +63,6 @@
     "insightTitle": "Không gian AI",
     "summaryEmpty": "Tạo insight sau khi bản chép lời sẵn sàng.",
     "mindMapEmpty": "Các nút sơ đồ tư duy sẽ xuất hiện ở đây.",
-    "qaEmpty": "Câu hỏi và câu trả lời chính sẽ xuất hiện ở đây.",
     "translationEmpty": "Bản dịch sẽ xuất hiện ở đây.",
     "plansTitle": "Gói cho mọi khối lượng công việc",
     "freePlan": "Miễn phí",

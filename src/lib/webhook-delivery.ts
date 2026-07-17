@@ -1,6 +1,7 @@
 import {createHmac, randomUUID} from "crypto";
 import type {MediaTask, Prisma, Transcript} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
+import {transcriptText} from "@/lib/transcript-content";
 
 // Webhook 投递由 API 路由和后台 worker 共同触发：用户取消任务、worker 完成任务或失败任务
 // 都需要进入同一套事件发送逻辑。本模块不依赖 cookies/headers 等请求上下文，所以保持为
@@ -39,7 +40,7 @@ export function serializeTranscription(task: WebhookTask) {
     completed_at: task.completedAt?.toISOString() ?? null,
     transcript: task.transcript
       ? {
-          text: task.transcript.editedText || task.transcript.plainText,
+          text: transcriptText(task.transcript),
           segments: task.transcript.segments,
           words: task.transcript.words
         }

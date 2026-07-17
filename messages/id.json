@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Konversi audio dan video ke teks online gratis",
-    "description": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format."
+    "description": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, dan ekspor berbagai format."
   },
   "trustSeo": {
     "privacy": "Kebijakan privasi",
@@ -32,7 +32,6 @@
     "transcript": "Transkrip",
     "summary": "Ringkasan",
     "mindMap": "Mind map",
-    "qa": "Tanya jawab",
     "translation": "Terjemahan",
     "exports": "Ekspor",
     "generateInsights": "Buat insight",
@@ -41,7 +40,7 @@
     "completed": "Selesai",
     "failed": "Gagal",
     "headline": "Konversi Audio & Video ke Teks",
-    "subheadline": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, pertanyaan penting, dan ekspor berbagai format.",
+    "subheadline": "Votxt memungkinkan Anda mengunggah audio dan video atau menempelkan tautan YouTube, lalu mengubahnya menjadi teks dengan AI. Votxt juga membuat ringkasan, mind map, dan ekspor berbagai format.",
     "formats": "Mendukung 11 Format",
     "languages": "Mendukung 63 Bahasa",
     "exportCount": "Ekspor dalam 6 Format",
@@ -64,7 +63,6 @@
     "insightTitle": "Ruang kerja AI",
     "summaryEmpty": "Buat insight setelah transkrip siap.",
     "mindMapEmpty": "Node mind map akan muncul di sini.",
-    "qaEmpty": "Pertanyaan dan jawaban penting akan muncul di sini.",
     "translationEmpty": "Terjemahan akan muncul di sini.",
     "plansTitle": "Paket untuk setiap beban kerja",
     "freePlan": "Gratis",

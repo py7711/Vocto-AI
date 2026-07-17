@@ -5,8 +5,7 @@ import {
   resolveGoogleDriveDownloadUrl,
   resolveMediaMetadata,
   resolveMediaSourceProvider,
-  type MediaSourceProvider,
-  type YoutubeStreamFormat
+  type MediaSourceProvider
 } from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
 import {MediaUrlValidationError} from "@/lib/media-url";
@@ -54,7 +53,6 @@ export async function POST(request: Request) {
     let contentLength: number | undefined;
     let contentType: string | undefined;
     let thumbnailUrl: string | undefined;
-    let formats: YoutubeStreamFormat[] | undefined;
     let audioStream: BrowserAudioStream | undefined;
     let browserStream: BrowserTransferStream | undefined;
 
@@ -64,7 +62,6 @@ export async function POST(request: Request) {
       try {
         const metadata = await resolveMediaMetadata(sourceUrl);
         const streamMetadata = metadata as typeof metadata & {
-          formats?: YoutubeStreamFormat[];
           audioStream?: BrowserAudioStream;
           browserStream?: BrowserTransferStream;
         };
@@ -72,7 +69,6 @@ export async function POST(request: Request) {
         durationSeconds = metadata.durationSeconds;
         contentLength = metadata.contentLength;
         thumbnailUrl = metadata.thumbnailUrl;
-        formats = streamMetadata.formats;
         audioStream = streamMetadata.audioStream;
         browserStream = streamMetadata.browserStream || (audioStream ? {...audioStream, kind: "audio"} : undefined);
         resolvedUrl = metadata.sourceUrl || sourceUrl;
@@ -94,7 +90,6 @@ export async function POST(request: Request) {
       contentLength,
       contentType,
       thumbnailUrl,
-      formats,
       audioStream,
       browserStream,
       warnings: []

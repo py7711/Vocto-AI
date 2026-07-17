@@ -4,6 +4,9 @@ import {prisma} from "@/lib/prisma";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {translateBatchWithFallback} from "@/server/translation";
 import {logApiError} from "@/lib/api-logger";
+import {transcriptText} from "@/lib/transcript-content";
+import {transcriptTranslationEntries} from "@/lib/transcript-translations";
+import {setTranscriptTranslation} from "@/server/transcript-translations";
 
 const translationSchema = z.object({
   targetLanguageCode: z.string().trim().min(2).max(16),
@@ -27,7 +30,7 @@ function numberValue(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function buildTranslationUnits(transcript: {plainText: string; editedText?: string | null; segments: unknown}): TranslationUnit[] {
+function buildTranslationUnits(transcript: {editedText?: string | null; segments: unknown}): TranslationUnit[] {
   if (Array.isArray(transcript.segments)) {
     const segmentUnits = transcript.segments
       .map((segment) => {
@@ -46,7 +49,7 @@ function buildTranslationUnits(transcript: {plainText: string; editedText?: stri
     if (segmentUnits.length) return segmentUnits;
   }
 
-  const text = transcript.editedText || transcript.plainText;
+  const text = transcriptText(transcript);
   return text
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
@@ -77,19 +80,8 @@ function batchTranslationUnits(units: TranslationUnit[]) {
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
-    const translations = await prisma.aIInsight.findMany({
-      where: {mediaTaskId: params.taskId, type: "TRANSLATION"},
-      orderBy: {updatedAt: "desc"},
-      select: {
-        id: true,
-        locale: true,
-        title: true,
-        content: true,
-        model: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const transcript = await prisma.transcript.findUnique({where: {mediaTaskId: params.taskId}, select: {translations: true}});
+    const translations = transcriptTranslationEntries(transcript?.translations);
 
     return NextResponse.json({translations});
   } catch (error) {
@@ -151,30 +143,10 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       errors
     };
 
-    const record = await prisma.aIInsight.upsert({
-      where: {
-        mediaTaskId_type_locale: {
-          mediaTaskId: task.id,
-          type: "TRANSLATION",
-          locale: input.targetLanguageCode
-        }
-      },
-      update: {
-        content,
-        model: provider.slice(0, 128)
-      },
-      create: {
-        mediaTaskId: task.id,
-        type: "TRANSLATION",
-        locale: input.targetLanguageCode,
-        title: "翻译",
-        content,
-        model: provider.slice(0, 128)
-      }
-    });
+    await setTranscriptTranslation(task.id, input.targetLanguageCode, content);
 
     await publishTaskUpdate(task.id);
-    return NextResponse.json(record);
+    return NextResponse.json({locale: input.targetLanguageCode, content});
   } catch (error) {
     logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);

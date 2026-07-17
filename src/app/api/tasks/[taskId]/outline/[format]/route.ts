@@ -36,10 +36,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
         id: true,
         originalName: true,
         provider: true,
-        insights: {
-          where: {type: {in: ["SUMMARY", "MIND_MAP", "QA"]}},
-          select: {type: true, content: true}
-        }
+        transcript: {select: {summary: true, mindMap: true}}
       }
     });
     if (!task) {
@@ -49,7 +46,8 @@ export async function GET(request: Request, {params}: {params: {taskId: string; 
     const outline = buildOutline({
       title: task.originalName || `votxt-${task.id}`,
       provider: task.provider,
-      insights: task.insights
+      summary: task.transcript?.summary,
+      mindMap: task.transcript?.mindMap
     });
     if (!outline.sections.length) {
       return NextResponse.json({error: "请先生成 AI 洞察，再导出大纲。"}, {status: 409});

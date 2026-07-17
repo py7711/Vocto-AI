@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "免費線上將音訊與影片轉成文字",
-    "description": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。"
+    "description": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖，並匯出多種格式。"
   },
   "trustSeo": {
     "privacy": "隱私政策",
@@ -32,7 +32,6 @@
     "transcript": "逐字稿",
     "summary": "摘要",
     "mindMap": "心智圖",
-    "qa": "問答",
     "translation": "翻譯",
     "exports": "匯出",
     "generateInsights": "產生洞察",
@@ -41,7 +40,7 @@
     "completed": "已完成",
     "failed": "失敗",
     "headline": "將音訊與影片轉成文字",
-    "subheadline": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖、關鍵問題，並匯出多種格式。",
+    "subheadline": "Votxt 可讓你上傳音訊與影片檔，或貼上 YouTube 連結，透過 AI 快速轉成文字。也能產生摘要、心智圖，並匯出多種格式。",
     "formats": "支援 11 種格式",
     "languages": "支援 63 種語言",
     "exportCount": "匯出 6 種格式",
@@ -64,7 +63,6 @@
     "insightTitle": "AI 工作區",
     "summaryEmpty": "逐字稿就緒後可產生洞察。",
     "mindMapEmpty": "心智圖節點會顯示在這裡。",
-    "qaEmpty": "關鍵問答會顯示在這裡。",
     "translationEmpty": "翻譯會顯示在這裡。",
     "plansTitle": "適合各種工作量的方案",
     "freePlan": "免費",

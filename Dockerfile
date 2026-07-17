@@ -35,12 +35,6 @@ RUN pnpm build \
   && YT_DLP_INSTALL_PATH=/opt/votxt/bin/yt-dlp pnpm deps:yt-dlp \
   && /opt/votxt/bin/yt-dlp --version
 
-# Chromium for YTDown worker path (https://app.ytdown.to/...).
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN mkdir -p /ms-playwright \
-  && pnpm exec playwright install --with-deps chromium \
-  && pnpm exec playwright install chromium
-
 FROM base AS runner
 
 ENV NODE_ENV=production
@@ -51,16 +45,12 @@ ENV FFMPEG_PATH=/usr/bin/ffmpeg
 ENV FFPROBE_PATH=/usr/bin/ffprobe
 ENV YT_DLP_COOKIES_PATH=/config/youtube-cookies.txt
 ENV LOG_DIR=/logs
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV YTDOWN_ENABLED=true
-ENV YTDOWN_URL=https://app.ytdown.to/zh31/youtube-to-mp3/
 
 WORKDIR /app
 
-RUN mkdir -p /opt/votxt/bin /config /logs /ms-playwright
+RUN mkdir -p /opt/votxt/bin /config /logs
 
 COPY --from=builder /opt/votxt/bin/yt-dlp /opt/votxt/bin/yt-dlp
-COPY --from=builder /ms-playwright /ms-playwright
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
@@ -72,13 +62,6 @@ COPY --from=builder /app/config ./config
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/tsconfig.json ./
-COPY docker/worker-entrypoint.sh /usr/local/bin/votxt-worker-entrypoint.sh
-
-# Playwright system libraries (fonts, NSS, etc.) for Chromium headless/headed.
-RUN apt-get update \
-  && pnpm exec playwright install-deps chromium \
-  && chmod +x /usr/local/bin/votxt-worker-entrypoint.sh \
-  && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 3091
 

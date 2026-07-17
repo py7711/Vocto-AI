@@ -1,13 +1,12 @@
 import {NextResponse} from "next/server";
 import {createDownloadUrl} from "@/lib/storage";
 import {getPublicShare} from "@/lib/share-links";
-import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl, resolveYoutubeAudioUrl} from "@/server/media/prepare";
+import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
 
 async function resolvePlayableUrl(task: {objectKey: string | null; normalizedUrl: string | null; sourceUrl: string; sourceType: string}) {
   if (task.objectKey) return createDownloadUrl(task.objectKey);
   if (task.normalizedUrl) return task.normalizedUrl;
-  if (task.sourceType === "YOUTUBE") return resolveYoutubeAudioUrl(task.sourceUrl);
   if (isGoogleDriveShareUrl(task.sourceUrl)) return resolveGoogleDriveDownloadUrl(task.sourceUrl);
   return task.sourceUrl;
 }

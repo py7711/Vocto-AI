@@ -85,15 +85,10 @@ ASSEMBLYAI_API_KEY=""
 
 DEEPSEEK_API_KEY=""
 GEMINI_API_KEY=""
+GEMINI_VIDEO_MODEL="gemini-3.1-flash-lite"
 DEEPL_API_KEY=""
 
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
-YTDOWN_ENABLED="true"
-# 已执行 `pnpm exec playwright install --with-deps chromium` 时留空。
-YTDOWN_BROWSER_EXECUTABLE_PATH=""
-YTDOWN_RESOLVE_TIMEOUT_MS="30000"
-YTDOWN_POLL_TIMEOUT_MS="90000"
-YTDOWN_CHALLENGE_COOLDOWN_MS="600000"
 FFMPEG_PATH="/usr/bin/ffmpeg"
 FFPROBE_PATH="/usr/bin/ffprobe"
 ```
@@ -107,9 +102,8 @@ FFPROBE_PATH="/usr/bin/ffprobe"
 - `TRANSCRIPTION_CALLBACK_BASE_URL`：转写服务商回调地址的基础域名；未配置时回退到 `NEXT_PUBLIC_APP_URL`。
 - `R2_*`：媒体文件、音频资源和导出资源使用的对象存储配置。
 - `GROQ_API_KEY`、`DEEPGRAM_API_KEY`、`ASSEMBLYAI_API_KEY`：转写服务商密钥，至少配置一个。
-- `YTDOWN_*`：YouTube 音频首选通道。Chromium 只负责生成转换任务；生成的 MP3 由 Worker 直接流式写入 R2。
-- `YT_DLP_PATH`：YTDown 失败后的 YouTube/公开视频降级下载依赖。
-- Cloudflare Turnstile 交互挑战不会被自动绕过；检测到中英文验证页后会立即进入 `yt-dlp`，避免阻塞任务。
+- `GEMINI_API_KEY`、`GEMINI_VIDEO_MODEL`：YouTube 直接视频分析配置，默认使用 `gemini-3.1-flash-lite`。
+- `YT_DLP_PATH`：TikTok、Instagram、Facebook、X、Vimeo 和其他公开视频的下载依赖。
 - `FFMPEG_PATH`、`FFPROBE_PATH`：音频处理和时长识别依赖。
 
 ## 5. Redis URL 解析
@@ -240,14 +234,11 @@ summaryLanguage
 2. 调用 `isTaskCompleted(taskId)`，如果任务已完成，直接跳过，避免重复转写。
 3. 更新任务状态为 `PROCESSING`，进度为 15%。
 4. 从数据库读取任务记录，包括原始文件名、对象存储 key、用户 ID。
-5. 如果来源是 Google Drive 分享链接，先解析为下载链接。
-6. 调用 `prepareTaskAudioAsset()` 准备音频资源。
-7. 如果任务有用户 ID，调用额度检查逻辑，确认剩余分钟数足够。
-8. 再次检查任务是否取消。
-9. 更新任务状态为 `TRANSCRIBING`，进度为 35%。
-10. 构造 `TranscriptionRequest`。
-11. 优先执行异步提交 + 回调 + 轮询。
-12. 如果异步路径没有完成，进入同步兜底转写。
+5. 根据真实 URL 域名选择平台路径。
+6. YouTube 直接调用 Gemini，单次生成完整转录、摘要和思维导图，然后收尾。
+7. 其他平台调用 `prepareTaskAudioAsset()` 准备音频资源，再进入 STT 主链路。
+8. 其他平台媒体/STT 链路失败时，回退 Gemini 直接视频分析。
+9. 如果任务有用户 ID，按分析得到的实际时长检查并结算额度。
 
 ## 10. 音频准备阶段
 
@@ -256,11 +247,11 @@ summaryLanguage
 - `sourceUrl`：上传文件、公开视频链接或 Google Drive 解析后的下载链接。
 - `objectKey`：R2 中的原始文件 key。
 - `originalName`：原始文件名。
-- `yt-dlp`：解析 YouTube 等公开视频链接。
+- `yt-dlp`：解析非 YouTube 公共视频链接。
 - `ffmpeg`、`ffprobe`：处理音频和识别时长。
 - R2：保存或读取媒体资源。
 
-如果这一步失败，常见原因是：
+YouTube 不进入音频准备阶段。其他平台在这一步失败后会自动尝试 Gemini；常见失败原因是：
 
 - R2 凭证错误。
 - R2 bucket 或公开域名配置错误。

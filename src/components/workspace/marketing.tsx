@@ -101,7 +101,7 @@ const featureBlocks = [
   },
   {
     title: "Generate Summary, Mind Map, Key Points from Audio & Video",
-    text: "Automatically create summaries, mind maps, key points, and questions from long recordings so reviews, research, and meetings are easier to understand.",
+    text: "Automatically create summaries, mind maps, key points so reviews, research, and meetings are easier to understand.",
     image: asset("summary.png"),
     icon: Brain
   },

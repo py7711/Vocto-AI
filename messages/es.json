@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Convertidor gratuito de voz a texto en línea",
-    "description": "Votxt convierte audio, video y enlaces de YouTube en transcripciones, resúmenes, mapas mentales, preguntas, traducciones y exportaciones."
+    "description": "Votxt convierte audio, video y enlaces de YouTube en transcripciones, resúmenes, mapas mentales, traducciones y exportaciones."
   },
   "trustSeo": {
     "privacy": "Política de privacidad",
@@ -33,7 +33,6 @@
     "transcript": "Editor de transcripción",
     "summary": "Resumen",
     "mindMap": "Mapa mental",
-    "qa": "Preguntas",
     "translation": "Traducción",
     "exports": "Centro de exportación",
     "generateInsights": "Generar ideas de IA",
@@ -42,7 +41,7 @@
     "completed": "Completado",
     "failed": "Error",
     "headline": "Convierte audio y video a texto",
-    "subheadline": "Sube archivos, pega enlaces o graba audio. Votxt genera transcripciones editables, hablantes, resúmenes, mapas mentales, preguntas, traducciones y exportaciones.",
+    "subheadline": "Sube archivos, pega enlaces o graba audio. Votxt genera transcripciones editables, hablantes, resúmenes, mapas mentales, traducciones y exportaciones.",
     "formats": "Más de 11 formatos",
     "languages": "63 idiomas",
     "exportCount": "5 formatos de exportación",
@@ -65,7 +64,6 @@
     "insightTitle": "Espacio de IA",
     "summaryEmpty": "Genera resumen cuando la transcripción esté lista.",
     "mindMapEmpty": "El mapa mental aparecerá aquí.",
-    "qaEmpty": "Las preguntas clave aparecerán aquí.",
     "translationEmpty": "La traducción aparecerá aquí.",
     "plansTitle": "Planes para cada carga",
     "freePlan": "Gratis",

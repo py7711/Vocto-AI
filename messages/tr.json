@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Ses ve videoyu ücretsiz çevrim içi metne dönüştür",
-    "description": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir."
+    "description": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları ve farklı formatlarda dışa aktarma üretir."
   },
   "trustSeo": {
     "privacy": "Gizlilik politikası",
@@ -32,7 +32,6 @@
     "transcript": "Transkript",
     "summary": "Özet",
     "mindMap": "Zihin haritası",
-    "qa": "Soru-cevap",
     "translation": "Çeviri",
     "exports": "Dışa aktar",
     "generateInsights": "İçgörü oluştur",
@@ -41,7 +40,7 @@
     "completed": "Tamamlandı",
     "failed": "Başarısız",
     "headline": "Ses ve Videoyu Metne Dönüştür",
-    "subheadline": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları, önemli sorular ve farklı formatlarda dışa aktarma üretir.",
+    "subheadline": "Votxt, ses ve video dosyaları yüklemenizi veya YouTube bağlantıları yapıştırmanızı sağlar ve AI ile hızla metne dönüştürür. Ayrıca özetler, zihin haritaları ve farklı formatlarda dışa aktarma üretir.",
     "formats": "11 Format Desteği",
     "languages": "63 Dil Desteği",
     "exportCount": "6 Formatta Dışa Aktar",
@@ -64,7 +63,6 @@
     "insightTitle": "AI çalışma alanı",
     "summaryEmpty": "Transkript hazır olduktan sonra içgörü oluşturun.",
     "mindMapEmpty": "Zihin haritası düğümleri burada görünür.",
-    "qaEmpty": "Önemli sorular ve yanıtlar burada görünür.",
     "translationEmpty": "Çeviri burada görünür.",
     "plansTitle": "Her iş yükü için planlar",
     "freePlan": "Ücretsiz",

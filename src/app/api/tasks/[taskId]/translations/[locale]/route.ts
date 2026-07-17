@@ -3,6 +3,8 @@ import {z} from "zod";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
 import {prisma} from "@/lib/prisma";
 import {logApiError} from "@/lib/api-logger";
+import {transcriptTranslations} from "@/lib/transcript-translations";
+import {setTranscriptTranslation} from "@/server/transcript-translations";
 
 const segmentSchema = z.object({
   start: z.number().nonnegative(),
@@ -19,21 +21,14 @@ const updateTranslationSchema = z.object({
 export async function GET(request: Request, {params}: {params: {taskId: string; locale: string}}) {
   try {
     await assertTaskAccess(params.taskId, "read", request.headers);
-    const translation = await prisma.aIInsight.findUnique({
-      where: {
-        mediaTaskId_type_locale: {
-          mediaTaskId: params.taskId,
-          type: "TRANSLATION",
-          locale: params.locale
-        }
-      }
-    });
+    const transcript = await prisma.transcript.findUnique({where: {mediaTaskId: params.taskId}, select: {translations: true}});
+    const translation = transcriptTranslations(transcript?.translations)[params.locale];
 
     if (!translation) {
       return NextResponse.json({error: "翻译不存在。"}, {status: 404});
     }
 
-    return NextResponse.json(translation);
+    return NextResponse.json({locale: params.locale, content: translation});
   } catch (error) {
     logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
@@ -47,36 +42,21 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
   try {
     await assertTaskAccess(params.taskId, "write", request.headers);
     const input = updateTranslationSchema.parse(await request.json());
-    const existing = await prisma.aIInsight.findUnique({
-      where: {
-        mediaTaskId_type_locale: {
-          mediaTaskId: params.taskId,
-          type: "TRANSLATION",
-          locale: params.locale
-        }
-      }
-    });
+    const transcript = await prisma.transcript.findUnique({where: {mediaTaskId: params.taskId}, select: {translations: true}});
+    const translations = transcriptTranslations(transcript?.translations);
+    const existing = translations[params.locale];
 
     if (!existing) {
       return NextResponse.json({error: "翻译不存在。"}, {status: 404});
     }
 
-    const previous = typeof existing.content === "object" && existing.content ? (existing.content as Record<string, unknown>) : {};
+    const previous = typeof existing === "object" && existing ? (existing as Record<string, unknown>) : {};
     const text = input.text ?? input.segments?.map((segment) => segment.text).join("\n") ?? String(previous.text ?? "");
-    const updated = await prisma.aIInsight.update({
-      where: {id: existing.id},
-      data: {
-        content: {
-          ...previous,
-          target: params.locale,
-          text,
-          ...(input.segments ? {segments: input.segments} : {})
-        }
-      }
-    });
+    const content = {...previous, target: params.locale, text, ...(input.segments ? {segments: input.segments} : {})};
+    await setTranscriptTranslation(params.taskId, params.locale, content);
 
     await publishTaskUpdate(params.taskId);
-    return NextResponse.json(updated);
+    return NextResponse.json({locale: params.locale, content});
   } catch (error) {
     logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);

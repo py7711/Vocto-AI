@@ -1,3 +1,4 @@
+import {Prisma} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {updateTaskStatus} from "@/lib/task-status";
@@ -62,20 +63,33 @@ export async function finalizeTranscriptionResult(input: {
   const transcript = await prisma.transcript.upsert({
     where: {mediaTaskId: taskId},
     update: {
-      plainText: result.text,
+      editedText: result.text,
+      summary: Prisma.DbNull,
+      mindMap: Prisma.DbNull,
+      translations: Prisma.DbNull,
+      summaryGenerationCount: 0,
       segments: result.segments,
       words: context.subtitleEnabled === false ? undefined : (result.words ?? undefined)
     },
     create: {
       mediaTaskId: taskId,
-      plainText: result.text,
+      editedText: result.text,
       segments: result.segments,
       words: context.subtitleEnabled === false ? undefined : (result.words ?? undefined)
     }
   });
 
   const normalizedSummaryTemplate = normalizeSummaryTemplate(context.summaryTemplate);
-  if (normalizedSummaryTemplate !== "none") {
+  if (result.insights) {
+    await prisma.transcript.update({
+      where: {mediaTaskId: taskId},
+      data: {
+        summary: normalizedSummaryTemplate === "none" ? Prisma.DbNull : result.insights.summary as any,
+        mindMap: result.insights.mindMap as any,
+        summaryGenerationCount: normalizedSummaryTemplate === "none" ? 0 : 1
+      }
+    });
+  } else if (normalizedSummaryTemplate !== "none") {
     await updateTaskStatus(taskId, "ANALYZING", {
       progress: 82,
       statusMessage: "转写完成，正在生成 AI 摘要和思维导图。"
@@ -85,7 +99,7 @@ export async function finalizeTranscriptionResult(input: {
 
   await updateTaskStatus(taskId, "COMPLETED", {
     progress: 100,
-    statusMessage: normalizedSummaryTemplate === "none" ? "转写稿已就绪。" : "转写稿、AI 摘要和思维导图已就绪。",
+    statusMessage: normalizedSummaryTemplate === "none" ? "The transcription is ready." : "Transcripts, AI summaries and mind maps are ready.",
     provider: result.provider,
     detectedLanguage: result.language,
     durationSeconds: normalizeDurationSeconds(result.durationSeconds) ?? normalizeDurationSeconds(context.preparedDurationSeconds),

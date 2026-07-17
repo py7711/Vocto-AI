@@ -15,3 +15,6 @@
 .youtube.com	TRUE	/	TRUE	1784014265	GPS	1
 .youtube.com	TRUE	/	TRUE	0	SOCS	CAI
 .youtube.com	TRUE	/	TRUE	0	YSC	Qs5M088bGFE
+.tiktok.com	TRUE	/	TRUE	1815139941	ttwid	1%7C8jNhYF-2ZXpKtSRxbd5__cFhB-bH9kCo_2bF0rf_MSQ%7C1784035941%7C73a8222745b63e0e6e3aa0b9720de75912869b09016118380feefebd9becb99d
+.tiktok.com	TRUE	/	TRUE	0	tt_csrf_token	uKkPsFZz-pAcr-Uf-lzoP9TAgH00Nje0lK8o
+.tiktok.com	TRUE	/	TRUE	1799829458	tt_chain_token	Kj4S1Xom0lpkrV47eBOUEQ==

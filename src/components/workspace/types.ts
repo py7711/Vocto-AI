@@ -19,15 +19,18 @@ export type Task = {
   speakerCount?: number | null;
   createdAt?: string | null;
   transcript?: {
-    plainText: string;
-    editedText?: string | null;
+    editedText: string;
+    summary?: any | null;
+    mindMap?: any | null;
+    translations?: Record<string, any> | null;
+    summaryGenerationCount?: number;
     segments: TranscriptSegment[];
   } | null;
-  insights?: Array<{type: string; locale?: string; content: any; createdAt?: string; updatedAt?: string}>;
   shareLinks?: Array<{id: string; url?: string | null; title?: string | null; enabled?: boolean; expiresAt?: string | null; accessCount?: number; lastAccessAt?: string | null; createdAt: string}>;
   currentUserRating?: {rating: number; updatedAt?: string; userId?: string} | null;
   ratingSummary?: {average: number | null; count: number};
   mediaAssets?: MediaAsset[];
+  viewer?: {isMember: boolean};
 };
 
 export function mergeTaskSnapshot(current: Task | null, updated: Task): Task {
@@ -36,12 +39,12 @@ export function mergeTaskSnapshot(current: Task | null, updated: Task): Task {
     ...current,
     ...updated,
     transcript: updated.transcript !== undefined ? updated.transcript : current.transcript,
-    insights: updated.insights !== undefined ? updated.insights : current.insights,
     shareLinks: updated.shareLinks !== undefined ? updated.shareLinks : current.shareLinks,
     currentUserRating: updated.currentUserRating !== undefined ? updated.currentUserRating : current.currentUserRating,
     ratingSummary: updated.ratingSummary !== undefined ? updated.ratingSummary : current.ratingSummary,
     mediaAssets: updated.mediaAssets !== undefined ? updated.mediaAssets : current.mediaAssets,
-    folder: updated.folder !== undefined ? updated.folder : current.folder
+    folder: updated.folder !== undefined ? updated.folder : current.folder,
+    viewer: updated.viewer !== undefined ? updated.viewer : current.viewer
   };
 }
 
@@ -60,7 +63,6 @@ export type TaskListItem = {
   createdAt?: string | null;
   completedAt?: string | null;
   transcript?: {id: string} | null;
-  insights?: Array<{type: string; locale?: string; content?: any; createdAt?: string; updatedAt?: string}>;
   shareLinks?: Array<{id: string; url?: string | null; title?: string | null; enabled?: boolean; expiresAt?: string | null; accessCount?: number; lastAccessAt?: string | null; createdAt: string}>;
   mediaAssets?: MediaAsset[];
 };

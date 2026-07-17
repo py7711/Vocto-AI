@@ -34,13 +34,14 @@ export async function POST(request: Request) {
     await assertTaskAccess(input.transcriptionId, "read", request.headers);
     const task = await prisma.mediaTask.findUnique({
       where: {id: input.transcriptionId},
-      include: {insights: true}
+      include: {transcript: {select: {summary: true, mindMap: true}}}
     });
     if (!task) return NextResponse.json({error: "转写任务不存在。"}, {status: 404});
     const outline = buildOutline({
       title: task.originalName || "Votxt Outline",
       provider: task.provider || undefined,
-      insights: task.insights
+      summary: task.transcript?.summary,
+      mindMap: task.transcript?.mindMap
     });
     if (!outline.sections.length) return NextResponse.json({error: "请先生成 AI 洞察，再导出大纲。"}, {status: 409});
     const baseName = (task.originalName || `votxt-${input.transcriptionId}`).replace(/[^\w.\-]+/g, "_");

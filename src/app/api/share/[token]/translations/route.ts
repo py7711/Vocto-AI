@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
-import {prisma} from "@/lib/prisma";
 import {getPublicShare} from "@/lib/share-links";
 import {logApiError} from "@/lib/api-logger";
+import {transcriptTranslationEntries} from "@/lib/transcript-translations";
 
 export async function GET(_request: Request, {params}: {params: {token: string}}) {
   try {
@@ -10,22 +10,7 @@ export async function GET(_request: Request, {params}: {params: {token: string}}
       return NextResponse.json({error: "分享链接不存在或已过期。"}, {status: 404});
     }
 
-    const translations = await prisma.aIInsight.findMany({
-      where: {
-        mediaTaskId: share.mediaTaskId,
-        type: "TRANSLATION"
-      },
-      orderBy: {updatedAt: "desc"},
-      select: {
-        id: true,
-        locale: true,
-        title: true,
-        content: true,
-        model: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const translations = transcriptTranslationEntries(share.mediaTask.transcript?.translations);
 
     return NextResponse.json({translations});
   } catch (error) {

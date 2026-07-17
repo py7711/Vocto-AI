@@ -46,13 +46,6 @@ enum MediaAssetKind {
   AUDIO_CHUNK
 }
 
-enum InsightType {
-  SUMMARY
-  MIND_MAP
-  QA
-  TRANSLATION
-}
-
 enum ExportFormat {
   TXT
   SRT
@@ -604,7 +597,6 @@ model MediaTask {
   team             Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
   folder           Folder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
   transcript       Transcript?
-  insights         AIInsight[]
   exports          ExportAsset[]
   usageLedgers     UsageLedger[]
   shareLinks       ShareLink[]
@@ -711,22 +703,28 @@ model ShareLink {
 
 model Transcript {
   /// 转写文本 ID
-  id          String    @id @default(cuid()) @db.VarChar(32)
+  id                     String    @id @default(cuid()) @db.VarChar(32)
   /// 关联转写任务 ID
-  mediaTaskId String    @unique @db.VarChar(32)
-  /// 完整纯文本转写结果
-  plainText   String    @db.LongText
+  mediaTaskId            String    @unique @db.VarChar(32)
+  /// 当前摘要 JSON；未开启摘要生成时为空
+  summary                Json?
+  /// 当前思维导图 JSON
+  mindMap                Json?
+  /// 按目标语言代码存储的翻译 JSON 对象
+  translations           Json?
+  /// 摘要累计生成次数（用于免费套餐重新生成限额）
+  summaryGenerationCount Int       @default(0)
   /// 带时间戳和发言人标签的段落 JSON
-  segments    Json
+  segments               Json
   /// 词级时间戳与置信度 JSON
-  words       Json?
-  /// 用户编辑后的文本
-  editedText  String?   @db.LongText
+  words                  Json?
+  /// 完整转写文本，可由用户编辑
+  editedText             String    @db.LongText
   /// 转写结果创建时间
-  createdAt   DateTime  @default(now())
+  createdAt              DateTime  @default(now())
   /// 转写结果更新时间
-  updatedAt   DateTime  @updatedAt
-  mediaTask   MediaTask @relation(fields: [mediaTaskId], references: [id], onDelete: Cascade)
+  updatedAt              DateTime  @updatedAt
+  mediaTask              MediaTask @relation(fields: [mediaTaskId], references: [id], onDelete: Cascade)
 }
 
 model TranscriptRating {
@@ -750,32 +748,6 @@ model TranscriptRating {
   @@unique([mediaTaskId, userId])
   @@index([userId, createdAt])
   @@index([mediaTaskId, rating])
-}
-
-model AIInsight {
-  /// AI 洞察记录 ID
-  id              String      @id @default(cuid()) @db.VarChar(32)
-  /// 关联转写任务 ID
-  mediaTaskId     String      @db.VarChar(32)
-  /// 洞察类型：总结、问答、思维导图、翻译
-  type            InsightType
-  /// 洞察生成语言
-  locale          String      @default("en") @db.VarChar(16)
-  /// 洞察标题
-  title           String?     @db.VarChar(255)
-  /// 洞察结构化内容 JSON
-  content         Json
-  /// 生成洞察使用的模型
-  model           String?     @db.VarChar(128)
-  /// 洞察累计生成次数（用于免费套餐摘要重新生成限额）
-  generationCount Int         @default(1)
-  /// 洞察创建时间
-  createdAt       DateTime    @default(now())
-  /// 洞察更新时间
-  updatedAt       DateTime    @updatedAt
-  mediaTask       MediaTask   @relation(fields: [mediaTaskId], references: [id], onDelete: Cascade)
-
-  @@unique([mediaTaskId, type, locale])
 }
 
 model ExportAsset {

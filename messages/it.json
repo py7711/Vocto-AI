@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Converti audio e video in testo online gratis",
-    "description": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati."
+    "description": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali ed esportazioni in vari formati."
   },
   "trustSeo": {
     "privacy": "Informativa sulla privacy",
@@ -32,7 +32,6 @@
     "transcript": "Trascrizione",
     "summary": "Riepilogo",
     "mindMap": "Mappa mentale",
-    "qa": "Domande e risposte",
     "translation": "Traduzione",
     "exports": "Esportazioni",
     "generateInsights": "Genera insight",
@@ -41,7 +40,7 @@
     "completed": "Completato",
     "failed": "Non riuscito",
     "headline": "Converti Audio e Video in Testo",
-    "subheadline": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali, domande chiave ed esportazioni in vari formati.",
+    "subheadline": "Votxt ti permette di caricare file audio e video o incollare link YouTube, trasformandoli rapidamente in testo con l'AI. Crea anche riepiloghi, mappe mentali ed esportazioni in vari formati.",
     "formats": "Supporta 11 formati",
     "languages": "Supporta 63 lingue",
     "exportCount": "Esporta in 6 formati",
@@ -64,7 +63,6 @@
     "insightTitle": "Spazio AI",
     "summaryEmpty": "Genera insight quando la trascrizione è pronta.",
     "mindMapEmpty": "I nodi della mappa mentale appariranno qui.",
-    "qaEmpty": "Domande e risposte chiave appariranno qui.",
     "translationEmpty": "La traduzione apparirà qui.",
     "plansTitle": "Piani per ogni carico di lavoro",
     "freePlan": "Gratis",

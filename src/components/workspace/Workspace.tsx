@@ -18,7 +18,6 @@ import {
   FolderOpen,
   Globe2,
   HardDrive,
-  HelpCircle,
   Home,
   Info,
   Languages,
@@ -56,7 +55,8 @@ import {formatDateTime, formatDuration, formatTime, taskDisplayName} from "./for
 import {safeImageSrc} from "@/lib/image-url";
 import {subscriptionGrantsMembership} from "@/lib/membership-shared";
 import type {BrowserAudioStream, BrowserTransferStream} from "@/lib/media-stream";
-import {prepareAndUploadLocalMedia, prepareRemoteMediaForTask} from "@/lib/browser-media-preparation";
+import {prepareAndUploadLocalMedia} from "@/lib/browser-media-preparation";
+import {transcriptText} from "@/lib/transcript-content";
 
 const maxBatchFiles = 50;
 const initialWorkspaceRequestCache = new Map<string, {expiresAt: number; promise: Promise<unknown>}>();
@@ -391,7 +391,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
   const [driveUrl, setDriveUrl] = useState("");
   const [resolvedMedia, setResolvedMedia] = useState<ResolvedMedia | null>(null);
   const [language, setLanguage] = useState("auto");
-  const [speakerLabels, setSpeakerLabels] = useState(false);
+  const [speakerLabels, setSpeakerLabels] = useState(true);
   const [subtitleEnabled, setSubtitleEnabled] = useState(true);
   const [premiumModel, setPremiumModel] = useState(false);
   const [summaryTemplate, setSummaryTemplate] = useState("standard");
@@ -576,13 +576,12 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
     }
   }, [copy.resolveLinkError, setDriveUrl, setResolvedMedia, youtubeUrl]);
 
-  const summary = useMemo(() => task?.insights?.find((item) => item.type === "SUMMARY")?.content, [task]);
-  const mindMap = useMemo(() => task?.insights?.find((item) => item.type === "MIND_MAP")?.content, [task]);
-  const qa = useMemo(() => task?.insights?.find((item) => item.type === "QA")?.content, [task]);
+  const summary = task?.transcript?.summary;
+  const mindMap = task?.transcript?.mindMap;
   const translation = useMemo(() => {
-    const translations = task?.insights?.filter((item) => item.type === "TRANSLATION") ?? [];
-    return (translations.find((item) => item.locale === translationTarget) ?? translations[0])?.content;
-  }, [task, translationTarget]);
+    const translations = task?.transcript?.translations ?? {};
+    return translations[translationTarget] ?? Object.values(translations)[0];
+  }, [task?.transcript?.translations, translationTarget]);
   const uniqueSpeakers = useMemo(() => {
     return Array.from(new Set(segmentDrafts.map((segment) => segment.speaker?.trim()).filter(Boolean) as string[]));
   }, [segmentDrafts]);
@@ -599,7 +598,6 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       provider: task.provider,
       createdAt: task.createdAt,
       transcript: task.transcript ? {id: task.id} : null,
-      insights: task.insights?.map((item) => ({type: item.type})),
       mediaAssets: task.mediaAssets,
       folderId: task.folderId,
       folder: task.folder ?? null
@@ -954,7 +952,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
     }
   }
 
-  async function retryTask(taskId: string, retryType: "standard" | "youtube_fallback" = "standard") {
+  async function retryTask(taskId: string) {
     setBusy(true);
     setError(null);
     setNotice(null);
@@ -962,7 +960,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       await fetch(`/api/tasks/${taskId}/retry`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({retryType})
+        body: JSON.stringify({retryType: "standard"})
       }).then(async (response) => {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error ?? copy.taskWorkspace.retryFailed);
@@ -970,7 +968,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       await loadTaskDetail(taskId);
       await refreshTaskList().catch(() => undefined);
       await refreshUsageSnapshot().catch(() => undefined);
-      setNotice(retryType === "youtube_fallback" ? copy.taskWorkspace.youtubeFallbackQueued : copy.taskWorkspace.retryQueued);
+      setNotice(copy.taskWorkspace.retryQueued);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -1172,7 +1170,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
 
   useEffect(() => {
     if (task?.transcript) {
-      setDraftText(task.transcript.editedText || task.transcript.plainText || "");
+      setDraftText(transcriptText(task.transcript));
       setSegmentDrafts(task.transcript.segments ?? []);
     }
   }, [task?.transcript]);
@@ -1255,18 +1253,12 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       });
 
       if (mode === "youtube") {
-        const preparedSource = await prepareRemoteMediaForTask({
+        const created = await createTask({
           sourceType: "YOUTUBE",
           sourceUrl: resolvedMedia?.sourceUrl ?? youtubeUrl,
-          title: resolvedMedia?.title || "media",
-          fileName: resolvedMedia?.filename,
-          durationSeconds: resolvedMedia?.durationSeconds,
-          audioStream: resolvedMedia?.audioStream,
-          browserStream: resolvedMedia?.browserStream
-        }).catch(() => {
-          throw new Error(copy.uploadFailed);
+          originalName: resolvedMedia?.filename || resolvedMedia?.title || "media",
+          durationSeconds: resolvedMedia?.durationSeconds
         });
-        const created = await createTask(preparedSource);
         if (openCreatedTask(created)) return true;
         await refreshTaskList().catch(() => undefined);
         await refreshUsageSnapshot().catch(() => undefined);
@@ -1369,7 +1361,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
     setBusy(true);
     setError(null);
     try {
-      const insights = await fetch(`/api/tasks/${task.id}/insights`, {
+      const generated = await fetch(`/api/tasks/${task.id}/insights`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({locale, summaryTemplate, translationTarget: summaryLanguage})
@@ -1379,7 +1371,12 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
         return data;
       });
 
-      setTask({...task, insights});
+      setTask({...task, transcript: task.transcript ? {
+        ...task.transcript,
+        summary: generated.summary,
+        mindMap: generated.mindMap,
+        translations: {...(task.transcript.translations ?? {}), [summaryLanguage]: generated.translation}
+      } : task.transcript});
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -1387,7 +1384,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
     }
   }
 
-  async function generateSingleInsight(taskType: "summary" | "mind_map" | "qa") {
+  async function generateSingleInsight(taskType: "summary" | "mind_map") {
     if (!task) return;
     setBusy(true);
     setError(null);
@@ -1400,11 +1397,14 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       }).then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error ?? copy.insightError);
-        return data as NonNullable<Task["insights"]>[number];
+        return data as {taskType: "summary" | "mind_map"; content: any};
       });
 
-      const others = task.insights?.filter((item) => !(item.type === record.type && item.locale === record.locale)) ?? [];
-      setTask({...task, insights: [record, ...others]});
+      setTask({...task, transcript: task.transcript ? {
+        ...task.transcript,
+        ...(taskType === "summary" ? {summary: record.content} : {}),
+        ...(taskType === "mind_map" ? {mindMap: record.content} : {})
+      } : task.transcript});
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -1425,11 +1425,13 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       }).then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error ?? copy.taskWorkspace.translationFailed);
-        return data as NonNullable<Task["insights"]>[number];
+        return data as {locale: string; content: any};
       });
 
-      const others = task.insights?.filter((item) => !(item.type === "TRANSLATION" && (item as any).locale === (record as any).locale)) ?? [];
-      setTask({...task, insights: [record, ...others]});
+      setTask({...task, transcript: task.transcript ? {
+        ...task.transcript,
+        translations: {...(task.transcript.translations ?? {}), [record.locale]: record.content}
+      } : task.transcript});
       setNotice(copy.translationGenerated);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -1461,7 +1463,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
     }).then((response) => response.json());
 
     setTask({...task, transcript: {...task.transcript!, ...transcript}});
-    setDraftText(transcript.editedText || transcript.plainText || "");
+    setDraftText(transcriptText(transcript));
     setNotice(copy.transcriptSaved);
   }
 
@@ -1486,7 +1488,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
       });
       setTask({...task, transcript: {...task.transcript!, ...data.transcript}});
       setSegmentDrafts(data.transcript.segments ?? []);
-      setDraftText(data.transcript.editedText || data.transcript.plainText || "");
+      setDraftText(transcriptText(data.transcript));
       setNotice(copy.taskWorkspace.speakersUpdated(data.changedCount));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -1500,9 +1502,11 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
   }
 
   function updateTranslationContent(locale: string, content: any) {
-    if (!task) return;
-    const insights = task.insights?.map((item) => (item.type === "TRANSLATION" && item.locale === locale ? {...item, content} : item)) ?? [];
-    setTask({...task, insights});
+    if (!task?.transcript) return;
+    setTask({...task, transcript: {
+      ...task.transcript,
+      translations: {...(task.transcript.translations ?? {}), [locale]: content}
+    }});
     setNotice(copy.transcriptSaved);
   }
 
@@ -1790,7 +1794,7 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
                           setMode("youtube");
                           setLanguage("en");
                           setSubtitleEnabled(false);
-                          setSpeakerLabels(false);
+                          setSpeakerLabels(true);
                           setSummaryTemplate("none");
                           setYoutubeUrl("");
                           setResolvedMedia(null);
@@ -2115,7 +2119,6 @@ export function Workspace({variant = "marketing", initialUser}: {variant?: "mark
                   busy={busy}
                   summary={summary}
                   mindMap={mindMap}
-                  qa={qa}
                   translation={translation}
                   translationTarget={translationTarget}
                   setTranslationTarget={setTranslationTarget}
@@ -4009,7 +4012,7 @@ function UploadWorkspaceShell({
                             setMode("youtube");
                             setLanguage("en");
                             setSubtitleEnabled(false);
-                            setSpeakerLabels(false);
+                            setSpeakerLabels(true);
                             setSummaryTemplate("none");
                             setLinkDialogOpen(true);
                           }}
@@ -5137,7 +5140,6 @@ function TaskWorkspace({
   busy,
   summary,
   mindMap,
-  qa,
   translation,
   translationTarget,
   setTranslationTarget,
@@ -5159,7 +5161,7 @@ function TaskWorkspace({
   saveSegments: () => void;
   copyTranscript: () => void;
   generateInsights: () => void;
-  generateSingleInsight: (taskType: "summary" | "mind_map" | "qa") => Promise<void>;
+  generateSingleInsight: (taskType: "summary" | "mind_map") => Promise<void>;
   generateTranslation: (targetLanguageCode: string) => Promise<void>;
   createShareLink: () => void;
   disableShareLink: () => void;
@@ -5170,12 +5172,11 @@ function TaskWorkspace({
   deleteOriginalFile: (taskId: string) => Promise<void>;
   cancelTask: (taskId: string) => Promise<void>;
   openTaskActionConfirm: (action: "delete_original" | "cancel", taskId: string, title: string) => void;
-  retryTask: (taskId: string, retryType?: "standard" | "youtube_fallback") => Promise<void>;
+  retryTask: (taskId: string) => Promise<void>;
   shareUrl: string | null;
   busy: boolean;
   summary: any;
   mindMap: any;
-  qa: any;
   translation: any;
   translationTarget: string;
   setTranslationTarget: (value: string) => void;
@@ -5239,11 +5240,6 @@ function TaskWorkspace({
                 {canRetry ? (
                   <button type="button" onClick={() => retryTask(task.id)} disabled={busy} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/10 text-ink/55 transition hover:border-violet/25 hover:text-violet disabled:opacity-40" aria-label={copy.taskWorkspace.retryTranscription}>
                     <RotateCcw size={15} />
-                  </button>
-                ) : null}
-                {canRetry && task.sourceType === "YOUTUBE" ? (
-                  <button type="button" onClick={() => retryTask(task.id, "youtube_fallback")} disabled={busy} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/10 text-ink/55 transition hover:border-violet/25 hover:text-violet disabled:opacity-40" aria-label={copy.taskWorkspace.youtubeFallbackRetry}>
-                    <Link2 size={15} />
                   </button>
                 ) : null}
                 <button type="button" onClick={() => downloadOriginalFile(task.id)} disabled={busy} className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-ink/10 text-ink/55 transition hover:border-violet/25 hover:text-violet disabled:opacity-40" aria-label={copy.taskWorkspace.downloadOriginalFile}>
@@ -5311,25 +5307,6 @@ function TaskWorkspace({
           action={<button type="button" onClick={() => generateSingleInsight("mind_map")} disabled={!task.transcript || busy} className="btn-outline px-2.5 py-1.5 text-xs">{busy ? <Loader2 className="animate-spin" size={14} /> : <RotateCcw size={14} />}{copy.taskWorkspace.regenerate}</button>}
         >
           {mindMap ? <MindMap node={mindMap} /> : <p>{t("mindMapEmpty")}</p>}
-        </InsightPanel>
-
-        <InsightPanel
-          icon={<HelpCircle size={17} />}
-          title={t("qa")}
-          action={<button type="button" onClick={() => generateSingleInsight("qa")} disabled={!task.transcript || busy} className="btn-outline px-2.5 py-1.5 text-xs">{busy ? <Loader2 className="animate-spin" size={14} /> : <RotateCcw size={14} />}{copy.taskWorkspace.regenerate}</button>}
-        >
-          {qa?.length ? (
-            <div className="grid gap-3">
-              {qa.map((item: any, index: number) => (
-                <div key={index}>
-                  <div className="font-bold">{item.question}</div>
-                  <div className="text-ink/70">{item.answer}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>{t("qaEmpty")}</p>
-          )}
         </InsightPanel>
 
         <InsightPanel icon={<Languages size={17} />} title={t("translation")}>

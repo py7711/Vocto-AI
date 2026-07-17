@@ -9,7 +9,7 @@ import {publicObjectUrl} from "@/lib/storage";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, reserveQuotaForTask} from "@/lib/usage";
 import {serializeTranscription} from "@/lib/webhook-delivery";
-import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {summaryTemplateInputValues} from "@/lib/summary-template";
 
 // OpenAPI 入参采用 snake_case，和前端工作台的 camelCase 任务接口分开维护。
 // 这样可以保持外部 API 稳定，同时让内部页面继续使用更贴近 React/TypeScript 的字段名。
@@ -151,7 +151,7 @@ export async function createOpenApiTranscription(request: Request, forceSource?:
       enableSpeakerLabels,
       subtitleEnabled,
       premiumModel: input.premium_model,
-      summaryTemplate: normalizeSummaryTemplate(input.summary_template),
+      summaryTemplate: input.summary_template,
       summaryLanguage: input.summary_language
     });
 

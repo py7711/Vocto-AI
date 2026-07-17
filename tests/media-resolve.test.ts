@@ -26,9 +26,28 @@ async function resolve(url: string) {
     title: string;
     thumbnailUrl?: string;
     providerLabel: string;
+    audioStream?: unknown;
+    browserStream?: unknown;
     warnings: string[];
   }>;
 }
+
+test("resolves YouTube metadata without requesting playable media streams", async () => {
+  globalThis.fetch = async (input) => {
+    assert.match(String(input), /^https:\/\/www\.youtube\.com\/oembed\?/);
+    return Response.json({
+      title: "Public YouTube video",
+      thumbnail_url: "https://i.ytimg.com/vi/muCY-KBCJUQ/hqdefault.jpg",
+      provider_name: "YouTube"
+    });
+  };
+
+  const result = await resolve("https://www.youtube.com/watch?v=muCY-KBCJUQ");
+
+  assert.equal(result.title, "Public YouTube video");
+  assert.equal(result.audioStream, undefined);
+  assert.equal(result.browserStream, undefined);
+});
 
 test("uses public page metadata when the media extractor cannot resolve a link", async () => {
   globalThis.fetch = async () => new Response(`<!doctype html><html><head>

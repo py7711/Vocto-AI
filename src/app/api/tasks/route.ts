@@ -7,7 +7,7 @@ import {assertRateLimit} from "@/lib/rate-limit";
 import {getCurrentUser, getCurrentUserIdentity} from "@/lib/auth";
 import {normalizeDurationSeconds} from "@/lib/duration";
 import {assertAndUpdateFreeDailyQuota, assertFreeMinutesCanCoverDuration, assertFreeSpeakerIdentificationQuota, billableMinutesFromDurationSeconds, estimatedMinutesFromFileSize, quotaErrorStatus, releaseQuotaForFailedTask, reserveQuotaForTask} from "@/lib/usage";
-import {normalizeSummaryTemplate, summaryTemplateInputValues} from "@/lib/summary-template";
+import {summaryTemplateInputValues} from "@/lib/summary-template";
 import {jsonSafe} from "@/lib/json";
 import {logApiError} from "@/lib/api-logger";
 
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
         enableSpeakerLabels: input.enableSpeakerLabels,
         subtitleEnabled: input.subtitleEnabled,
         premiumModel: input.premiumModel,
-        summaryTemplate: normalizeSummaryTemplate(input.summaryTemplate),
+        summaryTemplate: input.summaryTemplate,
         summaryLanguage: input.summaryLanguage
       });
     } catch (queueError) {

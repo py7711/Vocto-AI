@@ -11,7 +11,6 @@ export async function GET(request: Request) {
     orderBy: {createdAt: "desc"},
     include: {
       transcript: true,
-      insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
       shareLinks: {
         where: {enabled: true},
         select: {

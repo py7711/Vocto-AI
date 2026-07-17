@@ -17,7 +17,6 @@ export type TranscribeJob = {
   premiumModel?: boolean;
   summaryTemplate?: SummaryTemplateInput;
   summaryLanguage?: string;
-  youtubeFallback?: boolean;
 };
 
 export const TRANSCRIBE_QUEUE = env.TRANSCRIBE_QUEUE || "votxt-transcribe";

@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl, deleteObject} from "@/lib/storage";
 import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/lib/tasks";
-import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl, resolveYoutubeAudioUrl} from "@/server/media/prepare";
+import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
 
 type PlayableAsset = {
@@ -32,7 +32,6 @@ async function resolvePlayableUrl(task: {
   if (assetUrl) return assetUrl;
   if (task.objectKey) return createDownloadUrl(task.objectKey);
   if (task.normalizedUrl) return task.normalizedUrl;
-  if (task.sourceType === "YOUTUBE") return resolveYoutubeAudioUrl(task.sourceUrl);
   if (isGoogleDriveShareUrl(task.sourceUrl)) return resolveGoogleDriveDownloadUrl(task.sourceUrl);
   return task.sourceUrl;
 }

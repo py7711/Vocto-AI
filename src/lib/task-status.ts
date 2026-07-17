@@ -2,6 +2,8 @@ import {MediaTaskStatus, Prisma} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
 import {redisPub} from "@/lib/redis";
 import {queueWebhookEvent} from "@/lib/webhook-delivery";
+import {fitTaskStatusMessage} from "@/lib/task-status-message";
+import {jsonStringifySafe} from "@/lib/json";
 
 // 该文件专门放“任务状态变更”这类后台 worker 和 Next 路由都需要复用的逻辑。
 // 不要在这里导入 getCurrentUser、cookies 或其它带 `server-only` 的请求上下文模块；
@@ -10,24 +12,33 @@ import {queueWebhookEvent} from "@/lib/webhook-delivery";
 export async function publishTaskUpdate(taskId: string) {
   const task = await prisma.mediaTask.findUnique({
     where: {id: taskId},
-    include: {
-      transcript: true,
-      insights: true,
-      exports: true,
-      folder: {select: {id: true, name: true, position: true}},
-      ratings: {
+    select: {
+      id: true,
+      status: true,
+      statusMessage: true,
+      progress: true,
+      provider: true,
+      detectedLanguage: true,
+      durationSeconds: true,
+      speakerCount: true,
+      completedAt: true,
+      updatedAt: true,
+      transcript: {
         select: {
-          rating: true,
-          userId: true,
-          updatedAt: true
+          editedText: true,
+          summary: true,
+          mindMap: true,
+          translations: true,
+          summaryGenerationCount: true,
+          segments: true
         }
       }
     }
   });
 
   if (task) {
-    // 前端任务详情页通过 Redis Pub/Sub 接收实时进度，所以每次状态变化后都推送完整任务快照。
-    await redisPub.publish(`task:${taskId}`, JSON.stringify(task));
+    // 状态广播只携带详情页实时渲染所需字段，避免每次进度变化都查询导出、评分和媒体资产。
+    await redisPub.publish(`task:${taskId}`, jsonStringifySafe(task));
   }
 }
 
@@ -36,10 +47,14 @@ export async function updateTaskStatus(
   status: MediaTaskStatus,
   data: Prisma.MediaTaskUpdateInput = {}
 ) {
+  const statusMessage = typeof data.statusMessage === "string"
+    ? fitTaskStatusMessage(data.statusMessage)
+    : data.statusMessage;
   const task = await prisma.mediaTask.update({
     where: {id: taskId},
     data: {
       ...data,
+      statusMessage,
       status,
       completedAt: status === "COMPLETED" ? new Date() : undefined
     }

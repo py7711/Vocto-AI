@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Hang és videó ingyenes online szöveggé alakítása",
-    "description": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít."
+    "description": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket és több formátumú exportot is készít."
   },
   "trustSeo": {
     "privacy": "Adatvédelmi irányelvek",
@@ -32,7 +32,6 @@
     "transcript": "Leirat",
     "summary": "Összefoglaló",
     "mindMap": "Gondolattérkép",
-    "qa": "Kérdések és válaszok",
     "translation": "Fordítás",
     "exports": "Exportok",
     "generateInsights": "Insightok létrehozása",
@@ -41,7 +40,7 @@
     "completed": "Kész",
     "failed": "Sikertelen",
     "headline": "Hang és videó szöveggé alakítása",
-    "subheadline": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket, kulcskérdéseket és több formátumú exportot is készít.",
+    "subheadline": "A Votxt lehetővé teszi hang- és videófájlok feltöltését vagy YouTube-linkek beillesztését, amelyeket AI segítségével gyorsan szöveggé alakít. Összefoglalókat, gondolattérképeket és több formátumú exportot is készít.",
     "formats": "11 formátum támogatása",
     "languages": "63 nyelv támogatása",
     "exportCount": "Export 6 formátumban",
@@ -64,7 +63,6 @@
     "insightTitle": "AI munkaterület",
     "summaryEmpty": "Hozz létre insightokat, ha a leirat elkészült.",
     "mindMapEmpty": "A gondolattérkép csomópontjai itt jelennek meg.",
-    "qaEmpty": "A kulcskérdések és válaszok itt jelennek meg.",
     "translationEmpty": "A fordítás itt jelenik meg.",
     "plansTitle": "Csomagok minden munkaterheléshez",
     "freePlan": "Ingyenes",

@@ -1,7 +1,7 @@
 # Votxt Docker Compose
 # - 容器内服务：nginx、redis、votxt-web、votxt-worker
 # - 外挂：TiDB Cloud（DATABASE_URL）
-# - YouTube cookies 宿主机固定路径：/data/config/youtube-cookies.txt
+# - 可选的 YouTube 工具 cookies 宿主机路径：/data/config/youtube-cookies.txt
 
 name: votxt
 
@@ -21,17 +21,6 @@ services:
       retries: 10
       start_period: 5s
 
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    restart: unless-stopped
-    environment:
-      LOG_LEVEL: info
-      TZ: Asia/Shanghai
-    networks:
-      - votxt
-    expose:
-      - "8191"
-
   votxt-web:
     build:
       context: .
@@ -50,7 +39,6 @@ services:
       YT_DLP_COOKIES_PATH: /config/youtube-cookies.txt
       LOG_DIR: /logs
       LOG_SERVICE: web
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     volumes:
       - /data/config/youtube-cookies.txt:/config/youtube-cookies.txt:ro
       - /logs/votxt:/logs
@@ -77,10 +65,7 @@ services:
   votxt-worker:
     image: votxt-app:local
     restart: unless-stopped
-    entrypoint: ["/usr/local/bin/votxt-worker-entrypoint.sh"]
     command: ["pnpm", "run", "worker"]
-    # Chromium needs shared memory; avoid /dev/shm too small in containers.
-    shm_size: "1gb"
     env_file:
       - .env
     environment:
@@ -92,19 +77,12 @@ services:
       YT_DLP_COOKIES_PATH: /config/youtube-cookies.txt
       LOG_DIR: /logs
       LOG_SERVICE: worker
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
-      YTDOWN_ENABLED: "true"
-      YTDOWN_URL: "https://app.ytdown.to/zh31/youtube-to-mp3/"
-      YTDOWN_FLARESOLVERR_URL: "http://flaresolverr:8191"
-      YTDOWN_RESOLVE_TIMEOUT_MS: "60000"
     volumes:
       - /data/config/youtube-cookies.txt:/config/youtube-cookies.txt:ro
       - /logs/votxt:/logs
     depends_on:
       redis:
         condition: service_healthy
-      flaresolverr:
-        condition: service_started
       votxt-web:
         condition: service_started
     networks:

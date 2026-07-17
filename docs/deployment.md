@@ -62,6 +62,7 @@ DEEPSEEK_BASE_URL="https://api.deepseek.com"
 DEEPSEEK_CHAT_MODEL="deepseek-v4"
 GEMINI_API_KEY=""
 GEMINI_MODEL="gemini-1.5-flash"
+GEMINI_VIDEO_MODEL="gemini-3.1-flash-lite"
 GROQ_API_KEY=""
 ```
 
@@ -152,7 +153,7 @@ https://你的域名/auth/google-drive/callback
 
 ### 2.8 媒体解析依赖
 
-公开视频链接解析、视频元数据读取、字幕列表读取和 Worker 中的 YouTube 音频流解析依赖 `yt-dlp`。应用启动后会依次尝试：
+TikTok、Instagram、Facebook、X、Vimeo 和其他公开视频的媒体下载与元数据读取依赖 `yt-dlp`。应用启动后会依次尝试：
 
 1. `YT_DLP_PATH` 指定的可执行文件。
 2. 系统 PATH 中的 `yt-dlp`。
@@ -173,11 +174,10 @@ YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
 
-YouTube 优先使用从当前视频页动态读取配置的官方 WEB InnerTube API，WEB 不可播放时尝试隔离的
-IOS 兼容上下文，不维护 ANDROID/TVHTML5 客户端组合。InnerTube 无法提供可直接使用的纯音频流时降级到 yt-dlp。yt-dlp 运行时禁止
-`--remote-components`，也不强制 `player_client`；应用首次调用会再次检查锁定版本，不匹配时拒绝执行。
+YouTube 转录不依赖 `yt-dlp`，Worker 使用 `GEMINI_VIDEO_MODEL` 直接分析公开 URL。`yt-dlp` 运行时禁止
+`--remote-components`；应用首次调用会再次检查锁定版本，不匹配时拒绝执行。
 
-未安装或未配置时，`/api/media/resolve` 会返回可用的基础 URL 信息，但无法提供详细媒体标题、时长、缩略图等元数据；Worker 处理公开视频转写时也无法解析直连音频流。
+未安装或未配置时，非 YouTube 平台无法进入媒体下载/STT 主链路，只能尝试 Gemini 回退。YouTube 不受影响。
 
 ## 3. Vercel 部署步骤
 
@@ -224,7 +224,9 @@ mysql -h HOST -u USER -p DATABASE < prisma/sql/all.sql
 
 当前仓库只保留合并后的 SQL 交付脚本。已有生产库升级前必须先完成数据库备份，再以 `prisma/schema.prisma` 和 `prisma/sql/all.sql` 对照生成迁移方案；不要把 `all.sql` 直接导入已有生产库。需要追溯旧版本增量脚本时，请从对应发布版本或 Git 历史中恢复。
 
-当前完整模型包含 `User`、`OAuthAccount`、`GoogleDriveConnection`、`EmailVerificationToken`、`Subscription`、`UsageLedger`、`Folder`、`MediaTask`、`MediaAsset`、`Transcript`、`TranscriptRating`、`AIInsight`、`ShareLink`、`ExportAsset` 以及公开 API/Webhook 兼容层使用的团队相关表。
+当前完整模型包含 `User`、`OAuthAccount`、`GoogleDriveConnection`、`EmailVerificationToken`、`Subscription`、`UsageLedger`、`Folder`、`MediaTask`、`MediaAsset`、`Transcript`、`TranscriptRating`、`ShareLink`、`ExportAsset` 以及公开 API/Webhook 兼容层使用的团队相关表。
+
+`Transcript` 直接保存完整可编辑正文、Summary、Mind Map、翻译和摘要生成次数。升级已有数据库时执行 `prisma/sql/20260716_transcript_insights.sql`：脚本会先回填 `plainText` 与 `AIInsight` 数据，再删除对应字段和表。
 
 ## 5. Worker 部署
 
@@ -263,7 +265,6 @@ pm2 save
 - 仓库文件：`Dockerfile`、`docker-compose.yml`、`docker/nginx/votxt.conf`
 - 完整步骤、挂载与按服务更新命令见 [Docker 部署](./docker-deploy.md)
 - 镜像内含锁定版 yt-dlp `2026.06.09` 与 FFmpeg，宿主机无需再安装这两项
-- YouTube cookies 宿主机路径：`/data/config/youtube-cookies.txt`
 
 ## 6. Cloudflare R2 CORS
 

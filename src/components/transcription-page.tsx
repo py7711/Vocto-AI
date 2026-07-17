@@ -1,30 +1,36 @@
 "use client";
 
 import {type RefObject, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {createPortal} from "react-dom";
 import {useLocale, useTranslations} from "next-intl";
 import {AlertCircle, ArrowLeft, Brain, Check, CheckCircle2, ChevronDown, Copy, Crown, Download, ExternalLink, FileArchive, FileText, FolderOpen, Image as ImageIcon, Languages, Lightbulb, List, ListChecks, Loader2, Lock, Maximize2, Minimize2, MoreHorizontal, Pencil, Play, RefreshCw, Replace as ReplaceIcon, RotateCcw, Scan, Search, Share2, Sparkles, Star, TicketCheck, Trash2, Users, Wand2, X, Youtube, ZoomIn, ZoomOut} from "lucide-react";
 import clsx from "clsx";
 import {MediaPlayer} from "@/components/media-player";
+import {YouTubeVideoPlayer} from "@/components/youtube-video-player";
+import {hasSummaryContent} from "@/components/transcription-detail-state";
 import {CompactCheckbox} from "@/components/target-controls";
 import {PricingAction} from "@/components/pricing-actions";
 import {DashboardPricingOverlay} from "@/components/workspace/Workspace";
 import {fallbackMessages, getWorkspaceCopy, exportFormats, languageChoiceLabel} from "@/components/workspace/copy";
 import {WorkspaceLanguageSwitcher} from "@/components/workspace/sidebar";
-import {mergeTaskSnapshot, type CurrentUser, type FolderItem, type Task, type TranscriptSegment} from "@/components/workspace/types";
+import {mergeTaskSnapshot, type FolderItem, type Task, type TranscriptSegment} from "@/components/workspace/types";
 import {formatTime} from "@/components/workspace/format";
 import {buildExportQuery, ShareTranscriptionDialog} from "@/components/workspace/panels";
 import {summaryTemplateChoices, summaryTemplateRequiresMembership, type SummaryTemplateInput} from "@/lib/summary-template";
-import {hasActiveMembershipFromSubscriptions} from "@/lib/membership-shared";
 import {isLocale, localeEnglishNames, localeNativeNames, locales, type Locale} from "@/lib/locales";
+import {extractYoutubeVideoId} from "@/lib/youtube-url";
+import {transcriptText} from "@/lib/transcript-content";
+import {calculateMindMapFitZoom} from "@/lib/mind-map-viewport";
 
-export function TranscriptionPage({taskId}: {taskId: string}) {
+export function TranscriptionPage({taskId, initialTask, shareToken}: {taskId: string; initialTask?: Task; shareToken?: string}) {
   const locale = useLocale();
+  const readOnly = Boolean(shareToken);
   const currentLocale = isLocale(locale) ? locale : "en";
   const translate = useTranslations("app");
   const copy = getWorkspaceCopy(locale);
   const detailCopy = transcriptionControlsFor(locale);
   const translationCopy = translationSettingsFor(locale);
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<Task | null>(initialTask ?? null);
   const [draftText, setDraftText] = useState("");
   const [segmentDrafts, setSegmentDrafts] = useState<TranscriptSegment[]>([]);
   const [busy, setBusy] = useState(false);
@@ -58,7 +64,6 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   const [seekSignal, setSeekSignal] = useState<{time: number; nonce: number} | null>(null);
   const [speakerDrafts, setSpeakerDrafts] = useState<Record<string, string>>({});
   const [insightTab, setInsightTab] = useState<"summary" | "mind_map">("summary");
-  const [me, setMe] = useState<CurrentUser | null>(null);
   const [summaryTemplate, setSummaryTemplate] = useState<SummaryTemplateInput>("none");
   const [transcriptSearchOpen, setTranscriptSearchOpen] = useState(false);
   const [transcriptSearchTab, setTranscriptSearchTab] = useState<"search" | "replace">("search");
@@ -67,7 +72,6 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(null);
   const [hoveredSegmentIndex, setHoveredSegmentIndex] = useState<number | null>(null);
   const [editingSegmentIndex, setEditingSegmentIndex] = useState<number | null>(null);
-  const [speakerHintOpen, setSpeakerHintOpen] = useState(true);
   const [ratingDismissed, setRatingDismissed] = useState(false);
   const [speakerOptionsOpen, setSpeakerOptionsOpen] = useState(false);
   const [showSpeakerLabels, setShowSpeakerLabels] = useState(true);
@@ -86,13 +90,22 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     }
   };
 
-  const summary = useMemo(() => task?.insights?.find((item) => item.type === "SUMMARY")?.content, [task]);
-  const mindMap = useMemo(() => task?.insights?.find((item) => item.type === "MIND_MAP")?.content, [task]);
+  const summary = task?.transcript?.summary;
+  const summaryHasContent = useMemo(() => hasSummaryContent(summary), [summary]);
+  const mindMap = task?.transcript?.mindMap;
   const uniqueSpeakers = useMemo(() => {
     return Array.from(new Set(segmentDrafts.map((segment) => segment.speaker?.trim()).filter(Boolean) as string[]));
   }, [segmentDrafts]);
 
+  useEffect(() => {
+    if (!readOnly || !initialTask) return;
+    setTask(initialTask);
+    setError(null);
+    setNotice(null);
+  }, [initialTask, readOnly, shareToken]);
+
   const loadTask = useCallback(async () => {
+    if (readOnly) return;
     setBusy(true);
     setError(null);
     try {
@@ -107,62 +120,27 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     } finally {
       setBusy(false);
     }
-  }, [copy.readTaskError, locale, taskId]);
+  }, [copy.readTaskError, locale, readOnly, taskId]);
 
   useEffect(() => {
+    if (readOnly) return;
     loadTask().catch(() => undefined);
-  }, [loadTask]);
+  }, [loadTask, readOnly]);
 
   useEffect(() => {
-    fetch("/api/folders", {cache: "no-store"})
-      .then((response) => (response.ok ? response.json() : {folders: []}))
-      .then((data) => setFolders(data.folders ?? []))
-      .catch(() => setFolders([]));
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/auth/me", {cache: "no-store"})
-      .then((response) => (response.ok ? response.json() : {user: null}))
-      .then((data) => setMe(data.user ?? null))
-      .catch(() => setMe(null));
-  }, []);
-
-  useEffect(() => {
+    if (readOnly) return;
     const events = new EventSource(`/api/tasks/${taskId}/events`);
     events.addEventListener("update", (event) => {
       const updated = JSON.parse((event as MessageEvent).data) as Task;
       setTask((current) => mergeTaskSnapshot(current, updated));
     });
-    events.addEventListener("error", () => {
-      events.close();
-    });
     return () => events.close();
-  }, [taskId]);
-
-  useEffect(() => {
-    if (!task || ["COMPLETED", "FAILED", "CANCELED"].includes(task.status)) return;
-    const interval = window.setInterval(async () => {
-      try {
-        const fresh = await fetch(`/api/tasks/${taskId}?locale=${encodeURIComponent(locale)}`, {cache: "no-store"}).then((response) => response.json());
-        if (!fresh.error) setTask((current) => mergeTaskSnapshot(current, fresh as Task));
-      } catch {
-        // Polling is only a fallback for buffered SSE connections.
-      }
-    }, 2500);
-    return () => window.clearInterval(interval);
-  }, [locale, task, taskId]);
+  }, [readOnly, taskId]);
 
   useEffect(() => {
     if (!task?.id) return;
-    const existingSummary = task.insights?.find((item) => item.type === "SUMMARY")?.content;
-    const hasSummaryContent = Boolean(
-      existingSummary?.overview ||
-      existingSummary?.bullets?.length ||
-      existingSummary?.takeaways?.length ||
-      existingSummary?.insights?.length
-    );
-    setSummaryTemplate(hasSummaryContent ? "standard" : "none");
-  }, [task?.id]);
+    setSummaryTemplate(hasSummaryContent(summary) ? "standard" : "none");
+  }, [summary, task?.id]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -198,8 +176,14 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }, [currentLocale]);
 
   useEffect(() => {
+    if (!readOnly || task?.transcript?.translations?.[translationTarget]) return;
+    const firstAvailableLocale = Object.keys(task?.transcript?.translations ?? {}).find(isLocale);
+    if (firstAvailableLocale) setTranslationTarget(firstAvailableLocale);
+  }, [readOnly, task?.transcript?.translations, translationTarget]);
+
+  useEffect(() => {
     if (task?.transcript) {
-      setDraftText(task.transcript.editedText || task.transcript.plainText || "");
+      setDraftText(transcriptText(task.transcript));
       setSegmentDrafts(task.transcript.segments ?? []);
     }
     if (task?.originalName) {
@@ -218,6 +202,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }, [uniqueSpeakers]);
 
   async function saveTranscript() {
+    if (readOnly) return;
     if (!task?.id || !draftText.trim()) return;
     setBusy(true);
     setNotice(null);
@@ -248,6 +233,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function saveSegments() {
+    if (readOnly) return;
     if (!task?.id || !segmentDrafts.length) return;
     setBusy(true);
     setNotice(null);
@@ -263,7 +249,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         return body;
       });
       setTask({...task, transcript: {...task.transcript!, ...transcript}});
-      setDraftText(transcript.editedText || transcript.plainText || "");
+      setDraftText(transcriptText(transcript));
       setNotice(copy.transcriptSaved);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -273,6 +259,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function saveSpeakerNames() {
+    if (readOnly) return;
     if (!task?.id || !uniqueSpeakers.length) return;
     const speakers = uniqueSpeakers
       .map((from) => ({from, to: (speakerDrafts[from] ?? from).trim()}))
@@ -294,7 +281,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       });
       setTask({...task, transcript: {...task.transcript!, ...data.transcript}});
       setSegmentDrafts(data.transcript.segments ?? []);
-      setDraftText(data.transcript.editedText || data.transcript.plainText || "");
+      setDraftText(transcriptText(data.transcript));
       setNotice(copy.taskWorkspace.speakersUpdated(data.changedCount));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -327,6 +314,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   function replaceTranscriptMatch(replaceAll: boolean) {
+    if (readOnly) return;
     const searchTerm = transcriptSearch.trim();
     if (!searchTerm) return;
     const expression = new RegExp(escapeRegExp(searchTerm), replaceAll ? "gi" : "i");
@@ -352,7 +340,8 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     setNotice(changedCount ? detailCopy.replaceNotice(changedCount, replaceAll) : detailCopy.noMatchNotice);
   }
 
-  async function generateSingleInsight(taskType: "summary" | "mind_map" | "qa", templateOverride?: SummaryTemplateInput) {
+  async function generateSingleInsight(taskType: "summary" | "mind_map", templateOverride?: SummaryTemplateInput) {
+    if (readOnly) return;
     if (!task?.id) return;
     const template = templateOverride ?? summaryTemplate;
     if (taskType === "summary" && summaryTemplateRequiresMembership(template) && !isMember) {
@@ -360,7 +349,6 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       return;
     }
     if (taskType === "summary") setGeneratingSummary(true);
-    setBusy(true);
     setError(null);
     setNotice(null);
     try {
@@ -379,10 +367,19 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
           throw new Error(body.error ?? upgradeUiFor(locale).summaryLimitDescription);
         }
         if (!response.ok) throw new Error(body.error ?? copy.insightError);
-        return body as NonNullable<Task["insights"]>[number];
+        return body as {taskType: "summary" | "mind_map"; type: string; locale: string; content: any};
       });
-      const others = task.insights?.filter((item) => !(item.type === record.type && item.locale === record.locale)) ?? [];
-      setTask({...task, insights: [record, ...others]});
+      setTask((current) => {
+        if (!current) return current;
+        const transcript = current.transcript
+          ? {
+              ...current.transcript,
+              ...(taskType === "summary" ? {summary: record.content} : {}),
+              ...(taskType === "mind_map" ? {mindMap: record.content} : {})
+            }
+          : current.transcript;
+        return {...current, transcript};
+      });
       if (taskType === "summary" && template !== "none") {
         setSummaryTemplate(template);
       }
@@ -391,16 +388,42 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       if (taskType === "summary") setGeneratingSummary(false);
-      setBusy(false);
     }
   }
 
   async function generateGeneralSummary() {
+    if (readOnly) return;
     setSummaryTemplate("standard");
     await generateSingleInsight("summary", "standard");
   }
 
+  async function clearSummary() {
+    if (readOnly) return;
+    if (!task?.id) return;
+    setGeneratingSummary(true);
+    setError(null);
+    try {
+      await fetch(`/api/tasks/${task.id}/insights/single`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({taskType: "summary", locale, summaryTemplate: "none", regenerate: false})
+      }).then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error ?? copy.insightError);
+      });
+      setTask((current) => current ? {
+        ...current,
+        transcript: current.transcript ? {...current.transcript, summary: null} : current.transcript
+      } : current);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setGeneratingSummary(false);
+    }
+  }
+
   async function generateMindMap() {
+    if (readOnly) return;
     setGeneratingMindMap(true);
     try {
       await generateSingleInsight("mind_map");
@@ -410,6 +433,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function generateTranslation() {
+    if (readOnly) return;
     if (!task?.id || !task.transcript) return;
     setGeneratingTranslation(true);
     setError(null);
@@ -425,10 +449,15 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       }).then(async (response) => {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error ?? translationCopy.translationFailed);
-        return body as NonNullable<Task["insights"]>[number];
+        return body as {locale: string; content: any};
       });
-      const others = task.insights?.filter((item) => !(item.type === "TRANSLATION" && item.locale === record.locale)) ?? [];
-      setTask({...task, insights: [record, ...others]});
+      setTask((current) => current?.transcript ? {
+        ...current,
+        transcript: {
+          ...current.transcript,
+          translations: {...(current.transcript.translations ?? {}), [record.locale]: record.content}
+        }
+      } : current);
       setNotice(translationCopy.translationGenerated);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -438,18 +467,23 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   function selectSummaryTemplate(value: SummaryTemplateInput) {
+    if (readOnly) return;
     if (summaryTemplateRequiresMembership(value) && !isMember) {
       setPlansOpen(true);
       return;
     }
     setSummaryTemplate(value);
-    if (value === "none") return;
+    if (value === "none") {
+      clearSummary().catch(() => undefined);
+      return;
+    }
     if (task?.transcript) {
       generateSingleInsight("summary", value).catch(() => undefined);
     }
   }
 
   async function createShareLink() {
+    if (readOnly) return;
     if (!task?.id) return;
     setBusy(true);
     setError(null);
@@ -487,7 +521,25 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     }
   }
 
+  async function openShareDialog() {
+    if (readOnly) return;
+    if (!task?.id) return;
+    setShareOpen(true);
+    try {
+      const data = await fetch(`/api/tasks/${task.id}/share?locale=${encodeURIComponent(locale)}`, {cache: "no-store"})
+        .then(async (response) => {
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(body.error ?? copy.shareError);
+          return body as {shareLink: NonNullable<Task["shareLinks"]>[number] | null};
+        });
+      setTask((current) => current ? {...current, shareLinks: data.shareLink ? [data.shareLink] : []} : current);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  }
+
   async function disableShareLink() {
+    if (readOnly) return;
     if (!task?.id) return;
     setBusy(true);
     setError(null);
@@ -508,6 +560,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function rateTranscript(rating: number) {
+    if (readOnly) return;
     if (!task?.id) return;
     setRatingBusy(true);
     setError(null);
@@ -532,6 +585,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function renameTask() {
+    if (readOnly) return;
     if (!task?.id || !canRename) return;
     setBusy(true);
     setError(null);
@@ -557,6 +611,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   async function moveTask() {
+    if (readOnly) return;
     if (!task?.id) return;
     setBusy(true);
     setError(null);
@@ -581,6 +636,21 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     }
   }
 
+  async function openMoveDialog() {
+    if (readOnly) return;
+    setMoreOpen(false);
+    setMoveOpen(true);
+    setMoveFolderId(undefined);
+    try {
+      const data = await fetch("/api/folders", {cache: "no-store"}).then((response) =>
+        response.ok ? response.json() : {folders: []}
+      );
+      setFolders(data.folders ?? []);
+    } catch {
+      setFolders([]);
+    }
+  }
+
   function runExport() {
     if (!task?.transcript) return;
     const query = buildExportQuery({
@@ -591,11 +661,15 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
       subtitleMaxChars,
       subtitleMaxDurationSeconds
     });
-    window.location.href = `/api/tasks/${task.id}/exports/${exportFormat}${query}`;
+    const exportEndpoint = shareToken
+      ? `/api/share/${encodeURIComponent(shareToken)}/exports/${exportFormat}`
+      : `/api/tasks/${task.id}/exports/${exportFormat}`;
+    window.location.href = `${exportEndpoint}${query}`;
     setExportOpen(false);
   }
 
   async function deleteTask() {
+    if (readOnly) return;
     if (!task?.id) return;
     setBusy(true);
     setError(null);
@@ -612,11 +686,12 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
   }
 
   const title = task?.originalName || copy.unnamedTask;
-  const isMember = useMemo(() => hasActiveMembershipFromSubscriptions(me?.subscriptions), [me]);
+  const isMember = task?.viewer?.isMember ?? false;
   const hasLoadError = Boolean(error && !task);
   const statusLabel = task?.status || (busy ? t("processing") : hasLoadError ? t("failed") : t("ready"));
   const sourceHref = task?.sourceUrl && /^https?:\/\//.test(task.sourceUrl) ? task.sourceUrl : null;
-  const isYoutubeSource = task?.sourceType === "YOUTUBE" || Boolean(sourceHref && /(?:youtube\.com|youtu\.be)/i.test(sourceHref));
+  const youtubeVideoId = sourceHref ? extractYoutubeVideoId(sourceHref) : null;
+  const isYoutubeSource = Boolean(youtubeVideoId);
   const transcriptLineCount = task?.transcript?.segments?.length ?? 0;
   const currentRating = task?.currentUserRating?.rating ?? 0;
   const ratingAverage = task?.ratingSummary?.average;
@@ -672,7 +747,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     }
     return draftText.match(expression)?.length ?? 0;
   }, [draftText, segmentDrafts, transcriptSearch]);
-  const selectedFolderName = task?.folder?.name ?? t("uncategorized");
+  const selectedFolderName = task?.folder?.name ?? folders.find((folder) => folder.id === task?.folderId)?.name ?? t("uncategorized");
   const moveChoices = [{id: null, name: t("uncategorized")}, ...folders.map((folder) => ({id: folder.id, name: folder.name}))].filter((folder) => folder.id !== (task?.folderId ?? null));
   const canRename = Boolean(task?.id && titleDraft.trim() && titleDraft.trim() !== title.trim());
   const exportQuery = buildExportQuery({
@@ -683,26 +758,27 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
     subtitleMaxChars,
     subtitleMaxDurationSeconds
   });
-  const translationRecords = task?.insights?.filter((item) => item.type === "TRANSLATION") ?? [];
-  const selectedTranslation = translationRecords.find((item) => item.locale === translationTarget)?.content ?? null;
+  const selectedTranslation = task?.transcript?.translations?.[translationTarget] ?? null;
   const selectedTranslationSegments = useMemo(() => translationSegmentsFromContent(selectedTranslation), [selectedTranslation]);
   const normalizedTranslationSearch = translationSearch.trim().toLowerCase();
-  const filteredTranslationOptions = useMemo(() => {
-    if (!normalizedTranslationSearch) return translationLanguageOptions;
-    return translationLanguageOptions.filter((option) =>
-      [option.locale, option.label, option.english, option.native]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedTranslationSearch)
-    );
-  }, [normalizedTranslationSearch]);
+  const filteredTranslationOptions = translationLanguageOptions.filter((option) => {
+    if (readOnly && !task?.transcript?.translations?.[option.locale]) return false;
+    if (!normalizedTranslationSearch) return true;
+    return [option.locale, option.label, option.english, option.native]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedTranslationSearch);
+  });
   const popularTranslationOptions = filteredTranslationOptions.filter((option) => popularTranslationLocales.includes(option.locale));
+  const mediaEndpoint = shareToken
+    ? `/api/share/${encodeURIComponent(shareToken)}/original-file`
+    : task ? `/api/tasks/${task.id}/original-file` : "";
   return (
     <main className="flex h-[100dvh] overflow-hidden bg-white text-ink">
       <div className="flex min-w-0 flex-1 flex-col">
       <header className="z-30 flex h-16 flex-none items-center border-b border-ink/10 bg-white px-6">
         <div className="flex min-w-0 flex-1 items-center gap-4">
-          <a href={`/${locale}/dashboard`} className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-white text-ink transition hover:bg-paper hover:text-violet" aria-label={copy.goToDashboard}>
+          <a href={readOnly ? `/${locale}` : `/${locale}/dashboard`} className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-white text-ink transition hover:bg-paper hover:text-violet" aria-label={copy.goToDashboard}>
             <ArrowLeft size={16} />
           </a>
           <div className="hidden min-w-0 w-full max-w-[600px] flex-none md:block">
@@ -717,10 +793,12 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                 {isYoutubeSource ? <Youtube size={16} /> : <ExternalLink size={16} />}
               </a>
             ) : null}
-            <button type="button" onClick={() => setShareOpen(true)} disabled={!task?.transcript || busy} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-violet transition hover:bg-violet/10 disabled:opacity-40" aria-label={copy.shareDialogTitle}>
-              <Share2 size={16} />
-            </button>
-            <div ref={moreMenuRef} className="relative">
+            {!readOnly ? (
+              <>
+                <button type="button" onClick={() => openShareDialog()} disabled={!task?.transcript || busy} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-violet transition hover:bg-violet/10 disabled:opacity-40" aria-label={copy.shareDialogTitle}>
+                  <Share2 size={16} />
+                </button>
+                <div ref={moreMenuRef} className="relative">
               <button type="button" onClick={() => setMoreOpen((value) => !value)} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-slate-500 transition hover:bg-paper hover:text-ink" aria-label={copy.exportOptions} aria-expanded={moreOpen}>
                 <MoreHorizontal size={17} />
               </button>
@@ -730,7 +808,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                     <Pencil size={15} />
                     {copy.rename}
                   </button>
-                  <button type="button" onClick={() => { setMoreOpen(false); setMoveOpen(true); setMoveFolderId(undefined); }} disabled={!task || busy} className="mt-1 flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-sm font-normal leading-5 text-ink transition hover:bg-paper disabled:opacity-40" role="menuitem">
+                  <button type="button" onClick={() => openMoveDialog()} disabled={!task || busy} className="mt-1 flex h-9 w-full items-center gap-2 rounded-md px-2 text-left text-sm font-normal leading-5 text-ink transition hover:bg-paper disabled:opacity-40" role="menuitem">
                     <FolderOpen size={15} />
                     {copy.move}
                   </button>
@@ -741,7 +819,9 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                   </button>
                 </div>
               ) : null}
-            </div>
+                </div>
+              </>
+            ) : null}
             <button type="button" onClick={() => setExportOpen(true)} disabled={!task?.transcript} className="btn-primary ml-2 h-10 !rounded-[12px] px-5 py-2 font-semibold disabled:opacity-45">
               <Download size={16} />
               {copy.exportAction}
@@ -752,6 +832,13 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
 
       <section className="flex min-h-0 flex-1 flex-col xl:flex-row xl:overflow-hidden">
           <section className="flex h-[calc(100dvh-100px)] min-h-0 min-w-0 flex-none flex-col bg-white xl:h-auto xl:flex-1">
+            {task && isYoutubeSource && sourceHref ? (
+              <div className="flex flex-none border-b border-ink/10 bg-white px-4 py-3 sm:px-6">
+                <div className="w-full max-w-[480px] overflow-hidden rounded-md bg-black">
+                  <YouTubeVideoPlayer videoUrl={sourceHref} seekSignal={seekSignal} label={title} />
+                </div>
+              </div>
+            ) : null}
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="sticky top-0 z-10 bg-white px-4 pb-2 pt-4 sm:px-6">
                 <div className="flex h-8 max-w-[210px] items-center justify-between md:max-w-none md:gap-3">
@@ -760,12 +847,14 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                 <span aria-label={transcriptLineCount ? detailCopy.timestampedSegments(transcriptLineCount) : task?.statusMessage || statusLabel} />
               </div>
                   <div className="relative flex flex-none items-center">
-                <button type="button" onClick={() => { setTranscriptSearchOpen((value) => !value); setTranscriptSearchTab("search"); setSpeakerHintOpen(false); }} disabled={!task?.transcript} className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-paper hover:text-ink disabled:opacity-40" aria-label={detailCopy.searchTranscript}>
+                <button type="button" onClick={() => { setTranscriptSearchOpen((value) => !value); setTranscriptSearchTab("search"); }} disabled={!task?.transcript} className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-paper hover:text-ink disabled:opacity-40" aria-label={detailCopy.searchTranscript}>
                   <Search size={17} />
                 </button>
-                <button type="button" onClick={() => { setTranscriptSearchOpen(true); setTranscriptSearchTab("replace"); setSpeakerHintOpen(false); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md transition disabled:opacity-40 ${transcriptSearchOpen && transcriptSearchTab === "replace" ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.replaceTranscriptText}>
-                  <ReplaceIcon size={16} />
-                </button>
+                {!readOnly ? (
+                  <button type="button" onClick={() => { setTranscriptSearchOpen(true); setTranscriptSearchTab("replace"); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md transition disabled:opacity-40 ${transcriptSearchOpen && transcriptSearchTab === "replace" ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.replaceTranscriptText}>
+                    <ReplaceIcon size={16} />
+                  </button>
+                ) : null}
                 <button type="button" onClick={copyTranscript} disabled={!task?.transcript} className="focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-paper hover:text-ink disabled:opacity-40" aria-label={detailCopy.copyTranscript}>
                   <Copy size={16} />
                 </button>
@@ -773,7 +862,6 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                   type="button"
                   onClick={() => {
                     setTranslationSettingsOpen((value) => !value);
-                    setSpeakerHintOpen(false);
                     setSpeakerOptionsOpen(false);
                     setTranscriptSearchOpen(false);
                   }}
@@ -798,26 +886,16 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                     hasTranslation={Boolean(selectedTranslation)}
                     generating={generatingTranslation}
                     disabled={!task?.transcript}
+                    readOnly={readOnly}
                     onSearchChange={setTranslationSearch}
                     onTargetChange={setTranslationTarget}
                     onGenerate={generateTranslation}
                     onClose={() => setTranslationSettingsOpen(false)}
                   />
                 ) : null}
-                <button type="button" onClick={() => { setSpeakerHintOpen((value) => !value); setTranscriptSearchOpen(false); setSpeakerOptionsOpen(false); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full transition disabled:opacity-40 ${speakerHintOpen ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.speakerRecognitionDetails}>
-                  <Sparkles size={16} />
-                </button>
-                <button type="button" onClick={() => { setSpeakerOptionsOpen((value) => !value); setSpeakerHintOpen(false); setTranscriptSearchOpen(false); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md transition disabled:opacity-40 ${speakerOptionsOpen ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.speakerOptions} title={detailCopy.speakerOptions}>
+                <button type="button" onClick={() => { setSpeakerOptionsOpen((value) => !value); setTranscriptSearchOpen(false); }} disabled={!task?.transcript} className={`focus-ring ml-2 inline-flex h-8 w-8 items-center justify-center rounded-md transition disabled:opacity-40 ${speakerOptionsOpen ? "bg-violet/10 text-violet" : "text-slate-500 hover:bg-paper hover:text-ink"}`} aria-label={detailCopy.speakerOptions} title={detailCopy.speakerOptions}>
                   <Users size={16} />
                 </button>
-                {speakerHintOpen && task?.transcript ? (
-                  <div className="absolute right-0 top-10 z-50 w-[260px] rounded-lg border border-slate-200 bg-white p-3 text-left text-xs leading-relaxed text-slate-500 shadow-lg">
-                    <p>
-                      {hasSpeakerLabels ? detailCopy.speakerRecognitionEnabled : detailCopy.speakerRecognitionDisabled}{" "}
-                      <button type="button" className="inline-flex rounded px-1 text-xs font-medium leading-4 text-violet transition-colors hover:text-violet/80">{detailCopy.details}</button>
-                    </p>
-                  </div>
-                ) : null}
                 {speakerOptionsOpen && task?.transcript ? (
                   <div className="absolute right-0 top-10 z-50 w-[300px] rounded-xl border border-slate-200 bg-white p-4 text-left shadow-xl">
                     <p className="text-sm font-semibold leading-5 text-ink">{detailCopy.speakerOptions}</p>
@@ -902,7 +980,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
 
                 {error && task ? <p className="mt-3 rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm font-bold text-coral">{error}</p> : null}
                 {notice ? <p className="mt-3 rounded-md border border-violet/30 bg-violet/10 px-3 py-2 text-sm font-bold text-violet">{notice}</p> : null}
-                {!ratingDismissed ? (
+                {!readOnly && !ratingDismissed ? (
                 <div className="relative mb-4 mt-4 max-w-[210px] rounded border border-slate-200 bg-white px-3 py-2 text-base font-normal leading-6 text-slate-500 md:mt-5 md:max-w-none">
                   <button type="button" onClick={() => setRatingDismissed(true)} className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-violet/10 hover:text-ink md:hidden" aria-label={copy.close}>
                     <X size={16} />
@@ -947,9 +1025,11 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                             <button type="button" onClick={() => copySegmentText(segment.text)} className="focus-ring inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-white hover:text-violet" aria-label={detailCopy.copySegment}>
                               <Copy size={15} />
                             </button>
-                            <button type="button" onClick={() => setEditingSegmentIndex((current) => (current === index ? null : index))} className="focus-ring inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-white hover:text-violet" aria-label={detailCopy.editSegment}>
-                              <Pencil size={15} />
-                            </button>
+                            {!readOnly ? (
+                              <button type="button" onClick={() => setEditingSegmentIndex((current) => (current === index ? null : index))} className="focus-ring inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-white hover:text-violet" aria-label={detailCopy.editSegment}>
+                                <Pencil size={15} />
+                              </button>
+                            ) : null}
                           </div>
                         </div>
                         <div role="button" tabIndex={0} onClick={() => playSegment(index, segment.start)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); playSegment(index, segment.start); } }} className={clsx("rounded-lg border-2 p-2 transition hover:border-violet focus:border-violet focus:outline-none sm:p-3", activeSegmentIndex === index ? "border-violet bg-violet text-white" : "border-transparent bg-white")}>
@@ -992,7 +1072,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                         {detailCopy.noSegmentSearchResults}
                       </div>
                     ) : null}
-                    <div className="hidden">
+                    {!readOnly ? <div className="hidden">
                       {segmentDrafts.map((segment, index) => (
                         <label key={`${segment.start}-${index}-editor`}>
                           <span>{formatTime(segment.start)}</span>
@@ -1000,7 +1080,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                           <textarea value={segment.text} onChange={(event) => updateSegmentDraft(index, {text: event.target.value})} />
                         </label>
                       ))}
-                    </div>
+                    </div> : null}
                   </div>
                 ) : (
                   <div className="grid gap-2">
@@ -1023,10 +1103,10 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                         ) : null}
                       </article>
                     ))}
-                    <textarea value={draftText} onChange={(event) => setDraftText(event.target.value)} className="sr-only" aria-label={detailCopy.editableTranscriptField} />
+                    {!readOnly ? <textarea value={draftText} onChange={(event) => setDraftText(event.target.value)} className="sr-only" aria-label={detailCopy.editableTranscriptField} /> : null}
                   </div>
                 )}
-                {!isMember ? <UpgradeYourPlanCard locale={locale} onUpgrade={() => setPlansOpen(true)} /> : null}
+                {!readOnly && !isMember ? <UpgradeYourPlanCard locale={locale} onUpgrade={() => setPlansOpen(true)} /> : null}
               </div>
             ) : (
               <div className="mx-4 mt-8 flex min-h-[360px] flex-col items-center justify-center rounded-lg bg-paper/55 px-6 py-10 sm:mx-6">
@@ -1034,10 +1114,10 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
               </div>
             )}
             </div>
-            {task ? (
+            {task && !isYoutubeSource ? (
               <div className="flex h-[212px] flex-none flex-col border-t border-ink/10 bg-white xl:h-auto xl:block">
-                {task.transcript ? <DetailUpgradeCard locale={locale} onUpgrade={() => setPlansOpen(true)} /> : null}
-                <MediaPlayer endpoint={`/api/tasks/${task.id}/original-file`} initialMedia={initialMedia} durationSeconds={task.durationSeconds} seekSignal={seekSignal} label={title} chrome="bar" />
+                {!readOnly && task.transcript ? <DetailUpgradeCard locale={locale} onUpgrade={() => setPlansOpen(true)} /> : null}
+                <MediaPlayer endpoint={mediaEndpoint} initialMedia={initialMedia} durationSeconds={task.durationSeconds} seekSignal={seekSignal} label={title} chrome="bar" />
               </div>
             ) : null}
           </section>
@@ -1054,19 +1134,21 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
 
             {insightTab === "summary" ? (
               <div className="mt-2 flex h-10 items-center justify-between gap-3">
-                <SummaryTemplateSelect
+                {!readOnly ? <SummaryTemplateSelect
                   locale={locale}
                   value={summaryTemplate}
                   onSelect={selectSummaryTemplate}
                   isMember={isMember}
-                  disabled={!task?.transcript || busy}
+                  disabled={!task?.transcript || generatingSummary}
                   open={templateSelectOpen}
                   onOpenChange={setTemplateSelectOpen}
-                />
+                /> : null}
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => generateSingleInsight("summary")} disabled={!task?.transcript || busy || generatingSummary || summaryTemplate === "none" || !summary} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-slate-500 transition hover:bg-slate-100 hover:text-violet disabled:opacity-40" aria-label={detailCopy.regenerateAiSummary} title={detailCopy.regenerateAiSummary}>
-                    {busy || generatingSummary ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-                  </button>
+                  {!readOnly ? (
+                    <button type="button" onClick={() => generateSingleInsight("summary")} disabled={!task?.transcript || generatingSummary || summaryTemplate === "none" || !summary} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-slate-500 transition hover:bg-slate-100 hover:text-violet disabled:opacity-40" aria-label={detailCopy.regenerateAiSummary} title={detailCopy.regenerateAiSummary}>
+                      {generatingSummary ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                    </button>
+                  ) : null}
                   <button type="button" onClick={() => navigator.clipboard.writeText(formatSummaryForCopy(summary))} disabled={!summary} className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-[12px] text-slate-500 transition hover:bg-slate-100 hover:text-violet disabled:opacity-40" aria-label={detailCopy.copyInsight}>
                     <Copy size={16} />
                   </button>
@@ -1078,14 +1160,14 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
               <section className="mt-5 text-[14px] leading-[22.75px] text-[rgba(2,8,23,0.8)]">
                 {generatingSummary ? (
                   <SummaryLoadingState locale={locale} />
-                ) : summary ? (
-                  <SummaryContent summary={summary} locale={locale} onSeek={seekToSegment} />
+                ) : summaryHasContent ? (
+                  <SummaryContent summary={summary!} locale={locale} onSeek={seekToSegment} />
                 ) : (
-                  <SummaryEmptyState
+                  readOnly ? <SummaryReadOnlyEmptyState locale={locale} /> : <SummaryEmptyState
                     locale={locale}
                     onGenerateGeneral={generateGeneralSummary}
                     onChooseTemplate={() => setTemplateSelectOpen(true)}
-                    disabled={busy || generatingSummary || !task?.transcript}
+                    disabled={generatingSummary || !task?.transcript}
                   />
                 )}
               </section>
@@ -1100,8 +1182,9 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                     taskId={task?.id}
                     title={title}
                     locale={locale}
-                    busy={busy}
+                    busy={generatingMindMap}
                     isMember={isMember}
+                    readOnly={readOnly}
                     onRegenerate={generateMindMap}
                     onRequirePremium={() => setMindMapPremiumOpen(true)}
                     onError={setError}
@@ -1109,7 +1192,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
                 ) : generatingMindMap ? (
                   <MindMapLoadingState locale={locale} />
                 ) : (
-                  <MindMapEmptyState locale={locale} onGenerate={generateMindMap} disabled={busy || !task?.transcript} />
+                  <MindMapEmptyState locale={locale} onGenerate={readOnly ? undefined : generateMindMap} disabled={generatingMindMap || !task?.transcript} />
                 )}
               </section>
             )}
@@ -1120,13 +1203,15 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
 
       {transcriptSearchOpen && task?.transcript ? (
         <div className="fixed right-0 top-2 z-[80] w-[300px] max-w-[calc(100vw-8px)] overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-xl">
-          <div className="grid h-12 grid-cols-[1fr_1fr_44px] border-b border-slate-200">
+          <div className={clsx("grid h-12 border-b border-slate-200", readOnly ? "grid-cols-[1fr_44px]" : "grid-cols-[1fr_1fr_44px]")}>
             <button type="button" onMouseDown={(event) => { event.stopPropagation(); setTranscriptSearchTab("search"); }} onClick={() => setTranscriptSearchTab("search")} className={`text-xs font-semibold transition ${transcriptSearchTab === "search" ? "border-b-2 border-violet bg-violet/10 text-violet" : "text-slate-500 hover:bg-slate-50 hover:text-ink"}`}>
               {detailCopy.search}
             </button>
-            <button type="button" onMouseDown={(event) => { event.stopPropagation(); setTranscriptSearchTab("replace"); }} onClick={() => setTranscriptSearchTab("replace")} className={`text-xs font-semibold transition ${transcriptSearchTab === "replace" ? "border-b-2 border-violet bg-violet/10 text-violet" : "text-slate-500 hover:bg-slate-50 hover:text-ink"}`}>
-              {detailCopy.replace}
-            </button>
+            {!readOnly ? (
+              <button type="button" onMouseDown={(event) => { event.stopPropagation(); setTranscriptSearchTab("replace"); }} onClick={() => setTranscriptSearchTab("replace")} className={`text-xs font-semibold transition ${transcriptSearchTab === "replace" ? "border-b-2 border-violet bg-violet/10 text-violet" : "text-slate-500 hover:bg-slate-50 hover:text-ink"}`}>
+                {detailCopy.replace}
+              </button>
+            ) : null}
             <button type="button" onClick={() => setTranscriptSearchOpen(false)} className="inline-flex items-center justify-center text-slate-400 transition hover:bg-slate-50 hover:text-ink" aria-label={detailCopy.closeSearchReplace}>
               <X size={16} />
             </button>
@@ -1139,7 +1224,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
             {transcriptSearch ? (
               <p className="text-[11px] font-medium leading-4 text-slate-500">{detailCopy.matchCount(transcriptTextMatchCount)}</p>
             ) : null}
-            {transcriptSearchTab === "replace" ? (
+            {!readOnly && transcriptSearchTab === "replace" ? (
               <>
                 <label className="grid gap-1.5">
                   <span className="text-sm font-semibold leading-5 text-ink">{detailCopy.replace}</span>
@@ -1159,7 +1244,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         </div>
       ) : null}
 
-      {summaryLimitOpen ? (
+      {!readOnly && summaryLimitOpen ? (
         <SummaryLimitDialog
           locale={locale}
           onClose={() => setSummaryLimitOpen(false)}
@@ -1170,7 +1255,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         />
       ) : null}
 
-      {mindMapPremiumOpen ? (
+      {!readOnly && mindMapPremiumOpen ? (
         <MindMapPremiumDialog
           locale={locale}
           onClose={() => setMindMapPremiumOpen(false)}
@@ -1181,7 +1266,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         />
       ) : null}
 
-      {plansOpen ? <DashboardPricingOverlay locale={locale} initialMode="annual" onClose={() => setPlansOpen(false)} /> : null}
+      {!readOnly && plansOpen ? <DashboardPricingOverlay locale={locale} initialMode="annual" onClose={() => setPlansOpen(false)} /> : null}
 
       {exportOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 py-6">
@@ -1248,7 +1333,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         </div>
       ) : null}
 
-      {shareOpen && task ? (
+      {!readOnly && shareOpen && task ? (
         <ShareTranscriptionDialog
           activeShare={task.shareLinks?.[0] ?? null}
           busy={busy}
@@ -1265,7 +1350,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         />
       ) : null}
 
-      {renameOpen ? (
+      {!readOnly && renameOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 py-6">
           <section className="relative w-full max-w-[425px] rounded-lg border border-slate-200 bg-white p-0 shadow-none" role="dialog" aria-modal="true" aria-labelledby="detail-rename-title">
             <button type="button" onClick={() => setRenameOpen(false)} className="absolute right-4 top-4 grid h-4 w-4 place-items-center rounded text-ink transition hover:text-slate-500" aria-label={copy.close}>
@@ -1301,7 +1386,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         </div>
       ) : null}
 
-      {moveOpen ? (
+      {!readOnly && moveOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
           <section className="relative w-full max-w-[448px] rounded-lg border border-slate-200 bg-white p-6 shadow-none" role="dialog" aria-modal="true" aria-labelledby="detail-move-title">
             <h2 id="detail-move-title" className="pr-8 text-xl font-semibold leading-7 text-ink">{copy.moveToFolder}</h2>
@@ -1341,7 +1426,7 @@ export function TranscriptionPage({taskId}: {taskId: string}) {
         </div>
       ) : null}
 
-      {deleteOpen ? (
+      {!readOnly && deleteOpen ? (
         <DeleteTranscriptionConfirmDialog
           busy={busy}
           copy={copy}
@@ -1435,6 +1520,7 @@ function TranslationSettingsCard({
   hasTranslation,
   generating,
   disabled,
+  readOnly,
   onSearchChange,
   onTargetChange,
   onGenerate,
@@ -1449,6 +1535,7 @@ function TranslationSettingsCard({
   hasTranslation: boolean;
   generating: boolean;
   disabled: boolean;
+  readOnly?: boolean;
   onSearchChange: (value: string) => void;
   onTargetChange: (value: Locale) => void;
   onGenerate: () => void | Promise<void>;
@@ -1481,15 +1568,15 @@ function TranslationSettingsCard({
   };
 
   return (
-    <div ref={refObject} className="absolute right-0 top-10 z-[70] w-[320px] max-w-[calc(100vw-24px)] rounded-lg border border-slate-200 bg-white p-3 text-left text-ink shadow-xl">
-      <div className="flex items-center justify-between gap-2">
+    <div ref={refObject} className="absolute right-0 top-10 z-[70] flex max-h-[calc(100dvh-160px)] w-[320px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-3 text-left text-ink shadow-xl">
+      <div className="flex flex-none items-center justify-between gap-2">
         <h3 className="text-sm font-semibold leading-5 text-ink">{copy.translationSettings}</h3>
         <button type="button" onClick={onClose} className="grid h-6 w-6 place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-ink" aria-label={copy.close}>
           <X size={13} />
         </button>
       </div>
 
-      <label className="mt-3 grid gap-1.5">
+      <label className="mt-3 grid flex-none gap-1.5">
         <span className="text-xs font-semibold leading-4 text-slate-600">{copy.selectTargetLanguage}</span>
         <button
           type="button"
@@ -1503,8 +1590,8 @@ function TranslationSettingsCard({
       </label>
 
       {listOpen ? (
-        <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 p-2">
+        <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="flex-none border-b border-slate-200 p-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
               <input
@@ -1516,7 +1603,7 @@ function TranslationSettingsCard({
               />
             </div>
           </div>
-          <div className="max-h-[220px] overflow-y-auto p-1.5" role="listbox">
+          <div className="min-h-0 flex-1 overflow-y-auto p-1.5" role="listbox">
             {popularOptions.length ? (
               <div>
                 <p className="px-2.5 pb-1 pt-0.5 text-[11px] font-semibold leading-4 text-slate-500">{copy.popularLanguages}</p>
@@ -1531,15 +1618,17 @@ function TranslationSettingsCard({
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={disabled || generating}
-        className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-violet px-3 text-xs font-semibold text-white transition hover:bg-violetDark disabled:pointer-events-none disabled:opacity-50"
-      >
-        {generating ? <Loader2 className="animate-spin" size={14} /> : <Languages size={14} />}
-        {generating ? copy.generatingTranslation : hasTranslation ? copy.regenerateTranslation : copy.generateTranslation}
-      </button>
+      {!readOnly ? (
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={disabled || generating}
+          className="mt-3 inline-flex h-9 w-full flex-none items-center justify-center gap-1.5 rounded-md bg-violet px-3 text-xs font-semibold text-white transition hover:bg-violetDark disabled:pointer-events-none disabled:opacity-50"
+        >
+          {generating ? <Loader2 className="animate-spin" size={14} /> : <Languages size={14} />}
+          {generating ? copy.generatingTranslation : hasTranslation ? copy.regenerateTranslation : copy.generateTranslation}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -3765,6 +3854,18 @@ function SummaryEmptyState({
   );
 }
 
+function SummaryReadOnlyEmptyState({locale}: {locale: string}) {
+  const copy = transcriptionCopyFor(locale);
+  return (
+    <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-8 text-center">
+      <div className="grid h-10 w-10 place-items-center rounded-xl bg-violet/10">
+        <Wand2 className="text-violet" size={18} />
+      </div>
+      <p className="mt-3 text-sm font-semibold leading-5 text-ink">{copy.summaryEmptyTitle}</p>
+    </div>
+  );
+}
+
 function SummaryLoadingState({locale}: {locale: string}) {
   const copy = transcriptionCopyFor(locale);
   return (
@@ -3975,10 +4076,10 @@ function splitMindMapLabel(label: string, maxUnits: number, fallbackLabel: strin
 
 function measureMindMapNode(node: DetailMindMapNode, depth: number, branchIndex: number, fallbackLabel: string): DetailMindMapLayoutNode {
   const label = node.label ?? fallbackLabel;
-  const maxUnits = depth === 0 ? 20 : depth === 1 ? 22 : 28;
+  const maxUnits = depth === 0 ? 16 : depth === 1 ? 18 : 20;
   const lines = splitMindMapLabel(label, maxUnits, fallbackLabel);
   const widestLineUnits = Math.max(...lines.map(mindMapTextUnits), 8);
-  const width = clamp(Math.ceil(widestLineUnits * 8 + (depth === 0 ? 44 : 34)), depth === 0 ? 170 : 112, depth === 0 ? 260 : 260);
+  const width = clamp(Math.ceil(widestLineUnits * 8.6 + (depth === 0 ? 56 : 40)), depth === 0 ? 172 : 116, depth === 0 ? 240 : 220);
   const height = clamp(18 + lines.length * (depth === 0 ? 18 : 16), depth === 0 ? 46 : 36, 78);
   const nextBranchBase = depth === 0 ? 0 : branchIndex;
   const children = node.children ?? [];
@@ -4046,11 +4147,11 @@ function createMindMapLayout(node: DetailMindMapNode, fallbackLabel: string) {
   const stats = collectMindMapStats(root);
   assignMindMapSubtreeHeights(root);
 
-  const leftPadding = 48;
+  const leftPadding = 88;
   const topPadding = 42;
   const rightPadding = 64;
   const bottomPadding = 48;
-  const levelGap = 96;
+  const levelGap = 72;
   const xByDepth = stats.widths.reduce<number[]>((positions, width, depth) => {
     if (depth === 0) return [leftPadding];
     const previousWidth = stats.widths[depth - 1] ?? 160;
@@ -4097,7 +4198,7 @@ function MindMapToolButton({children, label, onClick, disabled, active}: {childr
 
 const mindMapBranchColors = ["#6467f2", "#0f766e", "#e11d48", "#2563eb", "#b45309", "#7c3aed", "#0891b2", "#be185d"];
 
-function MindMapEmptyState({locale, onGenerate, disabled}: {locale: string; onGenerate: () => void; disabled?: boolean}) {
+function MindMapEmptyState({locale, onGenerate, disabled}: {locale: string; onGenerate?: () => void; disabled?: boolean}) {
   const copy = mindMapUiFor(locale);
   return (
     <div className="flex min-h-[420px] flex-col items-center justify-center px-6 text-center">
@@ -4107,15 +4208,17 @@ function MindMapEmptyState({locale, onGenerate, disabled}: {locale: string; onGe
       <p className="mt-5 max-w-[300px] text-[13px] font-medium leading-5 text-slate-500">
         {copy.emptyText}
       </p>
-      <button
-        type="button"
-        onClick={onGenerate}
-        disabled={disabled}
-        className="focus-ring mt-5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-violet px-4 text-[13px] font-semibold text-white shadow-sm shadow-violet/20 transition hover:bg-violetDark disabled:cursor-not-allowed disabled:opacity-45"
-      >
-        <Sparkles size={15} />
-        {copy.generate}
-      </button>
+      {onGenerate ? (
+        <button
+          type="button"
+          onClick={onGenerate}
+          disabled={disabled}
+          className="focus-ring mt-5 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-violet px-4 text-[13px] font-semibold text-white shadow-sm shadow-violet/20 transition hover:bg-violetDark disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          <Sparkles size={15} />
+          {copy.generate}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -4143,6 +4246,7 @@ function DetailMindMap({
   locale,
   busy,
   isMember,
+  readOnly,
   onRegenerate,
   onRequirePremium,
   onError
@@ -4153,6 +4257,7 @@ function DetailMindMap({
   locale: string;
   busy?: boolean;
   isMember: boolean;
+  readOnly?: boolean;
   onRegenerate: () => void;
   onRequirePremium: () => void;
   onError: (message: string | null) => void;
@@ -4195,15 +4300,31 @@ function DetailMindMap({
   }, [fullscreen]);
 
   useEffect(() => {
-    if (!layout) return;
+    if (!fullscreen || !layout) return;
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const frame = window.requestAnimationFrame(() => {
-      viewport.scrollLeft = 0;
-      viewport.scrollTop = Math.max(0, layout.root.y * zoom - viewport.clientHeight / 2);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [fullscreen, layout, zoom]);
+    const fullScreenLayout = layout;
+    const fullScreenViewport = viewport;
+
+    function fitFullScreen() {
+      setZoom(calculateMindMapFitZoom({
+        contentWidth: fullScreenLayout.width,
+        contentHeight: fullScreenLayout.height,
+        viewportWidth: fullScreenViewport.clientWidth,
+        viewportHeight: fullScreenViewport.clientHeight,
+        padding: 40
+      }));
+      fullScreenViewport.scrollLeft = 0;
+      fullScreenViewport.scrollTop = 0;
+    }
+
+    const frame = window.requestAnimationFrame(fitFullScreen);
+    window.addEventListener("resize", fitFullScreen);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", fitFullScreen);
+    };
+  }, [fullscreen, layout]);
 
   if (!layout) return null;
   const currentLayout = layout;
@@ -4211,11 +4332,17 @@ function DetailMindMap({
   function fitToViewport() {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const fit = Math.min((viewport.clientWidth - 32) / currentLayout.width, (viewport.clientHeight - 32) / currentLayout.height);
-    setZoom(clamp(Number(fit.toFixed(2)), 0.42, 1.15));
+    const fit = calculateMindMapFitZoom({
+      contentWidth: currentLayout.width,
+      contentHeight: currentLayout.height,
+      viewportWidth: viewport.clientWidth,
+      viewportHeight: viewport.clientHeight,
+      padding: fullscreen ? 40 : 16
+    });
+    setZoom(fit);
     window.requestAnimationFrame(() => {
       viewport.scrollLeft = 0;
-      viewport.scrollTop = Math.max(0, currentLayout.root.y * clamp(fit, 0.42, 1.15) - viewport.clientHeight / 2);
+      viewport.scrollTop = 0;
     });
   }
 
@@ -4270,22 +4397,24 @@ function DetailMindMap({
   const scaledWidth = Math.ceil(layout.width * zoom);
   const scaledHeight = Math.ceil(layout.height * zoom);
 
-  return (
-    <div className={clsx("relative flex w-full flex-col bg-white", fullscreen ? "fixed inset-0 z-40 p-5" : "min-h-[420px]")}>
+  const mindMapSurface = (
+    <div className={clsx("flex w-full flex-col bg-white", fullscreen ? "fixed inset-0 z-[100] h-[100dvh] w-screen overflow-hidden" : "relative min-h-[420px]")}>
       {fullscreen ? (
         <button
           type="button"
           onClick={() => setFullscreen(false)}
-          className="focus-ring absolute left-5 top-5 z-10 grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-ink"
+          className="focus-ring absolute left-5 top-5 z-30 grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-ink"
           aria-label={copy.closeFullScreen}
         >
           <X size={18} />
         </button>
       ) : null}
-      <div className="mb-3 flex flex-wrap items-center justify-end gap-1.5">
-        <MindMapToolButton label={copy.regenerate} onClick={onRegenerate} disabled={busy}>
-          {busy ? <Loader2 className="animate-spin" size={15} /> : <RefreshCw size={15} />}
-        </MindMapToolButton>
+      <div className={clsx("flex flex-wrap items-center justify-end gap-1.5", fullscreen ? "absolute right-5 top-5 z-20" : "mb-3")}>
+        {!readOnly ? (
+          <MindMapToolButton label={copy.regenerate} onClick={onRegenerate} disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" size={15} /> : <RefreshCw size={15} />}
+          </MindMapToolButton>
+        ) : null}
         <div ref={downloadMenuRef} className="relative">
           <button
             type="button"
@@ -4303,27 +4432,27 @@ function DetailMindMap({
                 <ImageIcon size={16} />
                 {copy.imageFile}
               </button>
-              <button type="button" onClick={() => downloadPremiumFormat("md")} className="mt-1 flex h-10 w-full items-center justify-between gap-3 rounded-md px-2.5 text-left font-medium text-ink transition hover:bg-slate-50">
+              {!readOnly ? <button type="button" onClick={() => downloadPremiumFormat("md")} className="mt-1 flex h-10 w-full items-center justify-between gap-3 rounded-md px-2.5 text-left font-medium text-ink transition hover:bg-slate-50">
                 <span className="flex items-center gap-3">
                   <FileText size={16} />
                   {copy.markdownFile}
                 </span>
                 {!isMember ? <Crown className="text-amber-500" size={16} /> : null}
-              </button>
-              <button type="button" onClick={() => downloadPremiumFormat("xmind")} className="mt-1 flex h-10 w-full items-center justify-between gap-3 rounded-md px-2.5 text-left font-medium text-ink transition hover:bg-slate-50">
+              </button> : null}
+              {!readOnly ? <button type="button" onClick={() => downloadPremiumFormat("xmind")} className="mt-1 flex h-10 w-full items-center justify-between gap-3 rounded-md px-2.5 text-left font-medium text-ink transition hover:bg-slate-50">
                 <span className="flex items-center gap-3">
                   <FileArchive size={16} />
                   {copy.xmindFile}
                 </span>
                 {!isMember ? <Crown className="text-amber-500" size={16} /> : null}
-              </button>
+              </button> : null}
             </div>
           ) : null}
         </div>
-        <MindMapToolButton label={copy.zoomIn} onClick={() => setZoom((value) => clamp(Number((value + 0.12).toFixed(2)), 0.42, 1.6))}>
+        <MindMapToolButton label={copy.zoomIn} onClick={() => setZoom((value) => clamp(Number((value + 0.12).toFixed(2)), 0.2, 1.6))}>
           <ZoomIn size={15} />
         </MindMapToolButton>
-        <MindMapToolButton label={copy.zoomOut} onClick={() => setZoom((value) => clamp(Number((value - 0.12).toFixed(2)), 0.42, 1.6))}>
+        <MindMapToolButton label={copy.zoomOut} onClick={() => setZoom((value) => clamp(Number((value - 0.12).toFixed(2)), 0.2, 1.6))}>
           <ZoomOut size={15} />
         </MindMapToolButton>
         <MindMapToolButton label={copy.fitToView} onClick={fitToViewport}>
@@ -4337,32 +4466,31 @@ function DetailMindMap({
       <div
         ref={viewportRef}
         className={clsx(
-          "min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 bg-[radial-gradient(circle_at_1px_1px,rgba(100,103,242,0.16)_1px,transparent_0)] [background-size:22px_22px]",
-          fullscreen ? "h-[calc(100dvh-112px)]" : "h-[calc(100vh-292px)] min-h-[420px]"
+          "min-h-0 bg-white",
+          fullscreen ? "absolute inset-0 overflow-auto rounded-none border-0" : "h-[calc(100vh-292px)] min-h-[420px] flex-1 overflow-auto rounded-lg border border-slate-200 bg-[radial-gradient(circle_at_1px_1px,rgba(100,103,242,0.16)_1px,transparent_0)] [background-size:22px_22px]"
         )}
       >
-        <svg
-          ref={svgRef}
-          className="block max-w-none"
-          width={scaledWidth}
-          height={scaledHeight}
-          viewBox={`0 0 ${layout.width} ${layout.height}`}
-          role="img"
-          aria-label={copy.title}
+        <div
+          className="grid min-h-full min-w-full place-items-center"
           style={{width: scaledWidth, height: scaledHeight}}
         >
-          <defs>
-            <filter id="mind-map-node-shadow" x="-20%" y="-30%" width="140%" height="160%">
-              <feDropShadow dx="0" dy="5" stdDeviation="7" floodColor="#64748b" floodOpacity="0.12" />
-            </filter>
-          </defs>
+          <svg
+            ref={svgRef}
+            className="block max-w-none flex-none"
+            width={scaledWidth}
+            height={scaledHeight}
+            viewBox={`0 0 ${layout.width} ${layout.height}`}
+            role="img"
+            aria-label={copy.title}
+            style={{width: scaledWidth, height: scaledHeight}}
+          >
           <rect width={layout.width} height={layout.height} fill="#ffffff" />
           <g>
             {layout.links.map(([from, to]) => {
               const color = mindMapBranchColors[to.branchIndex % mindMapBranchColors.length] ?? "#6467f2";
               const startX = from.x + from.width / 2;
               const endX = to.x - to.width / 2;
-              const midX = startX + Math.max(48, (endX - startX) * 0.56);
+              const midX = startX + Math.max(36, (endX - startX) * 0.56);
               return (
                 <g key={`${from.label}-${to.label}-${to.x}-${to.y}`}>
                   <path
@@ -4373,40 +4501,25 @@ function DetailMindMap({
                     strokeOpacity={to.depth === 1 ? 0.78 : 0.48}
                     strokeWidth={to.depth === 1 ? 2.4 : 1.6}
                   />
-                  <circle cx={endX} cy={to.y} r={to.depth === 1 ? 3.5 : 2.5} fill="#ffffff" stroke={color} strokeWidth={1.6} />
                 </g>
               );
             })}
             {layout.nodes.map((item) => {
               const isRoot = item.depth === 0;
               const isPrimary = item.depth === 1;
-              const color = mindMapBranchColors[item.branchIndex % mindMapBranchColors.length] ?? "#6467f2";
               const lineHeight = isRoot ? 18 : 15.5;
               const firstLineY = -((item.lines.length - 1) * lineHeight) / 2 + (isRoot ? 5 : 4);
+              const textInset = -item.width / 2 + 3;
               return (
                 <g key={`${item.label}-${item.x}-${item.y}`} transform={`translate(${item.x}, ${item.y})`}>
-                  <rect
-                    x={-item.width / 2}
-                    y={-item.height / 2}
-                    width={item.width}
-                    height={item.height}
-                    rx={isRoot ? 10 : 7}
-                    fill={isRoot ? "#6467f2" : isPrimary ? `${color}14` : "#ffffff"}
-                    stroke={isRoot ? "#6467f2" : isPrimary ? `${color}66` : "#e2e8f0"}
-                    strokeWidth={isRoot ? 0 : 1}
-                    filter="url(#mind-map-node-shadow)"
-                  />
-                  {!isRoot ? (
-                    <line x1={-item.width / 2 + 12} y1={item.height / 2 - 4} x2={item.width / 2 - 12} y2={item.height / 2 - 4} stroke={color} strokeLinecap="round" strokeOpacity={isPrimary ? 0.7 : 0.38} strokeWidth={1.4} />
-                  ) : null}
                   <text
-                    textAnchor="middle"
-                    fill={isRoot ? "#ffffff" : "#1f2937"}
+                    textAnchor="start"
+                    fill={isRoot ? "#4f46e5" : "#1f2937"}
                     fontSize={isRoot ? 13.5 : isPrimary ? 12.5 : 12}
                     fontWeight={isRoot ? 700 : isPrimary ? 650 : 500}
                   >
                     {item.lines.map((line, index) => (
-                      <tspan key={`${line}-${index}`} x={0} y={firstLineY + index * lineHeight}>
+                      <tspan key={`${line}-${index}`} x={textInset} y={firstLineY + index * lineHeight}>
                         {line}
                       </tspan>
                     ))}
@@ -4415,10 +4528,13 @@ function DetailMindMap({
               );
             })}
           </g>
-        </svg>
+          </svg>
+        </div>
       </div>
     </div>
   );
+
+  return fullscreen ? createPortal(mindMapSurface, document.body) : mindMapSurface;
 }
 
 function UpgradeYourPlanCard({locale, onUpgrade}: {locale: string; onUpgrade: () => void}) {

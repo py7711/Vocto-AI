@@ -7,6 +7,8 @@ import {jsonSafe} from "@/lib/json";
 import {getRequestOrigin} from "@/lib/request-origin";
 import {serializeShareLinkForOwner} from "@/lib/share-links";
 import {logApiError} from "@/lib/api-logger";
+import {sanitizeSummaryTimestamps, transcriptTimedSegments} from "@/server/ai/summary-source";
+import {userHasActiveMembership} from "@/lib/membership";
 
 const updateTaskSchema = z.object({
   originalName: z.string().trim().min(1).max(512).optional(),
@@ -17,11 +19,19 @@ const updateTaskSchema = z.object({
   transcriptionType: z.string().max(80).optional()
 });
 
-function serializeTaskForWorkspace<T extends {shareLinks?: Array<Parameters<typeof serializeShareLinkForOwner>[0]>}>(task: T, request: Request) {
+function serializeTaskForWorkspace<T extends {
+  shareLinks?: Array<Parameters<typeof serializeShareLinkForOwner>[0]>;
+  transcript?: {segments?: unknown; summary?: unknown} | null;
+}>(task: T, request: Request) {
   const locale = new URL(request.url).searchParams.get("locale") || "en";
   const appUrl = getRequestOrigin(request);
+  const segments = transcriptTimedSegments(task.transcript?.segments);
   return {
     ...task,
+    transcript: task.transcript ? {
+      ...task.transcript,
+      summary: sanitizeSummaryTimestamps(task.transcript.summary, segments)
+    } : task.transcript,
     shareLinks: task.shareLinks?.map((shareLink) =>
       serializeShareLinkForOwner(shareLink, {appUrl, locale})
     )
@@ -31,67 +41,37 @@ function serializeTaskForWorkspace<T extends {shareLinks?: Array<Parameters<type
 export async function GET(request: Request, {params}: {params: {taskId: string}}) {
   try {
     const access = await assertTaskAccess(params.taskId, "read", request.headers);
-    // 返回任务详情时同时带上转写、AI 洞察和导出记录，前端一次请求即可刷新工作台。
-    const task = await prisma.mediaTask.findUnique({
-      where: {id: params.taskId},
-      include: {
-        transcript: {
-          select: {
-            id: true,
-            mediaTaskId: true,
-            plainText: true,
-            segments: true,
-            editedText: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        },
-        insights: true,
-        exports: true,
-        mediaAssets: {
-          orderBy: [{kind: "asc"}, {chunkIndex: "asc"}]
-        },
-        shareLinks: {
-          where: {enabled: true},
-          select: {
-            id: true,
-            tokenHash: true,
-            title: true,
-            enabled: true,
-            expiresAt: true,
-            accessCount: true,
-            lastAccessAt: true,
-            createdAt: true
-          },
-          orderBy: {createdAt: "desc"},
-          take: 1
-        },
-        folder: {select: {id: true, name: true, position: true}},
-        ratings: {
-          select: {
-            rating: true,
-            userId: true,
-            updatedAt: true
+    // 首屏只读取任务本身和 Transcript；文件夹、分享等操作数据在用户打开对应控件时按需加载。
+    const [task, isMember] = await Promise.all([
+      prisma.mediaTask.findUnique({
+        where: {id: params.taskId},
+        include: {
+          transcript: {
+            select: {
+              id: true,
+              mediaTaskId: true,
+              summary: true,
+              mindMap: true,
+              translations: true,
+              summaryGenerationCount: true,
+              segments: true,
+              editedText: true,
+              createdAt: true,
+              updatedAt: true
+            }
           }
         }
-      }
-    });
+      }),
+      userHasActiveMembership(access.user?.id)
+    ]);
 
     if (!task) {
       return NextResponse.json({error: "转写任务不存在。"}, {status: 404});
     }
 
-    const ratings = task.ratings ?? [];
-    const ratingAverage = ratings.length ? ratings.reduce((sum, item) => sum + item.rating, 0) / ratings.length : null;
-    const currentUserRating = access.user ? ratings.find((item) => item.userId === access.user?.id) ?? null : null;
-
     return NextResponse.json(jsonSafe(serializeTaskForWorkspace({
       ...task,
-      currentUserRating,
-      ratingSummary: {
-        average: ratingAverage,
-        count: ratings.length
-      }
+      viewer: {isMember}
     }, request)));
   } catch (error) {
     logApiError(error, request);
@@ -130,14 +110,16 @@ export async function PATCH(request: Request, {params}: {params: {taskId: string
           select: {
             id: true,
             mediaTaskId: true,
-            plainText: true,
+            summary: true,
+            mindMap: true,
+            translations: true,
+            summaryGenerationCount: true,
             segments: true,
             editedText: true,
             createdAt: true,
             updatedAt: true
           }
         },
-        insights: true,
         exports: true,
         mediaAssets: {
           orderBy: [{kind: "asc"}, {chunkIndex: "asc"}]

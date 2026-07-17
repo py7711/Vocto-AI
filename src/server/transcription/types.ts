@@ -40,13 +40,25 @@ export type TranscriptionSubmitResult = {
 };
 
 export type TranscriptionResult = {
-  provider: "groq" | "deepgram" | "assemblyai";
+  provider: "groq" | "deepgram" | "assemblyai" | "gemini";
   language?: string;
   durationSeconds?: number;
   text: string;
   segments: TranscriptSegment[];
   words?: TranscriptWord[];
   speakerCount?: number;
+  insights?: {
+    model?: string;
+    summary: {
+      overview: string;
+      bullets: Array<{text: string; timestamps: Array<{start: number; end: number}>}>;
+      takeaways: Array<{text: string; timestamps: Array<{start: number; end: number}>}>;
+    };
+    mindMap: {
+      label: string;
+      children: Array<{label: string; children: unknown[]}>;
+    };
+  };
 };
 
 export interface TranscriptionProvider {

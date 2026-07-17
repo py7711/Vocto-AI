@@ -6,6 +6,7 @@ import {assertTaskAccess, publishTaskUpdate, taskAccessErrorResponse} from "@/li
 import {normalizeSummaryTemplate, summaryTemplateInputValues, summaryTemplateRequiresMembership} from "@/lib/summary-template";
 import {userHasActiveMembership} from "@/lib/membership";
 import {logApiError} from "@/lib/api-logger";
+import {FREE_SUMMARY_GENERATION_LIMIT, releaseSummaryGeneration, reserveSummaryGeneration} from "@/server/ai/summary-generation-limit";
 
 const insightSchema = z.object({
   locale: z.string().default("en"),
@@ -14,13 +15,14 @@ const insightSchema = z.object({
 });
 
 export async function POST(request: Request, {params}: {params: {taskId: string}}) {
+  let summaryGenerationReserved = false;
   try {
     const access = await assertTaskAccess(params.taskId, "write", request.headers);
     const input = insightSchema.parse(await request.json().catch(() => ({})));
 
     // 会员专享模板必须验证当前用户拥有生效的付费会员。
+    const isMember = await userHasActiveMembership(access.user?.id);
     if (summaryTemplateRequiresMembership(input.summaryTemplate)) {
-      const isMember = await userHasActiveMembership(access.user?.id);
       if (!isMember) {
         return NextResponse.json({error: "该摘要模板为会员专享，请先开通会员。", code: "MEMBERSHIP_REQUIRED"}, {status: 403});
       }
@@ -35,11 +37,26 @@ export async function POST(request: Request, {params}: {params: {taskId: string}
       return NextResponse.json({error: "转写文本尚未准备好。"}, {status: 409});
     }
 
-    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget, normalizeSummaryTemplate(input.summaryTemplate));
+    if (input.summaryTemplate !== "none") {
+      summaryGenerationReserved = await reserveSummaryGeneration(task.id, isMember);
+      if (!summaryGenerationReserved) {
+        return NextResponse.json({
+          error: "免费套餐每条转写的 AI 摘要生成次数已用完，升级后可无限重新生成。",
+          code: "SUMMARY_LIMIT_REACHED",
+          limit: FREE_SUMMARY_GENERATION_LIMIT
+        }, {status: 403});
+      }
+    }
+
+    const insights = await generateInsights(task.id, task.transcript, input.locale, input.translationTarget, normalizeSummaryTemplate(input.summaryTemplate), false);
+    summaryGenerationReserved = false;
     await publishTaskUpdate(task.id);
 
     return NextResponse.json(insights);
   } catch (error) {
+    if (summaryGenerationReserved) {
+      await releaseSummaryGeneration(params.taskId).catch(() => undefined);
+    }
     logApiError(error, request);
     const accessError = taskAccessErrorResponse(error);
     if (accessError) return NextResponse.json(accessError.body, {status: accessError.status});

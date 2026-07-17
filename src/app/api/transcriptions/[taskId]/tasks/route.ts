@@ -16,8 +16,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
         errorCode: true,
         createdAt: true,
         updatedAt: true,
-        completedAt: true,
-        insights: {select: {id: true, type: true, title: true, createdAt: true, updatedAt: true}}
+        completedAt: true
       }
     });
     if (!task) return NextResponse.json({tasks: []}, {status: 404});
@@ -34,16 +33,7 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
           createdAt: task.createdAt,
           updatedAt: task.updatedAt,
           completedAt: task.completedAt
-        },
-        ...task.insights.map((insight) => ({
-          id: insight.id,
-          taskId: insight.id,
-          type: insight.type.toLowerCase(),
-          status: "COMPLETED",
-          title: insight.title,
-          createdAt: insight.createdAt,
-          updatedAt: insight.updatedAt
-        }))
+        }
       ]
     });
   } catch (error) {

@@ -4,15 +4,13 @@ import {retryTranscriptionTask, taskRetryErrorResponse} from "@/lib/task-retry";
 import {taskAccessErrorResponse} from "@/lib/tasks";
 import {logApiError} from "@/lib/api-logger";
 
-const retrySchema = z.object({
-  retryType: z.enum(["standard", "youtube_fallback"]).default("standard")
-});
+const retrySchema = z.object({retryType: z.literal("standard").default("standard")});
 
 export async function POST(request: Request, {params}: {params: {taskId: string}}) {
   try {
-    const input = retrySchema.parse(await request.json().catch(() => ({})));
+    retrySchema.parse(await request.json().catch(() => ({})));
     // 保留路径参数版接口，前端详情页和工作台都依赖 /api/tasks/:taskId/retry。
-    await retryTranscriptionTask({taskId: params.taskId, headers: request.headers, retryType: input.retryType});
+    await retryTranscriptionTask({taskId: params.taskId, headers: request.headers});
     return NextResponse.json({ok: true});
   } catch (error) {
     logApiError(error, request);

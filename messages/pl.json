@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Konwertuj audio i wideo na tekst online za darmo",
-    "description": "Votxt pozwala przesyłać pliki audio i wideo lub wklejać linki YouTube, szybko zamieniając je na tekst z AI. Tworzy też podsumowania, mapy myśli, kluczowe pytania i eksporty w różnych formatach."
+    "description": "Votxt pozwala przesyłać pliki audio i wideo lub wklejać linki YouTube, szybko zamieniając je na tekst z AI. Tworzy też podsumowania, mapy myśli i eksporty w różnych formatach."
   },
   "trustSeo": {
     "privacy": "Polityka prywatności",
@@ -32,7 +32,6 @@
     "transcript": "Transkrypt",
     "summary": "Podsumowanie",
     "mindMap": "Mapa myśli",
-    "qa": "Pytania i odpowiedzi",
     "translation": "Tłumaczenie",
     "exports": "Eksport",
     "generateInsights": "Generuj insighty",
@@ -41,7 +40,7 @@
     "completed": "Ukończono",
     "failed": "Niepowodzenie",
     "headline": "Konwertuj Audio i Wideo na Tekst",
-    "subheadline": "Votxt pozwala przesyłać pliki audio i wideo lub wklejać linki YouTube, szybko zamieniając je na tekst z AI. Tworzy też podsumowania, mapy myśli, kluczowe pytania i eksporty w różnych formatach.",
+    "subheadline": "Votxt pozwala przesyłać pliki audio i wideo lub wklejać linki YouTube, szybko zamieniając je na tekst z AI. Tworzy też podsumowania, mapy myśli i eksporty w różnych formatach.",
     "formats": "Obsługuje 11 formatów",
     "languages": "Obsługuje 63 języki",
     "exportCount": "Eksport w 6 formatach",
@@ -64,7 +63,6 @@
     "insightTitle": "Obszar AI",
     "summaryEmpty": "Generuj insighty po przygotowaniu transkryptu.",
     "mindMapEmpty": "Węzły mapy myśli pojawią się tutaj.",
-    "qaEmpty": "Kluczowe pytania i odpowiedzi pojawią się tutaj.",
     "translationEmpty": "Tłumaczenie pojawi się tutaj.",
     "plansTitle": "Plany dla każdego obciążenia",
     "freePlan": "Darmowy",

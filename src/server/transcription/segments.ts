@@ -4,6 +4,10 @@ const maxSegmentChars = 180;
 const minTextSegmentChars = 16;
 const maxSegmentDurationSeconds = 18;
 const maxWordGapSeconds = 1.2;
+const maxParagraphChars = 700;
+const maxParagraphDurationSeconds = 45;
+const maxParagraphSentences = 5;
+const maxParagraphGapSeconds = 2.5;
 const terminalPunctuationPattern = /[.!?。！？…]+["')\]]?$/;
 
 function cleanText(value: string | undefined) {
@@ -136,6 +140,89 @@ function cleanSegments(segments: TranscriptSegment[]) {
       speaker: segment.speaker
     }))
     .filter((segment) => segment.text);
+}
+
+function splitSegmentIntoParagraphs(segment: TranscriptSegment): TranscriptSegment[] {
+  const parts = sentenceParts(segment.text);
+  const duration = Math.max(0, segment.end - segment.start);
+  const groupCount = Math.min(parts.length, Math.max(
+    1,
+    Math.ceil(parts.length / maxParagraphSentences),
+    Math.ceil(segment.text.length / maxParagraphChars),
+    Math.ceil(duration / maxParagraphDurationSeconds)
+  ));
+  if (groupCount <= 1) return [segment];
+
+  const groups: string[] = [];
+  let cursor = 0;
+  for (let index = 0; index < groupCount; index += 1) {
+    const remainingParts = parts.length - cursor;
+    const remainingGroups = groupCount - index;
+    const partCount = Math.ceil(remainingParts / remainingGroups);
+    groups.push(parts.slice(cursor, cursor + partCount).join(" "));
+    cursor += partCount;
+  }
+
+  const totalWeight = groups.reduce((sum, group) => sum + textWeight(group), 0);
+  let timeCursor = segment.start;
+  return groups.map((text, index) => {
+    const isLast = index === groups.length - 1;
+    const end = isLast
+      ? segment.end
+      : timeCursor + (textWeight(text) / totalWeight) * duration;
+    const paragraph = {
+      start: timeCursor,
+      end,
+      text,
+      speaker: segment.speaker
+    };
+    timeCursor = end;
+    return paragraph;
+  });
+}
+
+export function normalizeTranscriptParagraphs(
+  segments: TranscriptSegment[],
+  durationSeconds?: number
+): TranscriptSegment[] {
+  const duration = Number.isFinite(durationSeconds) && Number(durationSeconds) > 0
+    ? Number(durationSeconds)
+    : undefined;
+  const normalized = cleanSegments(segments)
+    .map((segment) => ({
+      ...segment,
+      start: Math.max(0, segment.start),
+      end: duration ? Math.min(segment.end, duration) : segment.end
+    }))
+    .filter((segment) => segment.end > segment.start)
+    .flatMap(splitSegmentIntoParagraphs);
+
+  const paragraphs: TranscriptSegment[] = [];
+  for (const segment of normalized) {
+    const current = paragraphs[paragraphs.length - 1];
+    if (!current) {
+      paragraphs.push({...segment});
+      continue;
+    }
+
+    const sameSpeaker = (current.speaker ?? "") === (segment.speaker ?? "");
+    const gap = segment.start - current.end;
+    const combinedText = appendToken(current.text, segment.text);
+    const combinedSentenceCount = sentenceParts(combinedText).length;
+    const canMerge = sameSpeaker
+      && gap <= maxParagraphGapSeconds
+      && combinedText.length <= maxParagraphChars
+      && segment.end - current.start <= maxParagraphDurationSeconds
+      && combinedSentenceCount <= maxParagraphSentences;
+
+    if (canMerge) {
+      current.end = segment.end;
+      current.text = combinedText;
+    } else {
+      paragraphs.push({...segment});
+    }
+  }
+  return paragraphs;
 }
 
 export function normalizeTranscriptSegments(input: {

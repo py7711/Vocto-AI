@@ -5,7 +5,6 @@ import {Languages, Loader2} from "lucide-react";
 import {CompactSelect} from "@/components/target-controls";
 
 type SharedTranslation = {
-  id: string;
   locale: string;
   title?: string | null;
   content: any;

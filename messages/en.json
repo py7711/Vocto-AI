@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Convert audio and video to text online for free",
-    "description": "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats."
+    "description": "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and lets you export the text in different formats."
   },
   "trustSeo": {
     "privacy": "Privacy Policy",
@@ -32,7 +32,6 @@
     "transcript": "Transcript",
     "summary": "Summary",
     "mindMap": "Mind map",
-    "qa": "Q&A",
     "translation": "Translation",
     "exports": "Exports",
     "generateInsights": "Generate insights",
@@ -41,7 +40,7 @@
     "completed": "Completed",
     "failed": "Failed",
     "headline": "Convert Audio & Video to Text",
-    "subheadline": "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and key questions, and lets you export the text in different formats.",
+    "subheadline": "Votxt lets you upload audio and video files or paste YouTube Links, quickly turning them into text with AI. It also creates summaries, mind maps, and lets you export the text in different formats.",
     "formats": "Supports 11 Formats",
     "languages": "Supports 63 Languages",
     "exportCount": "Export in 6 Formats",
@@ -64,7 +63,6 @@
     "insightTitle": "AI workspace",
     "summaryEmpty": "Generate insights after a transcript is ready.",
     "mindMapEmpty": "Mind map nodes will appear here.",
-    "qaEmpty": "Key questions and answers will appear here.",
     "translationEmpty": "Translation will appear here.",
     "plansTitle": "Plans for every workload",
     "freePlan": "Free",

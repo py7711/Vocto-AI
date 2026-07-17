@@ -4,6 +4,8 @@ import {createElement} from "react";
 import {z} from "zod";
 import type {Prisma} from "@prisma/client";
 import {prisma} from "@/lib/prisma";
+import {transcriptText} from "@/lib/transcript-content";
+import {transcriptTranslations} from "@/lib/transcript-translations";
 import type {ExportOptions} from "@/lib/exporters";
 import {renderCsv, renderDocx, renderJson, renderMarkdown, renderSrt, renderTxt, renderVtt} from "@/lib/exporters";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
@@ -60,24 +62,19 @@ async function renderExport(input: {
   target?: string;
   options?: ExportOptions;
 }) {
-  const translation =
-    input.content !== "original"
-      ? await prisma.aIInsight.findFirst({
-          where: {
-            mediaTaskId: input.transcript.mediaTaskId,
-            type: "TRANSLATION",
-            ...(input.target ? {locale: input.target} : {})
-          },
-          orderBy: {updatedAt: "desc"}
-        })
-      : null;
-  const translated = translationText(translation?.content);
-  const original = input.transcript.editedText || input.transcript.plainText;
+  const translations = transcriptTranslations(input.transcript.translations);
+  const translation = input.content === "original"
+    ? null
+    : input.target
+      ? translations[input.target]
+      : Object.values(translations)[0];
+  const translated = translationText(translation);
+  const original = transcriptText(input.transcript);
   const exportTranscript =
     input.content === "translation"
-      ? {...input.transcript, plainText: translated || original, editedText: null, segments: [], words: null}
+      ? {...input.transcript, editedText: translated || original, segments: [], words: null}
       : input.content === "bilingual"
-        ? {...input.transcript, plainText: `${original}\n\n---\n\n${translated}`, editedText: null, segments: [], words: null}
+        ? {...input.transcript, editedText: `${original}\n\n---\n\n${translated}`, segments: [], words: null}
         : input.transcript;
 
   if (input.format === "pdf") {

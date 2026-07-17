@@ -34,7 +34,6 @@ export async function POST(_request: Request, {params}: {params: {taskId: string
     },
     include: {
       transcript: true,
-      insights: true,
       exports: true,
       folder: {select: {id: true, name: true, position: true}}
     }

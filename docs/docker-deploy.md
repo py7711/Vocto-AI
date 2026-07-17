@@ -17,7 +17,7 @@
 - 仓库代码在 `/data/votxt-worker/Vocto-AI`
 - 存在 `.env`（由 `.env.example` 复制并填好 TiDB、R2、Stripe、OAuth 等）
 - Let's Encrypt 证书仍在宿主机 `/etc/letsencrypt`（沿用现有 Certbot 产物）
-- YouTube cookies 放在宿主机：`/data/config/youtube-cookies.txt`
+- 独立 YouTube 下载/字幕工具需要 cookies 时放在宿主机：`/data/config/youtube-cookies.txt`；YouTube 转录不使用该文件。
 
 首次准备 cookies：
 
@@ -102,18 +102,9 @@ docker compose logs -f --tail=100
 ```bash
 docker compose exec votxt-web /opt/votxt/bin/yt-dlp --version   # 必须 2026.06.09
 docker compose exec votxt-web ffmpeg -version | head -1
-# YTDown 依赖镜像内 Playwright Chromium
-docker compose exec votxt-worker sh -c 'ls "$PLAYWRIGHT_BROWSERS_PATH"/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell'
 curl -I https://votxt.io/zh
 ls -la /logs/votxt/web-*.log /logs/votxt/worker-*.log
 ```
-
-YouTube 音频优先走 YTDown（`https://app.ytdown.to/zh31/youtube-to-mp3/`）：
-
-- 镜像构建阶段执行 `playwright install chromium`
-- Worker 配置 `shm_size: 1gb`，入口脚本启动 Xvfb
-- 同栈 `flaresolverr` 用于绕过 Cloudflare（`YTDOWN_FLARESOLVERR_URL=http://flaresolverr:8191`）
-
 
 ## 5. 按服务更新 / 重启
 

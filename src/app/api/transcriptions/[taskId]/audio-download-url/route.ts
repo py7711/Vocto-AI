@@ -2,13 +2,12 @@ import {NextResponse} from "next/server";
 import {prisma} from "@/lib/prisma";
 import {createDownloadUrl} from "@/lib/storage";
 import {assertTaskAccess, taskAccessErrorResponse} from "@/lib/tasks";
-import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl, resolveYoutubeAudioUrl} from "@/server/media/prepare";
+import {isGoogleDriveShareUrl, resolveGoogleDriveDownloadUrl} from "@/server/media/prepare";
 import {logApiError} from "@/lib/api-logger";
 
 async function resolveUrl(task: {objectKey: string | null; normalizedUrl: string | null; sourceUrl: string; sourceType: string}) {
   if (task.normalizedUrl) return task.normalizedUrl;
   if (task.objectKey) return createDownloadUrl(task.objectKey);
-  if (task.sourceType === "YOUTUBE") return resolveYoutubeAudioUrl(task.sourceUrl);
   if (isGoogleDriveShareUrl(task.sourceUrl)) return resolveGoogleDriveDownloadUrl(task.sourceUrl);
   return task.sourceUrl;
 }

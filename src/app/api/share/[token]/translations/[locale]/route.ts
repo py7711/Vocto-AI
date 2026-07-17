@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
-import {prisma} from "@/lib/prisma";
 import {getPublicShare} from "@/lib/share-links";
 import {logApiError} from "@/lib/api-logger";
+import {transcriptTranslations} from "@/lib/transcript-translations";
 
 export async function GET(_request: Request, {params}: {params: {token: string; locale: string}}) {
   try {
@@ -10,30 +10,13 @@ export async function GET(_request: Request, {params}: {params: {token: string; 
       return NextResponse.json({error: "分享链接不存在或已过期。"}, {status: 404});
     }
 
-    const translation = await prisma.aIInsight.findUnique({
-      where: {
-        mediaTaskId_type_locale: {
-          mediaTaskId: share.mediaTaskId,
-          type: "TRANSLATION",
-          locale: params.locale
-        }
-      },
-      select: {
-        id: true,
-        locale: true,
-        title: true,
-        content: true,
-        model: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const translation = transcriptTranslations(share.mediaTask.transcript?.translations)[params.locale];
 
     if (!translation) {
       return NextResponse.json({error: "翻译不存在。"}, {status: 404});
     }
 
-    return NextResponse.json(translation);
+    return NextResponse.json({locale: params.locale, content: translation});
   } catch (error) {
     logApiError(error, _request);
     const message = error instanceof Error ? error.message : "无法读取分享翻译。";

@@ -44,7 +44,6 @@ type CompatTaskPayload = z.infer<typeof sourceCreateTaskSchema>;
 
 type TaskWithRelations = MediaTask & {
   transcript?: Transcript | null;
-  insights?: Array<{type: string; content: Prisma.JsonValue; createdAt: Date; updatedAt: Date}>;
   folder?: {id: string; name: string; position: number} | null;
   shareLinks?: ShareLinkForOwner[];
 };
@@ -200,7 +199,6 @@ export async function listCompatTasks(request: Request) {
       take: pageSize,
       include: {
         transcript: true,
-        insights: {select: {type: true, content: true, createdAt: true, updatedAt: true}},
         folder: {select: {id: true, name: true, position: true}},
         shareLinks: {
           where: {enabled: true},

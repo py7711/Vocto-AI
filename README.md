@@ -1,6 +1,6 @@
 # Votxt
 
-Votxt 是一个基于 Next.js 的个人 AI 音视频转写工作区，专注于上传、公开视频链接、浏览器录音、转写、摘要、思维导图、问答、翻译、公开分享和多格式导出。
+Votxt 是一个基于 Next.js 的个人 AI 音视频转写工作区，专注于上传、公开视频链接、浏览器录音、转写、摘要、思维导图、翻译、公开分享和多格式导出。
 
 ## 技术栈
 
@@ -41,7 +41,7 @@ REDIS_URL="rediss://default:PASSWORD@HOST.upstash.io:6379"
 
 也支持使用 `UPSTASH_REDIS_URL` 或 Vercel KV 的 `KV_URL`。不要把 `UPSTASH_REDIS_REST_URL` 填给 BullMQ，REST API 不支持队列 Worker 需要的 Redis 连接和阻塞命令。
 
-4. 在构建或发布阶段安装仓库锁定的 `yt-dlp`。公开视频链接解析、视频元数据读取和 YouTube 音频流解析都依赖它：
+4. 在构建或发布阶段安装仓库锁定的 `yt-dlp`。TikTok、Instagram、Facebook、X、Vimeo 和其他非 YouTube 平台的媒体管线依赖它：
 
 ```bash
 YT_DLP_INSTALL_PATH="$PWD/vendor/yt-dlp" pnpm deps:yt-dlp
@@ -510,9 +510,9 @@ systemctl is-enabled pm2-root    # 应为 enabled
 
 服务器重启后，PM2 会自动 `resurrect` 恢复 `votxt-web` 和 `votxt-worker`。
 
-#### 7.5 yt-dlp 配置（YouTube 元数据必需）
+#### 7.5 yt-dlp 配置（非 YouTube 媒体管线）
 
-yt-dlp 用于 `/api/media/resolve` 读取 YouTube 标题、时长、缩略图，以及 Worker 解析音频流。
+yt-dlp 用于非 YouTube 平台的元数据读取和 Worker 媒体下载。YouTube 转录及其标题/缩略图预览不依赖 yt-dlp。
 
 ```bash
 # 构建/发布阶段安装仓库锁定版本，并校验官方 SHA-256
@@ -526,13 +526,9 @@ YT_DLP_INSTALL_PATH="/opt/votxt/bin/yt-dlp" pnpm deps:yt-dlp
 YT_DLP_PATH="/opt/votxt/bin/yt-dlp"
 ```
 
-YouTube 会先从当前视频页读取官方 WEB InnerTube 配置并尝试获取纯音频流，不维护
-ANDROID/TVHTML5 客户端组合；WEB 不可播放时尝试隔离的 IOS 兼容上下文。需要 signature/nsig
-处理、播放限制或 InnerTube 失败时降级到 yt-dlp。yt-dlp 仅使用本地 Node.js runtime，不强制客户端，也不启用
-`--remote-components`；其客户端选择和解密回退由锁定版本负责，生产任务不会在运行时从
-GitHub 拉取组件。应用首次调用会验证版本必须为 `2026.06.09`。
+yt-dlp 仅使用本地 Node.js runtime，不启用 `--remote-components`；生产任务不会在运行时从 GitHub 拉取组件。应用首次调用会验证版本必须为 `2026.06.09`。
 
-**若部分视频仍报 "Sign in to confirm you're not a bot"**，需导出 YouTube cookies 文件：
+独立的 YouTube 视频下载/字幕工具仍使用 yt-dlp。若这些工具报 `Sign in to confirm you're not a bot`，可为工具配置 YouTube cookies；YouTube 转录不读取该配置：
 
 1. 在本地浏览器登录 YouTube，用扩展（如 Get cookies.txt LOCALLY）导出 Netscape 格式 cookies。
 2. 上传到服务器，例如 `/data/votxt-worker/Vocto-AI/config/youtube-cookies.txt`。
@@ -776,196 +772,26 @@ pm2 status
 - [ ] kill 进程后 PM2 能在 10 秒内自动拉起
 - [ ] Web 端创建转写任务后能从排队进入完成状态（无 `Custom Id cannot contain :` 错误）
 
-## YouTube 音频提取技术说明
+## 平台链接转录架构
 
-本节说明 YouTube 链接转写的完整链路、本地与服务器环境差异、cookies 作用，以及推荐的生产架构。
+平台链接由 Worker 按真实域名路由：
 
-### 一、完整链路拆解
+```text
+YouTube URL -> Gemini 3.1 Flash-Lite 直接分析视频
+            -> 完整分段转录 + 发言人 + 时间戳
+            -> 用户所选类型摘要 + 摘要时间戳 + 思维导图
 
-YouTube 转录实际经过 4 步，每步依赖不同的 YouTube 接口：
-
-```
-用户提交 YouTube URL
-  → ① 元数据解析（title / thumbnail / duration）
-  → ② YTDown 生成 128K MP3 → 直接流式写入 R2
-  → ③ YTDown 失败时：yt-dlp 下载 bestaudio → FFmpeg 标准化（16kHz mono MP3）
-  → ④ 使用 R2 音频进行 STT 转写（Deepgram / AssemblyAI / Groq）
-```
-
-| 步骤 | 工具 | 访问的 YouTube 接口 | AWS 服务器现状 |
-| --- | --- | --- | --- |
-| 元数据 | yt-dlp → oEmbed 回退 | oEmbed API（轻量） | ✅ 可用 |
-| **首选音频下载** | **YTDown + Chromium** | YTDown 转换 worker | ⚠️ 遇 Turnstile 时立即降级 |
-| **降级音频下载** | **yt-dlp** | Innertube Player API → googlevideo.com | ❌ 易被 bot 拦截 |
-| 降级转码 | FFmpeg | 本地文件 | ✅ 可用（前提是 yt-dlp 成功） |
-| 转写 | 第三方 STT | 自有 API | ✅ 可用 |
-
-**FFmpeg 不能直接从 YouTube URL 提取音频。** 它只能处理本地文件或直链；真正从 YouTube 获取媒体流的是 yt-dlp，FFmpeg 仅负责后续标准化。
-
-代码中的关键路径（`src/server/media/prepare.ts`）：
-
-- **元数据**：`resolveMediaMetadata()` → yt-dlp 失败时对 YouTube 回退 oEmbed / Data API
-- **首选音频**：`ingestYtDownAudioToR2()` → 获取 128K MP3 后直接流式写入 R2
-- **降级音频**：YTDown 页面、Cloudflare、转换或 R2 传输失败后，`downloadRemoteMedia()` 使用固定版本 yt-dlp，再由 FFmpeg 标准化
-
-YTDown 的 MP3 已能被当前三家转写适配器直接消费，因此快速路径跳过重复 FFmpeg 转码；数据模型仍沿用 `NORMALIZED_AUDIO` 类型。yt-dlp 路径继续保证 16kHz 单声道 MP3。
-
-### 二、为什么本地不需要 cookies，服务器需要？
-
-差异在 **IP 信誉 + YouTube 反爬策略**，不在代码逻辑。
-
-| 因素 | 本地开发机 | AWS EC2 服务器 |
-| --- | --- | --- |
-| IP 类型 | 住宅 / 宽带 IP | 数据中心 IP（Amazon 段） |
-| YouTube 信任度 | 高 | 低，默认识别为 bot |
-| 浏览器会话 | 本机常已登录 YouTube | 无浏览器上下文 |
-| yt-dlp 行为 | 通常直接通过 Player API | 返回 `Sign in to confirm you're not a bot` |
-
-YouTube 对不同接口的保护强度不同：
-
-```
-保护强度：低 ──────────────────────────────→ 高
-
-oEmbed API          Data API v3        Innertube Player API      音频 CDN 直链
-(标题/缩略图)        (元数据/时长)       (yt-dlp 核心)              (googlevideo.com)
-  ✅ 服务器可用        ✅ 需 API Key        ❌ DC IP 常被拦              ❌ 需先过 Player API
+TikTok / Instagram / Facebook / X / Vimeo / 其他 URL
+            -> yt-dlp 下载 -> FFmpeg 标准化 -> R2 -> STT
+            -> AI 摘要 + 思维导图
+            -> 媒体管线失败时回退 Gemini 3.1 Flash-Lite
 ```
 
-本地「不用配 cookies 就能转录」，是因为住宅 IP 通过了 YouTube 的 bot 检测；**代码路径与服务器完全相同**。
+YouTube 不下载音频、不上传 R2，也没有音频提取或字幕降级通道。详情页直接嵌入 YouTube 播放器，转录段落和摘要时间戳共享同一定位信号，点击后跳转到对应时间并播放。`GEMINI_VIDEO_MODEL` 默认固定为 `gemini-3.1-flash-lite`。
 
-### 三、cookies 过期 = 转录失败？
+非 YouTube 平台继续使用 `YT_DLP_PATH`、`FFMPEG_PATH`、`FFPROBE_PATH` 和 R2 配置。其媒体准备成功后沿用 Deepgram、AssemblyAI、Groq 转写链路；只有媒体准备或转写链路失败时才使用 Gemini 直接视频分析。
 
-**不一定。** cookies 只影响 yt-dlp 降级路径；YTDown 首选路径成功时不需要 YouTube cookies。
-
-cookies 只作用于 yt-dlp 的 Innertube 请求。一旦失效：
-
-1. YTDown 先尝试生成并转存 MP3
-2. YTDown 遇到 Turnstile 或转换失败时进入 yt-dlp
-3. 只有 YTDown 与 yt-dlp 都失败时，Worker job 才进入 `FAILED`
-
-但需注意：
-
-- cookies 是**账号级会话凭证**，不是视频级；一份有效 cookies 可下载所有该账号能访问的公开视频
-- 通常数周至数月过期，需定期从浏览器重新导出
-- 代码中已有 `youtubeFallback` 字段和字幕下载函数，但 Worker **尚未实现**音频失败后的字幕降级
-
-### 四、技术方案对比
-
-#### 方案 A：服务器共享 cookies（当前方案）
-
-```
-服务器放一份 cookies → 所有任务共用 → 定期手动更新
-```
-
-| 优点 | 缺点 |
-| --- | --- |
-| 实现最简单 | cookies 会过期，需人工维护 |
-| 用户无感知 | 多 IP 并发可能触发风控 |
-| 与 yt-dlp 生态兼容 | 合规风险（借用个人账号） |
-
-适合 MVP 快速上线，不适合长期稳定生产的唯一依赖。
-
-#### 方案 B：住宅代理（Residential Proxy）
-
-```
-yt-dlp --proxy socks5://residential-proxy → 用住宅 IP 访问 Player API
-```
-
-| 优点 | 缺点 |
-| --- | --- |
-| 不依赖 cookies，稳定性高 | 按流量计费 |
-| 多 IP 轮换，抗封能力强 | 需集成代理池管理 |
-
-推荐作为生产主方案，cookies 作为备用。
-
-#### 方案 C：字幕优先降级（Caption-first Fallback）
-
-```
-yt-dlp 音频下载失败 → 下载 manual/auto 字幕 → 解析 SRT/VTT → 直接写入 Transcript
-```
-
-| 优点 | 缺点 |
-| --- | --- |
-| 不依赖音频，成本低 | 仅有字幕的视频可用 |
-| 速度极快 | 字幕质量不如 STT |
-| 无 bot 风险（部分场景） | 无发言人识别 |
-
-代码已有 `listYoutubeSubtitles` / `downloadYoutubeSubtitle`，`youtubeFallback` 字段已预留，Worker 尚未接入。
-
-#### 方案 D：YouTube Data API + Captions API（官方）
-
-| 优点 | 缺点 |
-| --- | --- |
-| 官方合规 | **不能下载音频/视频** |
-| 稳定 | 只能获取已发布字幕的视频 |
-| | 需 OAuth，无法批量处理任意公开视频 |
-
-只能作为字幕补充，不能替代音频提取。
-
-#### 方案 E：客户端提取（Browser-side）
-
-用户在浏览器或本地工具提取音频后上传。
-
-| 优点 | 缺点 |
-| --- | --- |
-| 完全绕过服务器 IP 限制 | 用户体验差 |
-| 无 cookies 维护 | 无法自动化 |
-
-#### 方案 F：专用提取节点（非 AWS）
-
-在非数据中心 VPS 或自建 Invidious 上专门负责 YouTube 提取，主服务器只做转写。
-
-| 优点 | 缺点 |
-| --- | --- |
-| IP 信誉好于 AWS | 仍可能被封锁 |
-| 架构解耦 | 多一套运维 |
-
-### 五、推荐生产架构
-
-对 SaaS 转录服务，建议 **分层降级**，而非单点依赖 cookies：
-
-```
-YouTube URL 进入 Worker
-  ↓
-YTDown 音频任务
-  ├─ 成功 → MP3 流式写入 R2 → STT 转写
-  └─ Turnstile / 转换失败 / R2 失败
-       └─ yt-dlp 音频下载 → FFmpeg → R2
-            ├─ 成功 → STT 转写
-            ├─ 视频有字幕 → 字幕降级转写（待完善）
-            └─ 均失败 → 提示用户上传音频文件
-```
-
-#### 短期（1–2 天）
-
-1. 上传 cookies 到 `config/youtube-cookies.txt`，恢复 Worker 基本功能
-2. 配置 `GOOGLE_API_KEY` 获取视频时长（元数据更完整）
-3. 添加 cookies 健康检查：`node scripts/check-yt-dlp.mjs`，失败时告警
-
-#### 中期（1–2 周）
-
-4. 实现 `youtubeFallback` 降级：音频失败 → 自动尝试字幕转写
-5. 集成住宅代理，`yt-dlp --proxy` 作为 cookies 失效时的备用
-6. cookies 自动轮换监控
-
-#### 长期
-
-7. 独立 YouTube 提取微服务（非 AWS IP + 代理池）
-8. 按视频类型智能路由：有字幕走字幕路径，无字幕走音频 + STT
-
-### 六、常见问题直接回答
-
-**Q1：cookies 过期就会转录失败？**
-
-不一定。YTDown 首选路径成功时不依赖 YouTube cookies；只有进入 yt-dlp 降级且服务器 IP 被拦截时，cookies 失效才会导致下载失败。
-
-**Q2：为什么本地不需要 cookies？**
-
-本地住宅 IP 能通过 YouTube bot 检测。代码路径相同，差异在网络层。
-
-**Q3：技术上怎么彻底解决？**
-
-YouTube **不提供官方音频下载 API**，Cloudflare Turnstile 也不能由 Worker 自动绕过。当前实现采用 **YTDown 尽力尝试 + challenge 熔断 + yt-dlp 降级 + R2 幂等存储**；需要严格 SLA 时仍应使用获得授权的媒体来源或让用户上传原文件。
+Cloudflare Turnstile 或其他交互式验证不会被自动破解或绕过。YouTube 不依赖服务器 IP 获取音频，因此不会被第三方转换站点的 Cloudflare 验证阻塞。
 
 ## 维护检查
 
@@ -990,8 +816,8 @@ pnpm run unused:check
 - 仪表盘资产管理支持转写和翻译双视图。`GET /api/tasks` 会返回当前个人账号的历史任务，翻译资产来自 `AIInsight.TRANSLATION`。
 - 产品定位为个人用户使用，不包含团队工作区、成员管理、API Key、Webhook 和审计日志等历史高级管理能力。
 - 转写结果支持创建公开分享链接。分享令牌明文只存在 URL 中，数据库只保存哈希，并提供公开只读页面和公开导出接口。
-- `src/server/media/prepare.ts` 包含 YTDown 首选音频转存、yt-dlp 降级、超时控制、媒体 URL 标准化、Google Drive 公开链接解析、YouTube 元数据（oEmbed 回退）和字幕读取能力。YTDown 成功时直接把 MP3 写入 R2；降级路径才经 FFmpeg 标准化。
-- YouTube 任务在 AWS 数据中心 IP 上常被识别为 bot，需配置 `config/youtube-cookies.txt` 才能稳定下载音频；元数据解析已支持 oEmbed 回退，不依赖 cookies。详见上文「YouTube 音频提取技术说明」。
+- `src/server/media/prepare.ts` 负责非 YouTube 平台的 yt-dlp 下载、FFmpeg 标准化、R2 存储、媒体 URL 规范化和 Google Drive 公开链接解析。
+- YouTube 任务由 Gemini 直接分析公开视频 URL，不下载音频、不写入 R2，也不依赖服务器 IP 或 cookies。
 - AssemblyAI 的集成使用官方 Node SDK，并支持 `speech_models`（语音模型）、`speaker_labels`（发言人标签）、语言检测和服务器端密钥处理。
 
 ## 文档

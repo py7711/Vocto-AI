@@ -8,7 +8,7 @@ const sourceSingleTextSchema = z.object({
   transcriptionFileId: z.string().optional(),
   fileId: z.string().optional(),
   taskId: z.string().optional(),
-  taskType: z.enum(["summary", "mind_map", "qa"]),
+  taskType: z.enum(["summary", "mind_map"]),
   locale: z.string().optional(),
   summaryLanguageCode: z.string().optional(),
   summaryTemplate: z.enum(summaryTemplateInputValues).optional(),

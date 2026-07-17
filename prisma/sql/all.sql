@@ -380,31 +380,19 @@ CREATE TABLE `UsageLedger` (
 CREATE TABLE `Transcript` (
   `id` VARCHAR(32) NOT NULL COMMENT '转写文本 ID，应用层使用 cuid 生成',
   `mediaTaskId` VARCHAR(32) NOT NULL COMMENT '关联转写任务 ID',
-  `plainText` LONGTEXT NOT NULL COMMENT '完整纯文本转写结果',
+  `summary` JSON NULL COMMENT '当前摘要 JSON，未开启摘要生成时为空',
+  `mindMap` JSON NULL COMMENT '当前思维导图 JSON',
+  `translations` JSON NULL COMMENT '按目标语言代码存储的翻译 JSON 对象',
+  `summaryGenerationCount` INT NOT NULL DEFAULT 0 COMMENT '摘要累计生成次数',
   `segments` JSON NOT NULL COMMENT '带时间戳和发言人标签的段落 JSON',
   `words` JSON NULL COMMENT '词级时间戳与置信度 JSON',
-  `editedText` LONGTEXT NULL COMMENT '用户编辑后的文本',
+  `editedText` LONGTEXT NOT NULL COMMENT '完整转写文本，可由用户编辑',
   `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '转写结果创建时间',
   `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '转写结果更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Transcript_mediaTaskId_key` (`mediaTaskId`),
   CONSTRAINT `Transcript_mediaTaskId_fkey` FOREIGN KEY (`mediaTaskId`) REFERENCES `MediaTask` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='转写结果表，保存全文、分段、词级时间戳和用户编辑稿';
-
-CREATE TABLE `AIInsight` (
-  `id` VARCHAR(32) NOT NULL COMMENT 'AI 洞察记录 ID，应用层使用 cuid 生成',
-  `mediaTaskId` VARCHAR(32) NOT NULL COMMENT '关联转写任务 ID',
-  `type` ENUM('SUMMARY', 'MIND_MAP', 'QA', 'TRANSLATION') NOT NULL COMMENT '洞察类型：总结、思维导图、问答或翻译',
-  `locale` VARCHAR(16) NOT NULL DEFAULT 'en' COMMENT '洞察生成语言',
-  `title` VARCHAR(255) NULL COMMENT '洞察标题',
-  `content` JSON NOT NULL COMMENT '洞察结构化内容 JSON',
-  `model` VARCHAR(128) NULL COMMENT '生成洞察使用的模型',
-  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '洞察创建时间',
-  `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '洞察更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `AIInsight_mediaTaskId_type_locale_key` (`mediaTaskId`, `type`, `locale`),
-  CONSTRAINT `AIInsight_mediaTaskId_fkey` FOREIGN KEY (`mediaTaskId`) REFERENCES `MediaTask` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI 洞察表，保存摘要、思维导图、问答和翻译结果';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='转写结果表，保存完整正文、摘要、思维导图、翻译、分段和词级时间戳';
 
 CREATE TABLE `TranscriptRating` (
   `id` VARCHAR(32) NOT NULL COMMENT '转写质量评分 ID，应用层使用 cuid 生成',
@@ -504,54 +492,26 @@ ON DUPLICATE KEY UPDATE
   `progress` = VALUES(`progress`),
   `updatedAt` = NOW();
 
-INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `editedText`, `segments`, `words`, `createdAt`, `updatedAt`)
 VALUES (
   @demo_transcript_id,
   @demo_task_id,
-  '发言人 1：Votxt 可以快速把长录音转成可用文字。\n发言人 2：最重要的输出是一份干净的转写稿，以及总结、思维导图、问答、翻译和字幕文件。',
+  '发言人 1：Votxt 可以快速把长录音转成可用文字。\n发言人 2：最重要的输出是一份干净的转写稿，以及总结、思维导图、翻译和字幕文件。',
   JSON_ARRAY(
     JSON_OBJECT('start', 0, 'end', 8.4, 'speaker', '发言人 1', 'text', 'Votxt 可以快速把长录音转成可用文字。'),
-    JSON_OBJECT('start', 8.5, 'end', 18.9, 'speaker', '发言人 2', 'text', '最重要的输出是一份干净的转写稿，以及总结、思维导图、问答、翻译和字幕文件。')
+    JSON_OBJECT('start', 8.5, 'end', 18.9, 'speaker', '发言人 2', 'text', '最重要的输出是一份干净的转写稿，以及总结、思维导图、翻译和字幕文件。')
   ),
   JSON_ARRAY(
     JSON_OBJECT('start', 0, 'end', 0.4, 'word', 'Votxt', 'confidence', 0.99, 'speaker', '发言人 1'),
     JSON_OBJECT('start', 0.5, 'end', 1.0, 'word', '可以', 'confidence', 0.98, 'speaker', '发言人 1')
   ),
-  NULL,
   NOW(),
   NOW()
 )
 ON DUPLICATE KEY UPDATE
-  `plainText` = VALUES(`plainText`),
+  `editedText` = VALUES(`editedText`),
   `segments` = VALUES(`segments`),
   `words` = VALUES(`words`),
-  `updatedAt` = NOW();
-
-INSERT INTO `AIInsight` (`id`, `mediaTaskId`, `type`, `locale`, `title`, `content`, `model`, `createdAt`, `updatedAt`)
-VALUES
-  (
-    'ai_votxt_demo_summary', @demo_task_id, 'SUMMARY', 'zh', '总结',
-    JSON_OBJECT('overview', '这段对话把 Votxt 定义为快速的媒体转文字工作台。', 'bullets', JSON_ARRAY('干净的转写稿是核心输出。', 'AI 洞察让转写稿更容易复用。', '字幕和文档导出是必要能力。')),
-    'seed', NOW(), NOW()
-  ),
-  (
-    'ai_votxt_demo_mindmap', @demo_task_id, 'MIND_MAP', 'zh', '思维导图',
-    JSON_OBJECT('label', 'Votxt', 'children', JSON_ARRAY(JSON_OBJECT('label', '转写稿', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'AI 洞察', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))),
-    'seed', NOW(), NOW()
-  ),
-  (
-    'ai_votxt_demo_qa', @demo_task_id, 'QA', 'zh', '问答',
-    JSON_ARRAY(JSON_OBJECT('question', 'Votxt 用来做什么？', 'answer', '它把音频、视频和 YouTube 链接转换成可复用的转写资产。')),
-    'seed', NOW(), NOW()
-  ),
-  (
-    'ai_votxt_demo_translation', @demo_task_id, 'TRANSLATION', 'zh', '翻译',
-    JSON_OBJECT('target', 'zh', 'text', '发言人 1：Votxt 可以快速把长录音转成可用文字。'),
-    'seed', NOW(), NOW()
-  )
-ON DUPLICATE KEY UPDATE
-  `content` = VALUES(`content`),
-  `model` = VALUES(`model`),
   `updatedAt` = NOW();
 
 INSERT INTO `ExportAsset` (`id`, `mediaTaskId`, `format`, `objectKey`, `url`, `createdAt`)
@@ -646,7 +606,7 @@ SET `enabled` = 0
 WHERE `mediaTaskId` = 'cmqyzscrp00021lvpt08gi2oo'
   AND `enabled` = 1;
 
-INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `editedText`, `segments`, `words`, `createdAt`, `updatedAt`)
 VALUES (
   'tr_votxt_qa_intro_target',
   'cmqyzscrp00021lvpt08gi2oo',
@@ -703,17 +663,14 @@ VALUES (
     JSON_OBJECT('start', 1108, 'end', 1129, 'speaker', NULL, 'text', 'Thank you all for listening today. Thank you all. It was a pleasure. Stay safe and keep practicing. We will be back soon with another fun episode. Goodbye for now. Bye everyone. Bye Emily.')
   ),
   JSON_ARRAY(),
-  NULL,
   NOW(),
   NOW()
 )
 ON DUPLICATE KEY UPDATE
-  `plainText` = VALUES(`plainText`),
-  `segments` = VALUES(`segments`),
   `editedText` = VALUES(`editedText`),
+  `segments` = VALUES(`segments`),
   `updatedAt` = NOW();
-
-INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `editedText`, `segments`, `words`, `createdAt`, `updatedAt`)
 VALUES (
   'tr_votxt_qa_youtube_done',
   'task_votxt_qa_youtube_done',
@@ -723,17 +680,15 @@ VALUES (
     JSON_OBJECT('start', 6.3, 'end', 14.4, 'speaker', '发言人 1', 'text', '它会排队转写、展示进度并导出字幕。')
   ),
   JSON_ARRAY(),
-  '这个发布演示说明 Votxt 如何接收链接、排队转写、展示进度并导出字幕。',
   NOW(),
   NOW()
 )
 ON DUPLICATE KEY UPDATE
-  `plainText` = VALUES(`plainText`),
-  `segments` = VALUES(`segments`),
   `editedText` = VALUES(`editedText`),
+  `segments` = VALUES(`segments`),
   `updatedAt` = NOW();
 
-INSERT INTO `Transcript` (`id`, `mediaTaskId`, `plainText`, `segments`, `words`, `editedText`, `createdAt`, `updatedAt`)
+INSERT INTO `Transcript` (`id`, `mediaTaskId`, `editedText`, `segments`, `words`, `createdAt`, `updatedAt`)
 VALUES (
   'tr_votxt_qa_creator_done',
   'task_votxt_qa_creator_done',
@@ -743,26 +698,10 @@ VALUES (
     JSON_OBJECT('start', 12.5, 'end', 30.2, 'speaker', '发言人 1', 'text', '每一次复盘都会让下一条内容更清楚，也更接近真实表达。')
   ),
   JSON_ARRAY(),
-  '做自媒体六年之后，我更相信持续输出、复盘和真实表达比追热点更重要。',
   NOW(),
   NOW()
 )
 ON DUPLICATE KEY UPDATE
-  `plainText` = VALUES(`plainText`),
-  `segments` = VALUES(`segments`),
   `editedText` = VALUES(`editedText`),
-  `updatedAt` = NOW();
-
-INSERT INTO `AIInsight` (`id`, `mediaTaskId`, `type`, `locale`, `title`, `content`, `model`, `createdAt`, `updatedAt`)
-VALUES
-  ('ai_votxt_qa_intro_summary', 'cmqyzscrp00021lvpt08gi2oo', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '本期节目围绕“请介绍一下你自己”这一常见问题展开，旨在帮助听众轻松有趣地掌握回答技巧。通过两位主持人保罗（教师）和艾米丽（学生）的对话，展示了如何分享个人信息，并强调这是一个友好的交流开端。', 'bullets', JSON_ARRAY(JSON_OBJECT('text', '“请介绍一下你自己”是人们在新环境（如新班级、新工作、认识新朋友时）常遇到的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 1030, 'end', 1130))), JSON_OBJECT('text', '主持人保罗（28岁，来自加拿大，教师，喜欢狗、披萨和蓝色）和艾米丽（25岁，来自美国，学生，喜欢猫、意面、绿色、艺术和绘画）通过对话分享了个人信息。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 174, 'end', 237))), JSON_OBJECT('text', '分享内容涵盖姓名、籍贯、居住地、年龄、职业、家庭、宠物、喜好（食物、颜色、动物、爱好）及不喜好（食物、活动）。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138), JSON_OBJECT('start', 580, 'end', 665))), JSON_OBJECT('text', '建议回答时保持简洁、清晰、友好，并根据具体情境选择分享内容，例如只说姓名和职业，或姓名和爱好。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '“介绍你自己”被视为一个分享个人信息、开启对话的邀请，而非令人畏惧的问题。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 380)))), 'insights', JSON_ARRAY(JSON_OBJECT('text', '回答“请介绍一下你自己”是建立联系的机会，而非考试。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 285, 'end', 336), JSON_OBJECT('start', 335, 'end', 583))), JSON_OBJECT('text', '可以通过涵盖姓名、职业、爱好、喜好/不喜好等关键方面来构建回答。', 'timestamps', JSON_ARRAY()), JSON_OBJECT('text', '根据所处情境调整回答的内容和侧重点。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 92, 'end', 138))), JSON_OBJECT('text', '保持友好和简洁是关键，微笑也很重要。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 438), JSON_OBJECT('start', 665, 'end', 862))), JSON_OBJECT('text', '这是一个友好的邀请，让你有机会分享自己，并开启新的对话和友谊。', 'timestamps', JSON_ARRAY(JSON_OBJECT('start', 233, 'end', 380))))), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_intro_mindmap', 'cmqyzscrp00021lvpt08gi2oo', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', 'Tell me about yourself', 'children', JSON_ARRAY(JSON_OBJECT('label', 'Basic info', 'children', JSON_ARRAY(JSON_OBJECT('label', 'name', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'where from', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'age', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Life details', 'children', JSON_ARRAY(JSON_OBJECT('label', 'job or studies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'family', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'pets', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Personality', 'children', JSON_ARRAY(JSON_OBJECT('label', 'favorite food and color', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'hobbies', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'likes and dislikes', 'children', JSON_ARRAY()))), JSON_OBJECT('label', 'Advice', 'children', JSON_ARRAY(JSON_OBJECT('label', 'keep it simple', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'be friendly', 'children', JSON_ARRAY()), JSON_OBJECT('label', 'adapt to the situation', 'children', JSON_ARRAY()))))), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_summary', 'task_votxt_qa_youtube_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '演示说明了 Votxt 的链接转写流程。', 'bullets', JSON_ARRAY('粘贴链接', '队列处理', '导出字幕')), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_mindmap', 'task_votxt_qa_youtube_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '链接转写', 'children', JSON_ARRAY(JSON_OBJECT('label', '输入', 'children', JSON_ARRAY()), JSON_OBJECT('label', '处理', 'children', JSON_ARRAY()), JSON_OBJECT('label', '导出', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_qa', 'task_votxt_qa_youtube_done', 'QA', 'zh', '问答', JSON_ARRAY(JSON_OBJECT('question', '这个演示说明了什么？', 'answer', '说明 Votxt 如何从链接生成转写和字幕。')), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_translation', 'task_votxt_qa_youtube_done', 'TRANSLATION', 'zh', '翻译', JSON_OBJECT('target', 'zh', 'text', '该演示说明 Votxt 接收链接、排队转写、显示进度并导出字幕。'), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_creator_summary', 'task_votxt_qa_creator_done', 'SUMMARY', 'zh', '总结', JSON_OBJECT('overview', '作者回顾了长期做自媒体的经验，强调持续输出和真实表达。', 'bullets', JSON_ARRAY('不要只追热点', '坚持复盘内容', '保持真实表达')), 'seed', NOW(), NOW()),
-  ('ai_votxt_qa_creator_mindmap', 'task_votxt_qa_creator_done', 'MIND_MAP', 'zh', '思维导图', JSON_OBJECT('label', '自媒体经验', 'children', JSON_ARRAY(JSON_OBJECT('label', '持续输出', 'children', JSON_ARRAY()), JSON_OBJECT('label', '复盘', 'children', JSON_ARRAY()), JSON_OBJECT('label', '真实表达', 'children', JSON_ARRAY()))), 'seed', NOW(), NOW())
-ON DUPLICATE KEY UPDATE
-  `content` = VALUES(`content`),
+  `segments` = VALUES(`segments`),
   `updatedAt` = NOW();

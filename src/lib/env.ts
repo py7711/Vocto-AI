@@ -25,6 +25,8 @@ const envSchema = z.object({
   DEEPSEEK_FLASH_MODEL: z.string().default("deepseek-v4-flash"),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
+  GEMINI_VIDEO_MODEL: z.string().default("gemini-3.1-flash-lite"),
+  GEMINI_VIDEO_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(600),
   DEEPL_API_KEY: z.string().optional(),
   DEEPL_API_URL: z.string().url().default("https://api-free.deepl.com/v2/translate"),
   STRIPE_SECRET_KEY: z.string().optional(),
@@ -62,19 +64,9 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   YT_DLP_PATH: z.string().optional(),
-  // 可选：Netscape 格式的 YouTube cookies 文件，用于绕过数据中心 IP 的 bot 检测。
+  YT_DLP_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(300),
+  // 可选：仅供独立 YouTube 下载/字幕工具使用；YouTube 转录不读取此配置。
   YT_DLP_COOKIES_PATH: z.string().optional(),
-  YTDOWN_ENABLED: z
-    .string()
-    .optional()
-    .transform((value) => value === undefined || value === "true"),
-  YTDOWN_URL: z.string().url().default("https://app.ytdown.to/zh31/youtube-to-mp3/"),
-  YTDOWN_BROWSER_EXECUTABLE_PATH: z.string().optional(),
-  // 可选：FlareSolverr 基址，用于绕过 YTDown 站点的 Cloudflare。例如 http://flaresolverr:8191
-  YTDOWN_FLARESOLVERR_URL: z.string().url().optional(),
-  YTDOWN_RESOLVE_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
-  YTDOWN_POLL_TIMEOUT_MS: z.coerce.number().int().positive().default(90_000),
-  YTDOWN_CHALLENGE_COOLDOWN_MS: z.coerce.number().int().positive().default(10 * 60_000),
   FFMPEG_PATH: z.string().optional(),
   FFPROBE_PATH: z.string().optional(),
   AUDIO_CHUNK_TARGET_SECONDS: z.coerce.number().int().positive().default(900),

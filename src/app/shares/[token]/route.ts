@@ -3,12 +3,8 @@ import {getPublicShare} from "@/lib/share-links";
 import {logApiError} from "@/lib/api-logger";
 
 function serializeShare(share: NonNullable<Awaited<ReturnType<typeof getPublicShare>>>) {
-  // 旧分享详情接口返回 transcription/fileId/transcriptionFileId 等历史字段；
-  // 新分享页直接读取规范公开接口，但旧客户端仍依赖这个响应形状。
   const task = share.mediaTask;
   const transcript = task.transcript;
-  const summary = task.insights.find((item) => item.type === "SUMMARY") ?? null;
-  const translations = task.insights.filter((item) => item.type === "TRANSLATION");
 
   return {
     id: share.id,
@@ -27,8 +23,8 @@ function serializeShare(share: NonNullable<Awaited<ReturnType<typeof getPublicSh
       filename: task.originalName,
       languageCode: task.language,
       transcript,
-      summary,
-      translations
+      summary: transcript?.summary ?? null,
+      translations: transcript?.translations ?? null
     }
   };
 }

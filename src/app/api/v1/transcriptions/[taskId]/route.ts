@@ -10,7 +10,6 @@ export async function GET(request: Request, {params}: {params: {taskId: string}}
       where: {id: params.taskId},
       include: {
         transcript: true,
-        insights: true,
         exports: true
       }
     });
